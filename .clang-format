@@ -1,0 +1,16 @@
+﻿---
+ColumnLimit: '0'
+AllowShortCaseLabelsOnASingleLine: 'true'
+AllowShortIfStatementsOnASingleLine: 'true'
+AllowShortLoopsOnASingleLine: 'true'
+AccessModifierOffset: '-4'
+IndentCaseLabels: 'false'
+IndentWidth: '4'
+Standard: Cpp11
+AlignOperands: 'true'
+AlignConsecutiveAssignments: 'true'
+AlignEscapedNewlinesLeft: 'true'
+AlignConsecutiveDeclarations: 'true'
+AlignAfterOpenBracket: 'true'
+BinPackParameters: 'true'
+...
