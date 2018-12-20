@@ -7,10 +7,6 @@ workspace "workspace"
 
     location "premake"
     
-    filter {"system:windows"}
-        characterset "MBCS"
-    filter {}
-
     -- Set up platforms 
     filter {"platforms:x32"}
         architecture "x32"
@@ -25,9 +21,13 @@ workspace "workspace"
     -- up to date standards (2a)
     filter {"system:windows"}
         toolset "msc-v141"
+        characterset "MBCS"
+
+        defines {"ARGONX_WIN32"}
     filter {"system:linux"}
         toolset "clang" -- prefer clang over gcc
         -- buildoptions "-std=c++17"
+        defines {"ARGONX_UNIX"}
     filter {}
 
     -- Setup configurations
@@ -51,22 +51,22 @@ workspace "workspace"
         
     filter {}
     
-    project "project"
+    project "client"
         kind "ConsoleApp"
         language "C++"
         targetdir "bin/%{cfg.buildcfg}"
         
         -- Windows and linux use different precompiled header path locations
         filter {"system:linux"}
-            pchheader "src/precompiled.hh"
+            pchheader "client/precompiled.hh"
         filter {"system:windows"}
             pchheader "precompiled.hh"
         filter {}
         
-        pchsource "src/precompiled.cc"
+        pchsource "client/precompiled.cc"
         
-        includedirs { "src" }
-        files { "src/**.hh", "src/**.cc" }
+        includedirs { "client", "protogen", "common" }
+        files { "client/**.hh", "client/**.cc", "common/**.cc" }
 
         -- For moving the compile commands into the root directory of the project
         -- so that autocomplete tools can see them (cquery...)

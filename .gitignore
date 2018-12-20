@@ -616,3 +616,5 @@ core
 compile_commands.json
 .cquery_cached_index
 
+protogen
+.vscode/

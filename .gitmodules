@@ -1,3 +1,6 @@
 [submodule "premake_modules"]
 	path = premake_modules
 	url = https://github.com/josh33901/premake-export-compile-commands
+[submodule "external/SteamKit"]
+	path = external/SteamKit
+	url = https://github.com/SteamRE/SteamKit
