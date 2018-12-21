@@ -1,22 +1,14 @@
 #include "precompiled.hh"
 
-#include "socket.hh"
-
-const char *MAGIC      = "VT01";
-uint32_t    PROTO_MASK = 0x80000000;
-
-class SteamClient {
-public:
-    SteamClient(const char *addr) {
-    }
-};
+#include "steamclient.hh"
 
 int main(const int argCount, const char **argStrings) {
+    SteamClient sClient;
 
-    Socket          s("162.254.197.181", "27017");
-    std::vector<u8> data;
-    s.Read(data, 8);
+    Socket    s("162.254.197.181", "27017");
+    TcpHeader h;
+    s.ReadStructure(h);
 
-    printf("Read %s\n", &*(data.begin() + 4));
+    printf("Read %s\n", std::string(h.magic, 4).c_str());
     return 0;
 }

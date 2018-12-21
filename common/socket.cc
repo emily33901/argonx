@@ -1,6 +1,6 @@
 #include "precompiled.hh"
 
-#ifdef WIN32
+#ifdef ARGONX_WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -77,8 +77,7 @@ Socket::Socket(const std::string &address, const std::string &port) {
 
 u8 Socket::ReadByte() {
     char ret;
-
-    auto _ = recv(socket, &ret, 1, 0);
+    recv(socket, &ret, 1, 0);
 
     return ret;
 }
@@ -88,5 +87,11 @@ void Socket::Read(std::vector<u8> &output, unsigned count) {
 
     for (auto &x : output) {
         x = ReadByte();
+    }
+}
+
+void Socket::ReadUnsafe(u8 *output, unsigned count) {
+    for (unsigned i = 0; i < count; i++) {
+        output[i] = ReadByte();
     }
 }
