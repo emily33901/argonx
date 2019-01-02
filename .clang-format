@@ -6,6 +6,7 @@ AllowShortLoopsOnASingleLine: 'true'
 AccessModifierOffset: '-4'
 IndentCaseLabels: 'false'
 IndentWidth: '4'
+UseTab: Never
 Standard: Cpp11
 AlignOperands: 'true'
 AlignConsecutiveAssignments: 'true'

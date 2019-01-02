@@ -1,6 +1,6 @@
 #include "precompiled.hh"
 
-#ifdef ARGONX_WIN32
+#ifdef ARGONX_WIN
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -14,11 +14,19 @@
 #include <ws2tcpip.h>
 
 #pragma comment(lib, "Ws2_32.lib")
+#elif defined(ARGONX_UNIX)
+#include <cstdlib>
+#include <netdb.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #endif
 
 #include "socket.hh"
 
 Socket::Socket(const std::string &address, const std::string &port) {
+
+#ifdef ARGONX_WIN
     {
         WSADATA wsaData;
         auto    result = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -28,10 +36,12 @@ Socket::Socket(const std::string &address, const std::string &port) {
             return;
         }
     }
+#endif
 
     addrinfo hints, *addr = nullptr;
 
-    ZeroMemory(&hints, sizeof(hints));
+    memset(&hints, 0, sizeof(hints));
+
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
@@ -40,7 +50,7 @@ Socket::Socket(const std::string &address, const std::string &port) {
         auto result = getaddrinfo(address.c_str(), port.c_str(), &hints, &addr);
         if (result != 0) {
             printf("getaddrinfo failed: %d\n", result);
-            WSACleanup();
+
             valid = false;
             return;
         }
@@ -55,8 +65,8 @@ Socket::Socket(const std::string &address, const std::string &port) {
 
         // Connect to server.
         auto result = connect(socket, addr->ai_addr, (int)addr->ai_addrlen);
-        if (result == SOCKET_ERROR) {
-            closesocket(socket);
+        if (result == INVALID_SOCKET) {
+            // closesocket(socket);
             socket = INVALID_SOCKET;
         }
 
@@ -69,7 +79,6 @@ Socket::Socket(const std::string &address, const std::string &port) {
 
         if (socket == INVALID_SOCKET) {
             printf("Unable to connect to server!\n");
-            WSACleanup();
             return;
         }
     }
@@ -77,7 +86,9 @@ Socket::Socket(const std::string &address, const std::string &port) {
 
 u8 Socket::ReadByte() {
     char ret;
-    recv(socket, &ret, 1, 0);
+
+    while (auto read = recv(socket, &ret, 1, 0) != 1) {
+    }
 
     return ret;
 }
@@ -93,5 +104,25 @@ void Socket::Read(std::vector<u8> &output, unsigned count) {
 void Socket::ReadUnsafe(u8 *output, unsigned count) {
     for (unsigned i = 0; i < count; i++) {
         output[i] = ReadByte();
+    }
+}
+
+void Socket::Write(const std::vector<u8> &bytes) {
+    auto length    = bytes.size();
+    auto s         = bytes.data();
+    auto bytesSent = 0;
+
+    while (length > 0) {
+        bytesSent = send(socket, s, length, 0);
+
+        if (bytesSent == 0)
+            break; //socket probably closed
+        else if (bytesSent < 0)
+            break; //handle errors appropriately
+
+        printf("Sent %d bytes %d remaining\n", bytesSent, length - bytesSent);
+
+        s += bytesSent;
+        length -= bytesSent;
     }
 }

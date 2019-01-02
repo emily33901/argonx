@@ -2,17 +2,25 @@
 
 #include "types.hh"
 
+#include <array>
 #include <string>
 #include <utility>
 #include <vector>
 
-#ifdef ARGONX_WIN32
+#ifdef ARGONX_WIN
+
 #ifndef INVALID_SOCKET
 typedef unsigned long long SocketInternal;
 #define INVALID_SOCKET (SocketInternal)(~0)
 #else
 typedef SOCKET SocketInternal;
 #endif
+
+#elif defined(ARGONX_UNIX)
+
+typedef int SocketInternal;
+#define INVALID_SOCKET (SocketInternal)(~0)
+
 #endif
 
 class Socket {
@@ -40,4 +48,6 @@ public:
     void ReadStructure(T &into) {
         ReadUnsafe(reinterpret_cast<u8 *>(&into), sizeof(T) * sizeof(u8));
     }
+
+    void Write(const std::vector<u8> &bytes);
 };

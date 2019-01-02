@@ -1,9 +1,14 @@
 #pragma once
 
+#include <optional>
 #include <utility>
 
+#include "buffer.hh"
 #include "socket.hh"
 
+#include "emsg.hh"
+
+namespace Argonx {
 class TcpHeader {
 public:
     u32 packetSize;
@@ -11,15 +16,31 @@ public:
 
     bool Valid() {
         // 'VT01'
-        // 1448357937
-        return magic == 1448357937;
+        // 825250902
+        return magic == 825250902;
     }
 };
 
 class TcpPacket {
 public:
-    TcpHeader       header;
-    std::vector<u8> body;
+    TcpHeader header;
+    Buffer    body;
+    // std::vector<u8> body;
+};
+
+class MsgBuilder {
+    bool isProto = false;
+
+    Buffer body;
+
+public:
+    u32 msg;
+
+    MsgBuilder(EMsg t) {
+        msg = (u32)t;
+    }
+    void    setProto() { isProto = true; }
+    Buffer &getBody() { return body; }
 };
 
 class SteamClient {
@@ -33,18 +54,16 @@ class SteamClient {
 
     static std::pair<const std::string, const std::string> FindServer();
 
+    void HandleEncryptionHandshake(struct MsgHdr &h, TcpPacket &p);
+
 public:
     SteamClient() : s(SteamClient::FindServer()) {
     }
 
-    bool ReadPacket() {
-        TcpPacket p;
-        s.ReadStructure(p.header);
+    std::optional<TcpPacket> ReadPacket();
 
-        if (!p.header.Valid()) return false;
+    bool ProcessPacket(TcpPacket &p);
 
-        s.Read(p.body, p.header.packetSize);
-
-        return true;
-    }
+    void WriteMessage(MsgBuilder &b);
 };
+} // namespace Argonx

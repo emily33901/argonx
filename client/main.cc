@@ -3,12 +3,21 @@
 #include "steamclient.hh"
 
 int main(const int argCount, const char **argStrings) {
-    SteamClient sClient;
+    Argonx::SteamClient sClient;
 
-    Socket    s("162.254.197.181", "27017");
-    TcpHeader h;
-    s.ReadStructure(h);
+    auto i = 0;
+    while (i < 4) {
+        auto p = sClient.ReadPacket();
 
-    printf("Read %s\n", std::string(h.magic, 4).c_str());
+        if (p.has_value()) {
+            sClient.ProcessPacket(p.value());
+        }
+
+        ++i;
+    }
+
+    // sClient.ProcessPacket(p);
+
+    // printf("Read %s\n", std::string(h.magic, 4).c_str());
     return 0;
 }

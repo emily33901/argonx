@@ -23,7 +23,7 @@ workspace "workspace"
         toolset "msc-v141"
         characterset "MBCS"
 
-        defines {"ARGONX_WIN32"}
+        defines {"ARGONX_WIN"}
     filter {"system:linux"}
         toolset "clang" -- prefer clang over gcc
         -- buildoptions "-std=c++17"
@@ -40,7 +40,7 @@ workspace "workspace"
             symbols "Full" -- We need symbols Full instead of just On
         filter {"system:linux"}
             symbols "On"
-            buildoptions "-g3" -- need this for gdb
+            buildoptions "-g3 -fdiagnostics-absolute-paths" -- need this for gdb
         filter {}
 
     filter {"configurations:Release"}
@@ -67,6 +67,7 @@ workspace "workspace"
         
         includedirs { "client", "protogen", "common" }
         files { "client/**.hh", "client/**.cc", "common/**.cc" }
+        links {"cryptopp", "pthread"}
 
         -- For moving the compile commands into the root directory of the project
         -- so that autocomplete tools can see them (cquery...)

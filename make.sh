@@ -1,5 +1,8 @@
+#!/bin/bash
 # set cwd to script directory
 cd "${0%/*}"
+
+pushd `dirname $0`
 
 ./create_projects.sh
 
@@ -8,4 +11,7 @@ cd premake/
 make -j4
 
 echo done.
+
+popd
+
 exit
