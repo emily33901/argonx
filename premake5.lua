@@ -1,6 +1,20 @@
 require("premake_modules/export-compile-commands")
 require("premake_modules/cmake")
 
+local function get_vcpkg_root()
+    local handle = io.popen([[for /f "tokens=*" %a in ('where vcpkg.exe') do echo %~dpa]])
+    local result = handle:read("*a")
+    handle:close()
+
+    local result2 = string.gsub(result, "([^\n]+)\n(.*)\n", "%2"):sub(2)
+
+    return result2
+end
+
+local vcpkg_root = (get_vcpkg_root())
+
+print("vcpkg root is \"" .. vcpkg_root .. "\"")
+
 workspace "workspace"
     configurations { "Debug", "Release" }
     platforms { "x64", "x32" }
@@ -24,6 +38,7 @@ workspace "workspace"
         characterset "MBCS"
 
         defines {"ARGONX_WIN"}
+
     filter {"system:linux"}
         toolset "clang" -- prefer clang over gcc
         -- buildoptions "-std=c++17"
@@ -42,6 +57,7 @@ workspace "workspace"
             symbols "On"
             buildoptions "-g3 -fdiagnostics-absolute-paths" -- need this for gdb
         filter {}
+
 
     filter {"configurations:Release"}
         defines { "NDEBUG" }
@@ -62,12 +78,38 @@ workspace "workspace"
         filter {"system:windows"}
             pchheader "precompiled.hh"
         filter {}
+
+        filter {"system:windows", "platforms:x64"}
+            includedirs{vcpkg_root .. "installed\\x64-windows\\include"}
+        filter {"system:windows", "platforms:x32"}
+            includedirs{vcpkg_root .. "installed\\x86-windows\\include"}
+        filter {}
+
+        filter {"system:windows", "platforms:x64", "configurations:Debug"}
+            libdirs {vcpkg_root .. "installed\\x64-windows\\debug\\lib"}
+        filter {"system:windows", "platforms:x32", "configurations:Debug"}
+            libdirs {vcpkg_root .. "installed\\x86-windows\\debug\\lib"}
+        filter {}
+
+        filter {"system:windows", "platforms:x64", "configurations:Release"}
+            libdirs {vcpkg_root .. "installed\\x64-windows\\lib"}
+        filter {"system:windows", "platforms:x32", "configurations:Release"}
+            libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
+        filter {}
+
+
         
         pchsource "client/precompiled.cc"
         
         includedirs { "client", "protogen", "common" }
-        files { "client/**.hh", "client/**.cc", "common/**.cc" }
-        links {"cryptopp", "pthread"}
+
+        files { "client/**.hh", "client/**.cc", "common/**.cc", "common/**.hh" }
+
+        filter {"system:linux"}
+            links {"cryptopp", "pthread"}
+        filter {"system:windows"}
+            links {"cryptopp-static"}
+        filter {}
 
         -- For moving the compile commands into the root directory of the project
         -- so that autocomplete tools can see them (cquery...)

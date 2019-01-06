@@ -10,7 +10,7 @@ void MsgHdr::FromBuffer(Buffer &b) {
 }
 
 Buffer MsgHdr::ToBuffer() {
-    return {msg, targetJobID, sourceJobID};
+    return Buffer{msg, targetJobID, sourceJobID};
 }
 
 void MsgChannelEncryptRequest::FromBuffer(Buffer &b) {
@@ -18,7 +18,7 @@ void MsgChannelEncryptRequest::FromBuffer(Buffer &b) {
 }
 
 Buffer MsgChannelEncryptResponse::ToBuffer() {
-    return {protocolVersion, keySize};
+    return Buffer{protocolVersion, keySize};
 }
 
 void MsgChannelEncryptResult::FromBuffer(Buffer &b) {

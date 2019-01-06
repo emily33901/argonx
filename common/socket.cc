@@ -113,7 +113,7 @@ void Socket::Write(const std::vector<u8> &bytes) {
     auto bytesSent = 0;
 
     while (length > 0) {
-        bytesSent = send(socket, s, length, 0);
+        bytesSent = send(socket, (const char *)s, length, 0);
 
         if (bytesSent == 0)
             break; //socket probably closed

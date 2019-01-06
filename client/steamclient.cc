@@ -293,6 +293,8 @@ void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
 
 bool SteamClient::ProcessPacket(TcpPacket &p) {
     printf("Processing packet...\n");
+
+    p.body.SetPos(0);
     auto fullMessage = p.body.Read<u32>();
 
     auto isProto    = IsProto(fullMessage);
@@ -305,7 +307,7 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
         case EMsg::ChannelEncryptRequest:
         case EMsg::ChannelEncryptResult: {
             printf("Encryption handshake\n");
-            p.body.RewindRead<u32>();
+            p.body.SetPos(0);
 
             auto hdr = MsgHdr{};
             hdr.FromBuffer(p.body);
@@ -327,20 +329,19 @@ void SteamClient::WriteMessage(MsgBuilder &b) {
     auto &body = b.getBody();
     auto  size = body.Size();
 
-    Buffer finalMessage;
-
     if (!encrypted) {
-        finalMessage.Write<u32>(size + sizeof(MsgHdr));
-        finalMessage.Write((const char[]){'V', 'T', '0', '1'});
+        body.SetPos(0);
+
+        body.Write<u32>(size + sizeof(MsgHdr));
+        body.Write<const char>(std::make_pair((const char *)"VT01", (size_t)4));
 
         auto h = MsgHdr{};
         h.msg  = b.msg;
 
-        finalMessage.Write(h.ToBuffer());
-        finalMessage.Write(body);
+        body.Write(h.ToBuffer());
     }
 
-    printf("Final message size is %d\n", finalMessage.Size());
+    printf("Final message size is %d\n", body.Size());
 
-    s.Write(finalMessage.Body());
+    s.Write(body.Storage());
 }
