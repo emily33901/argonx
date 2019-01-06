@@ -33,21 +33,26 @@ public:
     Buffer() {
     }
 
-	template <typename... Args>
-	explicit Buffer(Args... args) {
+    template <typename... Args>
+    explicit Buffer(Args... args) {
         Write(std::forward<Args>(args)...);
-	}
+    }
 
     void   Seek(i32 off) { offset += off; }
     size_t Tell() { return offset; }
 
-    void   SetPos(size_t pos) { offset = pos; }
+    void SetPos(size_t pos) { offset = pos; }
 
     template <typename T>
     void SetBase() { base = sizeof(T); }
     void SetBase(u32 pos) { base = pos; }
 
-    size_t Size() { return storage.size(); }
+    template <typename T>
+    void SeekBase() { base += sizeof(T); }
+    void SeekBase(i32 off) { base += off; }
+
+    size_t                 SizeNoBase() { return storage.size() - base; }
+    size_t                 Size() { return storage.size(); }
     const std::vector<u8> &Storage() { return storage; }
 
     template <typename T>
@@ -59,8 +64,8 @@ public:
         WriteData(dataInBytes, length);
     }
 
-    template <typename T>
-    std::enable_if_t<ValidToWrite<T>, void> Write(const std::pair<T *, size_t> data) {
+    template <typename T, typename SizeT>
+    std::enable_if_t<ValidToWrite<T>, void> Write(const std::pair<T *, SizeT> data) {
         auto [arr, length] = data;
 
         auto dataInBytes   = reinterpret_cast<const u8 *>(arr);
@@ -108,29 +113,3 @@ public:
         (ReadInto(std::forward<Args &>(args)), ...);
     }
 };
-
-#if 0
-inline int TestNewBuffer() {
-    NewBuffer b;
-
-    std::vector<u8> v{'B', 'A'};
-
-    b.Write(13, 25, 15, 234, v);
-
-    u32 a, c, d, e;
-
-    std::vector<u8> v2;
-
-    v2.reserve(13);
-
-    b.SetPos(0);
-
-    b.Read(a, c, d, e, v2);
-
-    printf("a is %d c is %d d is %d e is %d v2 is %s\n", a, c, d, e, v2.data());
-
-    return b.Size();
-}
-
-inline int tdfssdfsdfsfdest = TestNewBuffer();
-#endif

@@ -217,6 +217,36 @@ static bool IsProto(u32 raw) {
 #include "emsg.hh"
 #include "language_internal.hh"
 
+Argonx::MsgBuilder::MsgBuilder(EMsg t) {
+    msg = (u32)t;
+
+    body.Write(std::make_pair((const char *)"VT01", 4));
+    body.SetBase(4);
+    body.SetPos(0);
+
+    if (msg == EMsg::ChannelEncryptResponse) {
+        MsgHdr header{};
+        header.msg = msg;
+        body.Write(header.ToBuffer());
+
+        body.SetPos(0);
+        body.SeekBase<MsgHdr>();
+    } else {
+        assert(0);
+    }
+}
+
+Buffer &MsgBuilder::Finish() {
+    body.SetBase(0);
+    body.SetPos(0);
+
+    auto size = body.SizeNoBase() - 8;
+
+    body.Write<u32>(size);
+
+    return body;
+}
+
 static EMsg RawMsg(u32 full) {
     return (EMsg)(full & ~PROTO_MASK);
 }
@@ -264,7 +294,7 @@ void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
 
         MsgBuilder w{EMsg::ChannelEncryptResponse};
 
-        auto &b = w.getBody();
+        auto &b = w.GetBody();
         b.Write(MsgChannelEncryptResponse{}.ToBuffer());
 
         u8 cryptedSessionKey[128];
@@ -279,7 +309,6 @@ void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
         b.Write(0);
 
         WriteMessage(w);
-
     } break;
     case EMsg::ChannelEncryptResult: {
         MsgChannelEncryptResult r;
@@ -326,19 +355,10 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
 }
 
 void SteamClient::WriteMessage(MsgBuilder &b) {
-    auto &body = b.getBody();
-    auto  size = body.Size();
+    auto &body = b.Finish();
 
     if (!encrypted) {
-        body.SetPos(0);
-
-        body.Write<u32>(size + sizeof(MsgHdr));
-        body.Write<const char>(std::make_pair((const char *)"VT01", (size_t)4));
-
-        auto h = MsgHdr{};
-        h.msg  = b.msg;
-
-        body.Write(h.ToBuffer());
+    } else {
     }
 
     printf("Final message size is %d\n", body.Size());

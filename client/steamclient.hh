@@ -36,11 +36,11 @@ class MsgBuilder {
 public:
     u32 msg;
 
-    MsgBuilder(EMsg t) {
-        msg = (u32)t;
-    }
-    void    setProto() { isProto = true; }
-    Buffer &getBody() { return body; }
+    MsgBuilder(EMsg t);
+    void    SetProto() { isProto = true; }
+    Buffer &GetBody() { return body; }
+
+    Buffer &Finish();
 };
 
 class SteamClient {
