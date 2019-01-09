@@ -79,6 +79,10 @@ workspace "workspace"
             pchheader "precompiled.hh"
         filter {}
 
+        filter {"files:**.pb.cc"}
+            flags { 'NoPCH' }
+        filter {}
+
         filter {"system:windows", "platforms:x64"}
             includedirs{vcpkg_root .. "installed\\x64-windows\\include"}
         filter {"system:windows", "platforms:x32"}
@@ -96,14 +100,12 @@ workspace "workspace"
         filter {"system:windows", "platforms:x32", "configurations:Release"}
             libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
         filter {}
-
-
         
         pchsource "client/precompiled.cc"
         
         includedirs { "client", "protogen", "common" }
 
-        files { "client/**.hh", "client/**.cc", "common/**.cc", "common/**.hh" }
+        files { "client/**.hh", "client/**.cc", "common/**.cc", "common/**.hh", "protogen/**.pb.*"}
 
         filter {"system:linux"}
             links {"cryptopp", "pthread"}
