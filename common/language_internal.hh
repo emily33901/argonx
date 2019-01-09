@@ -135,6 +135,8 @@ struct ExtendedClientMsgHdr {
         steamID       = 0;
         sessionID     = 0;
     }
+
+    void FromBuffer(Buffer &b);
 };
 
 struct MsgHdrProtoBuf {
@@ -149,6 +151,9 @@ struct MsgHdrProtoBuf {
         msg          = static_cast<std::uint32_t>(EMsg::Invalid);
         headerLength = 0;
     }
+
+    void   FromBuffer(Buffer &b);
+    Buffer ToBuffer();
 };
 
 struct MsgGCHdrProtoBuf {

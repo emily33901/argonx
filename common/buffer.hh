@@ -1,3 +1,5 @@
+#pragma once
+
 #include "types.hh"
 #include <algorithm>
 #include <cassert>
@@ -30,8 +32,7 @@ class Buffer {
     }
 
 public:
-    Buffer() {
-    }
+    Buffer() {}
 
     template <typename... Args>
     explicit Buffer(Args... args) {
@@ -43,9 +44,13 @@ public:
 
     void SetPos(size_t pos) { offset = pos; }
 
+    void SetPosEnd() { offset = storage.size() - base; }
+
     template <typename T>
     void SetBase() { base = sizeof(T); }
     void SetBase(u32 pos) { base = pos; }
+
+    size_t TellBase() { return base; }
 
     template <typename T>
     void SeekBase() { base += sizeof(T); }
@@ -90,6 +95,14 @@ public:
     template <typename... Args>
     std::enable_if_t<(sizeof...(Args) > 1)> Write(Args... args) {
         (Write(std::forward<Args>(args)), ...);
+    }
+
+    void Fill(u8 value, size_t len) {
+        storage.insert(OffsetIterator(), len, value);
+    }
+
+    u8 *Read(size_t size) {
+        return ReadDataInPlace(size);
     }
 
     template <typename T>

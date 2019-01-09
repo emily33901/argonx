@@ -24,3 +24,15 @@ Buffer MsgChannelEncryptResponse::ToBuffer() {
 void MsgChannelEncryptResult::FromBuffer(Buffer &b) {
     b.ReadInto(result);
 }
+
+void MsgHdrProtoBuf::FromBuffer(Buffer &b) {
+    b.Read(msg, headerLength);
+}
+
+Buffer MsgHdrProtoBuf::ToBuffer() {
+    return Buffer{msg, headerLength};
+}
+
+void Argonx::ExtendedClientMsgHdr::FromBuffer(Buffer &b) {
+    b.Read(msg, headerSize, headerVersion, targetJobID, sourceJobID, headerCanary, steamID, sessionID);
+}
