@@ -93,12 +93,12 @@ void SteamCrypt::SymetricDecrypt(Buffer &in, Buffer &out) {
     byte iv[16];
     ECB_Mode<AES>::Decryption(sessionKey, sizeof(sessionKey)).ProcessData(iv, in.Read(16), 16);
 
-    auto                      crypted_data = in.Read(0);
+    auto                      cryptedData = in.Read(0);
     CBC_Mode<AES>::Decryption d(sessionKey, sizeof(sessionKey), iv);
     // I don't see any way to get the decrypted size other than to use a string
     std::string output;
     ArraySource(
-        crypted_data,
+        cryptedData,
         in.SizeNoBase() - 16,
         true,
         new StreamTransformationFilter(d, new StringSink(output)));
