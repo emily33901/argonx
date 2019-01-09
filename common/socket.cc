@@ -107,13 +107,11 @@ void Socket::ReadUnsafe(u8 *output, unsigned count) {
     }
 }
 
-void Socket::Write(const std::vector<u8> &bytes) {
-    auto length    = bytes.size();
-    auto s         = bytes.data();
+void Socket::WriteUnsafe(const u8 *buffer, unsigned length) {
     auto bytesSent = 0;
 
     while (length > 0) {
-        bytesSent = send(socket, (const char *)s, length, 0);
+        bytesSent = send(socket, (const char *)buffer, length, 0);
 
         if (bytesSent == 0)
             break; //socket probably closed
@@ -122,7 +120,17 @@ void Socket::Write(const std::vector<u8> &bytes) {
 
         printf("Sent %d bytes %d remaining\n", bytesSent, length - bytesSent);
 
-        s += bytesSent;
+        buffer += bytesSent;
         length -= bytesSent;
     }
+}
+
+void Socket::Write(const std::vector<u8> &bytes) {
+    auto length    = bytes.size();
+    auto s         = bytes.data();
+    auto bytesSent = 0;
+
+    WriteUnsafe(s, length);
+
+
 }

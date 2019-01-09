@@ -30,6 +30,8 @@ class Socket {
 
     void ReadUnsafe(u8 *buffer, unsigned count);
 
+    void WriteUnsafe(const u8 *buffer, unsigned count);
+
 public:
     Socket(const std::string &addr, const std::string &port);
     Socket(std::pair<const std::string &, const std::string &> addr_port) : Socket(addr_port.first, addr_port.second) {}
@@ -49,5 +51,12 @@ public:
         ReadUnsafe(reinterpret_cast<u8 *>(&into), sizeof(T) * sizeof(u8));
     }
 
+    template<typename T>
+    void Write(const T v) {
+        auto vInBytes = reinterpret_cast<const u8 *>(&v);
+        WriteUnsafe(vInBytes, sizeof(T));
+    }
+
     void Write(const std::vector<u8> &bytes);
 };
+
