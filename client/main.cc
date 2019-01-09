@@ -6,7 +6,8 @@ int main(const int argCount, const char **argStrings) {
     Argonx::SteamClient sClient;
 
     auto i = 0;
-    while (i < 4) {
+    while (true) {
+        printf("======\n");
         auto p = sClient.ReadPacket();
 
         if (p.has_value()) {

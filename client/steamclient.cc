@@ -4,7 +4,61 @@
 
 #include "steamclient.hh"
 
+#include "emsg.hh"
+#include "language_internal.hh"
+#include "steammessages_clientserver_login.pb.h"
+
 using namespace Argonx;
+
+constexpr u32 PROTO_MASK = 0x80000000;
+
+static bool IsProto(u32 raw) {
+    return (raw & PROTO_MASK) == PROTO_MASK;
+}
+
+static EMsg RawMsg(u32 full) {
+    return (EMsg)(full & ~PROTO_MASK);
+}
+
+Argonx::MsgBuilder::MsgBuilder(EMsg t) {
+    msg = (u32)t;
+
+    if (msg == EMsg::ChannelEncryptResponse) {
+        MsgHdr header{};
+        header.msg = msg;
+        body.Write(header.ToBuffer());
+
+        body.SetPos(0);
+        body.SeekBase<MsgHdr>();
+    } else {
+        assert(0);
+    }
+}
+
+Argonx::MsgBuilder::MsgBuilder(EMsg t, const google::protobuf::Message &message, u32 sessionId, SteamId steamId, u64 jobId) {
+    CMsgProtoBufHeader proto;
+    proto.set_steamid(steamId);
+    proto.set_client_sessionid(sessionId);
+
+    if (jobId) {
+        proto.set_jobid_target(jobId);
+    }
+
+    auto protoSize   = proto.ByteSize();
+    auto messageSize = message.ByteSize();
+
+    auto protoHeader         = MsgHdrProtoBuf{};
+    protoHeader.msg          = t | PROTO_MASK;
+    protoHeader.headerLength = protoSize;
+
+    body.Write(protoHeader.ToBuffer());
+    body.Fill(0, protoSize + messageSize);
+
+    u8 *pos = body.Read(0);
+
+    proto.SerializeToArray(pos, protoSize);
+    message.SerializeToArray(pos + protoSize, messageSize);
+}
 
 static std::array hardCodedCMList = {
     "162.254.196.84:27018",
@@ -193,84 +247,20 @@ std::optional<TcpPacket> SteamClient::ReadPacket() {
     TcpPacket p;
     s.ReadStructure(p.header);
 
-    printf("%d, %s\n", p.header.magic, std::string((const char *)&p.header.magic, 4).c_str());
-
     if (!p.header.Valid()) return std::nullopt;
 
     std::vector<u8> temp;
-
     s.Read(temp, p.header.packetSize);
 
-    printf("Writing to buffer body...\n");
-
-    p.body.Write(temp);
+    if (encrypted) {
+        Buffer t{temp};
+        crypt.SymetricDecrypt(t, p.body);
+    } else {
+        p.body.Write(temp);
+    }
 
     return p;
 }
-
-constexpr u32 PROTO_MASK = 0x80000000;
-
-static bool IsProto(u32 raw) {
-    return (raw & PROTO_MASK) == PROTO_MASK;
-}
-
-#include "emsg.hh"
-#include "language_internal.hh"
-
-Argonx::MsgBuilder::MsgBuilder(EMsg t) {
-    msg = (u32)t;
-
-    body.Write(std::make_pair((const char *)"VT01", 4));
-    body.SetBase(4);
-    body.SetPos(0);
-
-    if (msg == EMsg::ChannelEncryptResponse) {
-        MsgHdr header{};
-        header.msg = msg;
-        body.Write(header.ToBuffer());
-
-        body.SetPos(0);
-        body.SeekBase<MsgHdr>();
-    } else {
-        assert(0);
-    }
-}
-
-Buffer &MsgBuilder::Finish() {
-    body.SetBase(0);
-    body.SetPos(0);
-
-    auto size = body.SizeNoBase() - 8;
-
-    body.Write<u32>(size);
-
-    return body;
-}
-
-static EMsg RawMsg(u32 full) {
-    return (EMsg)(full & ~PROTO_MASK);
-}
-
-#include <cryptopp/modes.h>
-
-// clang-format off
-u8 PUBLIC_KEY[] = {
-    0x30, 0x81, 0x9D, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01,
-    0x05, 0x00, 0x03, 0x81, 0x8B, 0x00, 0x30, 0x81, 0x87, 0x02, 0x81, 0x81, 0x00, 0xDF, 0xEC, 0x1A,
-    0xD6, 0x2C, 0x10, 0x66, 0x2C, 0x17, 0x35, 0x3A, 0x14, 0xB0, 0x7C, 0x59, 0x11, 0x7F, 0x9D, 0xD3,
-    0xD8, 0x2B, 0x7A, 0xE3, 0xE0, 0x15, 0xCD, 0x19, 0x1E, 0x46, 0xE8, 0x7B, 0x87, 0x74, 0xA2, 0x18,
-    0x46, 0x31, 0xA9, 0x03, 0x14, 0x79, 0x82, 0x8E, 0xE9, 0x45, 0xA2, 0x49, 0x12, 0xA9, 0x23, 0x68,
-    0x73, 0x89, 0xCF, 0x69, 0xA1, 0xB1, 0x61, 0x46, 0xBD, 0xC1, 0xBE, 0xBF, 0xD6, 0x01, 0x1B, 0xD8,
-    0x81, 0xD4, 0xDC, 0x90, 0xFB, 0xFE, 0x4F, 0x52, 0x73, 0x66, 0xCB, 0x95, 0x70, 0xD7, 0xC5, 0x8E,
-    0xBA, 0x1C, 0x7A, 0x33, 0x75, 0xA1, 0x62, 0x34, 0x46, 0xBB, 0x60, 0xB7, 0x80, 0x68, 0xFA, 0x13,
-    0xA7, 0x7A, 0x8A, 0x37, 0x4B, 0x9E, 0xC6, 0xF4, 0x5D, 0x5F, 0x3A, 0x99, 0xF9, 0x9E, 0xC4, 0x3A,
-    0xE9, 0x63, 0xA2, 0xBB, 0x88, 0x19, 0x28, 0xE0, 0xE7, 0x14, 0xC0, 0x42, 0x89, 0x02, 0x01, 0x11,
-};
-// clang-format on
-
-#include <cryptopp/crc.h>
-#include <cryptopp/osrng.h>
-#include <cryptopp/rsa.h>
 
 void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
     using namespace CryptoPP;
@@ -281,32 +271,12 @@ void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
         r.FromBuffer(p.body);
         printf("proto: %d, universe: %d\n", r.protocolVersion, r.universe);
 
-        CryptoPP::RSA::PublicKey publicKey;
-
-        ArraySource source(PUBLIC_KEY, sizeof(PUBLIC_KEY), true);
-        publicKey.Load(source);
-
-        RSAES_OAEP_SHA_Encryptor rsa(publicKey);
-        auto                     rsaSize = rsa.FixedCiphertextLength();
-
-        AutoSeededRandomPool rnd;
-        rnd.GenerateBlock(sessionKey, sizeof(sessionKey));
-
         MsgBuilder w{EMsg::ChannelEncryptResponse};
 
         auto &b = w.GetBody();
         b.Write(MsgChannelEncryptResponse{}.ToBuffer());
 
-        u8 cryptedSessionKey[128];
-
-        rsa.Encrypt(rnd, sessionKey, sizeof(sessionKey), cryptedSessionKey);
-        b.Write(cryptedSessionKey);
-
-        u8 crc[4];
-
-        CRC32().CalculateDigest(crc, cryptedSessionKey, rsaSize);
-        b.Write(crc);
-        b.Write(0);
+        crypt.GenerateSessionKey(b);
 
         WriteMessage(w);
     } break;
@@ -314,6 +284,18 @@ void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
         MsgChannelEncryptResult r;
         r.FromBuffer(p.body);
         printf("result: %d\n", r.result);
+
+        encrypted = r.result == 1;
+
+        // TODO: Remove from here
+        CMsgClientLogon logon;
+        logon.set_account_name("username");
+        logon.set_password("password");
+        logon.set_protocol_version(65575);
+
+        MsgBuilder b{EMsg::ClientLogon, logon, sessionId, steamId};
+
+        WriteMessage(b);
     }
     default: {
     }
@@ -324,15 +306,18 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
     printf("Processing packet...\n");
 
     p.body.SetPos(0);
-    auto fullMessage = p.body.Read<u32>();
+    auto rawMessage = p.body.Read<u32>();
+    p.body.SetPos(0);
 
-    auto isProto    = IsProto(fullMessage);
-    auto rawMessage = RawMsg(fullMessage);
+    auto isProto = IsProto(rawMessage);
+    auto message = RawMsg(rawMessage);
 
-    printf("Message: %d\n", rawMessage);
+    printf("Packet size: %d\n", p.header.packetSize);
+    printf("Message:     %d [%s] (%d)\n", message, isProto ? "p" : "", rawMessage);
+    printf("Body length: %d\n", p.body.Size());
 
     if (!isProto) {
-        switch (rawMessage) {
+        switch (message) {
         case EMsg::ChannelEncryptRequest:
         case EMsg::ChannelEncryptResult: {
             printf("Encryption handshake\n");
@@ -342,26 +327,38 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
             hdr.FromBuffer(p.body);
             HandleEncryptionHandshake(hdr, p);
         } break;
-
         default: {
-            printf("Default... %d\n", rawMessage);
+            ExtendedClientMsgHdr header;
+            header.FromBuffer(p.body);
+
+            printf("sessionId is %d\n", sessionId);
         } break;
         }
     } else {
-        printf("Proto message %d\n", rawMessage);
+        MsgHdrProtoBuf protoHeader;
+        protoHeader.FromBuffer(p.body);
+
+        printf("Header length: %d\n", protoHeader.headerLength);
     }
 
     return false;
 }
 
 void SteamClient::WriteMessage(MsgBuilder &b) {
-    auto &body = b.Finish();
+    auto &body = b.GetBody();
 
-    if (!encrypted) {
-    } else {
-    }
+    if (encrypted) crypt.SymetricEncrypt(body, body);
 
-    printf("Final message size is %d\n", body.Size());
+    printf("Final message size is %d\n", body.Size() + 8);
+
+    // printf("\n");
+    // for (auto v : body.Storage()) {
+    //     printf("%d, ", v);
+    // }
+    // printf("\n");
+
+    s.Write((u32)body.Storage().size());
+    s.Write(0x31305456); // VT01 magic
 
     s.Write(body.Storage());
 }

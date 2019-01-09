@@ -7,6 +7,13 @@
 #include "socket.hh"
 
 #include "emsg.hh"
+#include "steamid.hh"
+
+#include "steamcrypt.hh"
+
+namespace google::protobuf {
+class Message;
+}
 
 namespace Argonx {
 class TcpHeader {
@@ -37,19 +44,17 @@ public:
     u32 msg;
 
     MsgBuilder(EMsg t);
-    void    SetProto() { isProto = true; }
+    MsgBuilder(EMsg t, const google::protobuf::Message &message, u32 sessionId, SteamId steamId, u64 jobId = 0);
     Buffer &GetBody() { return body; }
-
-    Buffer &Finish();
 };
 
 class SteamClient {
-    u64 steamId;
-    u32 sessionId;
+    SteamId steamId;
+    u32     sessionId = 0;
 
-    u8     sessionKey[32];
-    bool   encrypted = false;
-    u8     publicKey;
+    bool       encrypted = false;
+    SteamCrypt crypt;
+
     Socket s;
 
     static std::pair<const std::string, const std::string> FindServer();
@@ -58,11 +63,13 @@ class SteamClient {
 
 public:
     SteamClient() : s(SteamClient::FindServer()) {
+        steamId.instance = 1;
+        steamId.universe = static_cast<unsigned>(EUniverse::Public);
+        steamId.type     = static_cast<unsigned>(EAccountType::Individual);
     }
 
     std::optional<TcpPacket> ReadPacket();
-
-    bool ProcessPacket(TcpPacket &p);
+    bool                     ProcessPacket(TcpPacket &p);
 
     void WriteMessage(MsgBuilder &b);
 };
