@@ -7,6 +7,7 @@
 #include "emsg.hh"
 #include "language_internal.hh"
 #include "steammessages_clientserver_login.pb.h"
+#include "zip.hh"
 
 using namespace Argonx;
 
@@ -335,10 +336,58 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
         } break;
         }
     } else {
-        MsgHdrProtoBuf protoHeader;
-        protoHeader.FromBuffer(p.body);
+        MsgHdrProtoBuf msgHeader;
+        msgHeader.FromBuffer(p.body);
+        printf("Header length: %d\n", msgHeader.headerLength);
 
-        printf("Header length: %d\n", protoHeader.headerLength);
+        CMsgProtoBufHeader protoHeader;
+        protoHeader.ParseFromArray(p.body.Read(msgHeader.headerLength), msgHeader.headerLength);
+        if (!sessionId && msgHeader.headerLength > 0) {
+            sessionId = protoHeader.client_sessionid();
+            steamId   = protoHeader.steamid();
+        }
+
+        auto msgSize = p.body.SizeNoBase() - sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
+
+        if (message == EMsg::Multi) {
+            CMsgMulti multi;
+            multi.ParseFromArray(p.body.Read(0), msgSize);
+            auto  sizeUnzipped = multi.size_unzipped();
+            auto &payload      = multi.message_body();
+            auto  payloadSize  = sizeUnzipped ? sizeUnzipped : payload.size();
+            auto  data         = (u8 *)payload.data();
+
+            printf("Unzipped size is: %d\n", sizeUnzipped);
+
+            if (sizeUnzipped > 0) {
+                // do the unzip...
+                data = Zip::Deflate(data, payloadSize, sizeUnzipped);
+            }
+
+            for (unsigned offset = 0; offset < payloadSize;) {
+                auto subSize = *reinterpret_cast<const u32 *>(data + offset);
+
+                // Pretend we got a new packet and process it
+                TcpPacket p;
+                p.header.packetSize = subSize;
+                p.body.Write(std::make_pair(data + offset + 4, subSize));
+                ProcessPacket(p);
+
+                offset += 4 + subSize;
+            }
+
+            if (sizeUnzipped > 0) {
+                // Cleanup allocated memory
+                delete[] data;
+            }
+        } else if (message == EMsg::ClientLogOnResponse) {
+            CMsgClientLogonResponse logonResp;
+            logonResp.ParseFromArray(p.body.Read(0), msgSize);
+
+            auto eresult = static_cast<EResult>(logonResp.eresult());
+
+            printf("Logon result: %d\n", eresult);
+        }
     }
 
     return false;
