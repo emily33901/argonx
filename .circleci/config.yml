@@ -1,0 +1,30 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/argonx
+    docker:
+      - image: ubuntu:rolling
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update -qq
+            apt-get install -y build-essential g++ g++-multilib clang-6.0 cmake git wget ssh patchelf libcrypto++-dev libarchive-dev libprotobuf-dev
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init --recursive
+      - run:
+          name: Generate Make files
+          command: |
+            chmod +x premake5
+            ./premake5 gmake2
+      - run:
+          name: Build
+          command: |
+            cd premake
+            ln -s /usr/bin/clang-6.0 /usr/bin/clang
+            ln -s /usr/bin/clang++-6.0 /usr/bin/clang++
+            make -j2
+      # - store_artifacts:
+      #     path: ~/doghook/bin/Debug/libargonx.so
+      #     destination: libargonx.so
