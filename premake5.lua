@@ -108,7 +108,7 @@ workspace "workspace"
         files { "client/**.hh", "client/**.cc", "common/**.cc", "common/**.hh", "protogen/**.pb.*"}
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread"}
+            links {"cryptopp", "pthread", "protobuf", "archive"}
         filter {"system:windows"}
             links {"cryptopp-static"}
         filter {}

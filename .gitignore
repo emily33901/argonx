@@ -617,3 +617,4 @@ compile_commands.json
 .cquery_cached_index
 
 .vscode/
+protogen
