@@ -51,7 +51,7 @@ public:
         ReadUnsafe(reinterpret_cast<u8 *>(&into), sizeof(T) * sizeof(u8));
     }
 
-    template<typename T>
+    template <typename T>
     void Write(const T v) {
         auto vInBytes = reinterpret_cast<const u8 *>(&v);
         WriteUnsafe(vInBytes, sizeof(T));
@@ -59,4 +59,3 @@ public:
 
     void Write(const std::vector<u8> &bytes);
 };
-

@@ -288,15 +288,18 @@ void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
 
         encrypted = r.result == 1;
 
-        // TODO: Remove from here
-        CMsgClientLogon logon;
-        logon.set_account_name("username");
-        logon.set_password("password");
-        logon.set_protocol_version(65575);
+        if (encrypted) {
+            // TODO: Remove from here
+            CMsgClientLogon logon;
+            logon.set_account_name("username");
+            logon.set_password("password");
+            logon.set_auth_code("code");
+            logon.set_protocol_version(65575);
 
-        MsgBuilder b{EMsg::ClientLogon, logon, sessionId, steamId};
+            MsgBuilder b{EMsg::ClientLogon, logon, sessionId, steamId};
 
-        WriteMessage(b);
+            WriteMessage(b);
+        }
     }
     default: {
     }
@@ -315,7 +318,7 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
 
     printf("Packet size: %d\n", p.header.packetSize);
     printf("Message:     %d [%s] (%d)\n", message, isProto ? "p" : "", rawMessage);
-    printf("Body length: %d\n", p.body.Size());
+    printf("Body length: %lu\n", p.body.Size());
 
     if (!isProto) {
         switch (message) {
@@ -332,7 +335,7 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
             ExtendedClientMsgHdr header;
             header.FromBuffer(p.body);
 
-            printf("sessionId is %d\n", sessionId);
+            assert(0 && "Unexpected message");
         } break;
         }
     } else {
@@ -347,7 +350,7 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
             steamId   = protoHeader.steamid();
         }
 
-        auto msgSize = p.body.SizeNoBase() - sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
+        u32 msgSize = p.body.SizeNoBase() - sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
 
         if (message == EMsg::Multi) {
             CMsgMulti multi;
@@ -364,17 +367,27 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
                 data = Zip::Deflate(data, payloadSize, sizeUnzipped);
             }
 
+            printf("\n==== Multi message begin ====\n\n");
+
             for (unsigned offset = 0; offset < payloadSize;) {
                 auto subSize = *reinterpret_cast<const u32 *>(data + offset);
+
+                printf("====\n");
 
                 // Pretend we got a new packet and process it
                 TcpPacket p;
                 p.header.packetSize = subSize;
+
+                // TODO: Dont do this data copying!
                 p.body.Write(std::make_pair(data + offset + 4, subSize));
+
                 ProcessPacket(p);
 
                 offset += 4 + subSize;
             }
+
+            printf("\n==== Multi message end ====\n\n");
+
 
             if (sizeUnzipped > 0) {
                 // Cleanup allocated memory
@@ -398,7 +411,7 @@ void SteamClient::WriteMessage(MsgBuilder &b) {
 
     if (encrypted) crypt.SymetricEncrypt(body, body);
 
-    printf("Final message size is %d\n", body.Size() + 8);
+    printf("Final message size is %llu\n", body.Size() + 8);
 
     // printf("\n");
     // for (auto v : body.Storage()) {
