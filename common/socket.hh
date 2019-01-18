@@ -58,4 +58,6 @@ public:
     }
 
     void Write(const std::vector<u8> &bytes);
+
+    // TODO: provide non-blocking read/write functions
 };

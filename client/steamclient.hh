@@ -49,17 +49,18 @@ public:
 };
 
 class SteamClient {
-    SteamId steamId;
-    u32     sessionId = 0;
 
-    bool       encrypted = false;
-    SteamCrypt crypt;
-
+    bool   encrypted = false;
     Socket s;
 
     static std::pair<const std::string, const std::string> FindServer();
 
     void HandleEncryptionHandshake(struct MsgHdr &h, TcpPacket &p);
+
+public:
+    SteamId    steamId;
+    u32        sessionId = 0;
+    SteamCrypt crypt;
 
 public:
     SteamClient() : s(SteamClient::FindServer()) {
@@ -70,6 +71,10 @@ public:
 
     std::optional<TcpPacket> ReadPacket();
     bool                     ProcessPacket(TcpPacket &p);
+
+    void Run();
+
+    void SetEncrypted(bool t) { encrypted = t; }
 
     void WriteMessage(MsgBuilder &b);
 };

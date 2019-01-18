@@ -6,6 +6,7 @@
 
 #include "emsg.hh"
 #include "language_internal.hh"
+#include "steamhandlers.hh"
 #include "steammessages_clientserver_login.pb.h"
 #include "zip.hh"
 
@@ -263,52 +264,7 @@ std::optional<TcpPacket> SteamClient::ReadPacket() {
     return p;
 }
 
-void SteamClient::HandleEncryptionHandshake(MsgHdr &h, TcpPacket &p) {
-    using namespace CryptoPP;
-
-    switch ((EMsg)h.msg) {
-    case EMsg::ChannelEncryptRequest: {
-        MsgChannelEncryptRequest r;
-        r.FromBuffer(p.body);
-        printf("proto: %d, universe: %d\n", r.protocolVersion, r.universe);
-
-        MsgBuilder w{EMsg::ChannelEncryptResponse};
-
-        auto &b = w.GetBody();
-        b.Write(MsgChannelEncryptResponse{}.ToBuffer());
-
-        crypt.GenerateSessionKey(b);
-
-        WriteMessage(w);
-    } break;
-    case EMsg::ChannelEncryptResult: {
-        MsgChannelEncryptResult r;
-        r.FromBuffer(p.body);
-        printf("result: %d\n", r.result);
-
-        encrypted = r.result == 1;
-
-        if (encrypted) {
-            // TODO: Remove from here
-            CMsgClientLogon logon;
-            logon.set_account_name("username");
-            logon.set_password("password");
-            logon.set_auth_code("code");
-            logon.set_protocol_version(65575);
-
-            MsgBuilder b{EMsg::ClientLogon, logon, sessionId, steamId};
-
-            WriteMessage(b);
-        }
-    }
-    default: {
-    }
-    }
-}
-
 bool SteamClient::ProcessPacket(TcpPacket &p) {
-    printf("Processing packet...\n");
-
     p.body.SetPos(0);
     auto rawMessage = p.body.Read<u32>();
     p.body.SetPos(0);
@@ -316,32 +272,27 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
     auto isProto = IsProto(rawMessage);
     auto message = RawMsg(rawMessage);
 
-    printf("Packet size: %d\n", p.header.packetSize);
-    printf("Message:     %d [%s] (%d)\n", message, isProto ? "p" : "", rawMessage);
-    printf("Body length: %lu\n", p.body.Size());
+    printf("[Packet] msg:%s%d size:%d bsize:%lu\n", isProto ? "p" : "", message, p.header.packetSize, p.body.Size());
+
+    // TODO: WE NEED A JOB HANDLER!
 
     if (!isProto) {
-        switch (message) {
-        case EMsg::ChannelEncryptRequest:
-        case EMsg::ChannelEncryptResult: {
-            printf("Encryption handshake\n");
-            p.body.SetPos(0);
-
-            auto hdr = MsgHdr{};
-            hdr.FromBuffer(p.body);
-            HandleEncryptionHandshake(hdr, p);
-        } break;
-        default: {
-            ExtendedClientMsgHdr header;
-            header.FromBuffer(p.body);
-
-            assert(0 && "Unexpected message");
-        } break;
+        // Header processing
+        if (message == EMsg::ChannelEncryptRequest || message == EMsg::ChannelEncryptResult) {
+            MsgHdr h;
+            h.FromBuffer(p.body);
+            p.body.SetBaseAtCurPos();
+        } else {
+            ExtendedClientMsgHdr h;
+            h.FromBuffer(p.body);
+            p.body.SetBaseAtCurPos();
         }
+
+        SteamMessageHandler::ProcessMessage(this, message, p.body.Size(), p.body);
     } else {
         MsgHdrProtoBuf msgHeader;
         msgHeader.FromBuffer(p.body);
-        printf("Header length: %d\n", msgHeader.headerLength);
+        // printf("Header length: %d\n", msgHeader.headerLength);
 
         CMsgProtoBufHeader protoHeader;
         protoHeader.ParseFromArray(p.body.Read(msgHeader.headerLength), msgHeader.headerLength);
@@ -352,58 +303,18 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
 
         u32 msgSize = p.body.SizeNoBase() - sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
 
-        if (message == EMsg::Multi) {
-            CMsgMulti multi;
-            multi.ParseFromArray(p.body.Read(0), msgSize);
-            auto  sizeUnzipped = multi.size_unzipped();
-            auto &payload      = multi.message_body();
-            auto  payloadSize  = sizeUnzipped ? sizeUnzipped : payload.size();
-            auto  data         = (u8 *)payload.data();
-
-            printf("Unzipped size is: %d\n", sizeUnzipped);
-
-            if (sizeUnzipped > 0) {
-                // do the unzip...
-                data = Zip::Deflate(data, payloadSize, sizeUnzipped);
-            }
-
-            printf("\n==== Multi message begin ====\n\n");
-
-            for (unsigned offset = 0; offset < payloadSize;) {
-                auto subSize = *reinterpret_cast<const u32 *>(data + offset);
-
-                printf("====\n");
-
-                // Pretend we got a new packet and process it
-                TcpPacket p;
-                p.header.packetSize = subSize;
-
-                // TODO: Dont do this data copying!
-                p.body.Write(std::make_pair(data + offset + 4, subSize));
-
-                ProcessPacket(p);
-
-                offset += 4 + subSize;
-            }
-
-            printf("\n==== Multi message end ====\n\n");
-
-
-            if (sizeUnzipped > 0) {
-                // Cleanup allocated memory
-                delete[] data;
-            }
-        } else if (message == EMsg::ClientLogOnResponse) {
-            CMsgClientLogonResponse logonResp;
-            logonResp.ParseFromArray(p.body.Read(0), msgSize);
-
-            auto eresult = static_cast<EResult>(logonResp.eresult());
-
-            printf("Logon result: %d\n", eresult);
-        }
+        SteamMessageHandler::ProcessMessage(this, message, msgSize, p.body);
     }
 
     return false;
+}
+
+void Argonx::SteamClient::Run() {
+    while (true) {
+        auto p = ReadPacket();
+
+        if (p.has_value()) ProcessPacket(p.value());
+    }
 }
 
 void SteamClient::WriteMessage(MsgBuilder &b) {
