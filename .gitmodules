@@ -4,3 +4,6 @@
 [submodule "external/SteamKit"]
 	path = external/SteamKit
 	url = https://github.com/SteamRE/SteamKit
+[submodule "external/SteamStructs"]
+	path = external/SteamStructs
+	url = https://github.com/emily33901/SteamStructs
