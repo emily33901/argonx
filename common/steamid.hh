@@ -1,7 +1,7 @@
 #pragma once
 
 #include "language.hh"
-#include "types.hh"
+#include "platform.hh"
 
 #pragma pack(push, 1)
 

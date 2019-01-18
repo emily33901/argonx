@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hh"
+#include "platform.hh"
 
 #include <array>
 #include <string>

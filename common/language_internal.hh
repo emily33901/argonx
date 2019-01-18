@@ -3,40 +3,42 @@
 #include "emsg.hh"
 #include "language.hh"
 
+#include "platform.hh"
+
 #pragma pack(push, 1)
 
 class Buffer;
 
 namespace Argonx {
 struct UdpHeader {
-    static const std::uint32_t MAGIC = 0x31305356;
+    static const u32 MAGIC = 0x31305356;
     // Static size: 4
-    std::uint32_t magic;
+    u32 magic;
     // Static size: 2
-    std::uint16_t payloadSize;
+    u16 payloadSize;
     // Static size: 1
-    std::uint8_t packetType;
+    u8 packetType;
     // Static size: 1
-    std::uint8_t flags;
+    u8 flags;
     // Static size: 4
-    std::uint32_t sourceConnID;
+    u32 sourceConnID;
     // Static size: 4
-    std::uint32_t destConnID;
+    u32 destConnID;
     // Static size: 4
-    std::uint32_t seqThis;
+    u32 seqThis;
     // Static size: 4
-    std::uint32_t seqAck;
+    u32 seqAck;
     // Static size: 4
-    std::uint32_t packetsInMsg;
+    u32 packetsInMsg;
     // Static size: 4
-    std::uint32_t msgStartSeq;
+    u32 msgStartSeq;
     // Static size: 4
-    std::uint32_t msgSize;
+    u32 msgSize;
 
     UdpHeader() {
         magic        = UdpHeader::MAGIC;
         payloadSize  = 0;
-        packetType   = static_cast<std::uint8_t>(EUdpPacketType::Invalid);
+        packetType   = static_cast<u8>(EUdpPacketType::Invalid);
         flags        = 0;
         sourceConnID = 512;
         destConnID   = 0;
@@ -49,11 +51,11 @@ struct UdpHeader {
 };
 
 struct ChallengeData {
-    static const std::uint32_t CHALLENGE_MASK = 0xA426DF2B;
+    static const u32 CHALLENGE_MASK = 0xA426DF2B;
     // Static size: 4
-    std::uint32_t challengeValue;
+    u32 challengeValue;
     // Static size: 4
-    std::uint32_t serverLoad;
+    u32 serverLoad;
 
     ChallengeData() {
         challengeValue = 0;
@@ -62,9 +64,9 @@ struct ChallengeData {
 };
 
 struct ConnectData {
-    static const std::uint32_t CHALLENGE_MASK = ChallengeData::CHALLENGE_MASK;
+    static const u32 CHALLENGE_MASK = ChallengeData::CHALLENGE_MASK;
     // Static size: 4
-    std::uint32_t challengeValue;
+    u32 challengeValue;
 
     ConnectData() {
         challengeValue = 0;
@@ -91,14 +93,14 @@ struct Disconnect {
 
 struct MsgHdr {
     // Static size: 4
-    std::uint32_t msg;
+    u32 msg;
     // Static size: 8
-    std::uint64_t targetJobID;
+    u64 targetJobID;
     // Static size: 8
-    std::uint64_t sourceJobID;
+    u64 sourceJobID;
 
     MsgHdr() {
-        msg         = static_cast<std::uint32_t>(EMsg::Invalid);
+        msg         = static_cast<u32>(EMsg::Invalid);
         targetJobID = UINT64_MAX;
         sourceJobID = UINT64_MAX;
     }
@@ -109,24 +111,24 @@ struct MsgHdr {
 
 struct ExtendedClientMsgHdr {
     // Static size: 4
-    std::uint32_t msg;
+    u32 msg;
     // Static size: 1
-    std::uint8_t headerSize;
+    u8 headerSize;
     // Static size: 2
-    std::uint16_t headerVersion;
+    u16 headerVersion;
     // Static size: 8
-    std::uint64_t targetJobID;
+    u64 targetJobID;
     // Static size: 8
-    std::uint64_t sourceJobID;
+    u64 sourceJobID;
     // Static size: 1
-    std::uint8_t headerCanary;
+    u8 headerCanary;
     // Static size: 8
-    std::uint64_t steamID;
+    u64 steamID;
     // Static size: 4
-    std::int32_t sessionID;
+    i32 sessionID;
 
     ExtendedClientMsgHdr() {
-        msg           = static_cast<std::uint32_t>(EMsg::Invalid);
+        msg           = static_cast<u32>(EMsg::Invalid);
         headerSize    = 36;
         headerVersion = 2;
         targetJobID   = UINT64_MAX;
@@ -141,14 +143,14 @@ struct ExtendedClientMsgHdr {
 
 struct MsgHdrProtoBuf {
     // Static size: 4
-    std::uint32_t msg;
+    u32 msg;
     // Static size: 4
-    std::int32_t headerLength;
+    i32 headerLength;
     // Static size: 0
-    unsigned char proto[0];
+    // unsigned char proto[0];
 
     MsgHdrProtoBuf() {
-        msg          = static_cast<std::uint32_t>(EMsg::Invalid);
+        msg          = static_cast<u32>(EMsg::Invalid);
         headerLength = 0;
     }
 
@@ -158,11 +160,11 @@ struct MsgHdrProtoBuf {
 
 struct MsgGCHdrProtoBuf {
     // Static size: 4
-    std::uint32_t msg;
+    u32 msg;
     // Static size: 4
-    std::int32_t headerLength;
+    i32 headerLength;
     // Static size: 0
-    unsigned char proto[0];
+    // unsigned char proto[0];
 
     MsgGCHdrProtoBuf() {
         msg          = 0;
@@ -172,11 +174,11 @@ struct MsgGCHdrProtoBuf {
 
 struct MsgGCHdr {
     // Static size: 2
-    std::uint16_t headerVersion;
+    u16 headerVersion;
     // Static size: 8
-    std::uint64_t targetJobID;
+    u64 targetJobID;
     // Static size: 8
-    std::uint64_t sourceJobID;
+    u64 sourceJobID;
 
     MsgGCHdr() {
         headerVersion = 1;
@@ -193,7 +195,7 @@ struct MsgClientJustStrings {
 
 struct MsgClientGenericResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
 
     MsgClientGenericResponse() {
         result = 0;
@@ -201,15 +203,15 @@ struct MsgClientGenericResponse {
 };
 
 struct MsgChannelEncryptRequest {
-    static const std::uint32_t PROTOCOL_VERSION = 1;
+    static const u32 PROTOCOL_VERSION = 1;
     // Static size: 4
-    std::uint32_t protocolVersion;
+    u32 protocolVersion;
     // Static size: 4
-    std::uint32_t universe;
+    u32 universe;
 
     MsgChannelEncryptRequest() {
         protocolVersion = MsgChannelEncryptRequest::PROTOCOL_VERSION;
-        universe        = static_cast<std::uint32_t>(EUniverse::Invalid);
+        universe        = static_cast<u32>(EUniverse::Invalid);
     }
 
     void FromBuffer(Buffer &b);
@@ -217,9 +219,9 @@ struct MsgChannelEncryptRequest {
 
 struct MsgChannelEncryptResponse {
     // Static size: 4
-    std::uint32_t protocolVersion;
+    u32 protocolVersion;
     // Static size: 4
-    std::uint32_t keySize;
+    u32 keySize;
 
     MsgChannelEncryptResponse() {
         protocolVersion = MsgChannelEncryptRequest::PROTOCOL_VERSION;
@@ -231,10 +233,10 @@ struct MsgChannelEncryptResponse {
 
 struct MsgChannelEncryptResult {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
 
     MsgChannelEncryptResult() {
-        result = static_cast<std::uint32_t>(EResult::Invalid);
+        result = static_cast<u32>(EResult::Invalid);
     }
 
     void FromBuffer(Buffer &b);
@@ -242,7 +244,7 @@ struct MsgChannelEncryptResult {
 
 struct MsgClientNewLoginKey {
     // Static size: 4
-    std::uint32_t uniqueID;
+    u32 uniqueID;
     // Static size: 20
     unsigned char loginKey[20];
 
@@ -253,7 +255,7 @@ struct MsgClientNewLoginKey {
 
 struct MsgClientNewLoginKeyAccepted {
     // Static size: 4
-    std::uint32_t uniqueID;
+    u32 uniqueID;
 
     MsgClientNewLoginKeyAccepted() {
         uniqueID = 0;
@@ -261,26 +263,26 @@ struct MsgClientNewLoginKeyAccepted {
 };
 
 struct MsgClientLogon {
-    static const std::uint32_t ObfuscationMask                                      = 0xBAADF00D;
-    static const std::uint32_t CurrentProtocol                                      = 65575;
-    static const std::uint32_t ProtocolVerMajorMask                                 = 0xFFFF0000;
-    static const std::uint32_t ProtocolVerMinorMask                                 = 0xFFFF;
-    static const std::uint16_t ProtocolVerMinorMinGameServers                       = 4;
-    static const std::uint16_t ProtocolVerMinorMinForSupportingEMsgMulti            = 12;
-    static const std::uint16_t ProtocolVerMinorMinForSupportingEMsgClientEncryptPct = 14;
-    static const std::uint16_t ProtocolVerMinorMinForExtendedMsgHdr                 = 17;
-    static const std::uint16_t ProtocolVerMinorMinForCellId                         = 18;
-    static const std::uint16_t ProtocolVerMinorMinForSessionIDLast                  = 19;
-    static const std::uint16_t ProtocolVerMinorMinForServerAvailablityMsgs          = 24;
-    static const std::uint16_t ProtocolVerMinorMinClients                           = 25;
-    static const std::uint16_t ProtocolVerMinorMinForOSType                         = 26;
-    static const std::uint16_t ProtocolVerMinorMinForCegApplyPESig                  = 27;
-    static const std::uint16_t ProtocolVerMinorMinForMarketingMessages2             = 27;
-    static const std::uint16_t ProtocolVerMinorMinForAnyProtoBufMessages            = 28;
-    static const std::uint16_t ProtocolVerMinorMinForProtoBufLoggedOffMessage       = 28;
-    static const std::uint16_t ProtocolVerMinorMinForProtoBufMultiMessages          = 28;
-    static const std::uint16_t ProtocolVerMinorMinForSendingProtocolToUFS           = 30;
-    static const std::uint16_t ProtocolVerMinorMinForMachineAuth                    = 33;
+    static const u32 ObfuscationMask                                      = 0xBAADF00D;
+    static const u32 CurrentProtocol                                      = 65575;
+    static const u32 ProtocolVerMajorMask                                 = 0xFFFF0000;
+    static const u32 ProtocolVerMinorMask                                 = 0xFFFF;
+    static const u16 ProtocolVerMinorMinGameServers                       = 4;
+    static const u16 ProtocolVerMinorMinForSupportingEMsgMulti            = 12;
+    static const u16 ProtocolVerMinorMinForSupportingEMsgClientEncryptPct = 14;
+    static const u16 ProtocolVerMinorMinForExtendedMsgHdr                 = 17;
+    static const u16 ProtocolVerMinorMinForCellId                         = 18;
+    static const u16 ProtocolVerMinorMinForSessionIDLast                  = 19;
+    static const u16 ProtocolVerMinorMinForServerAvailablityMsgs          = 24;
+    static const u16 ProtocolVerMinorMinClients                           = 25;
+    static const u16 ProtocolVerMinorMinForOSType                         = 26;
+    static const u16 ProtocolVerMinorMinForCegApplyPESig                  = 27;
+    static const u16 ProtocolVerMinorMinForMarketingMessages2             = 27;
+    static const u16 ProtocolVerMinorMinForAnyProtoBufMessages            = 28;
+    static const u16 ProtocolVerMinorMinForProtoBufLoggedOffMessage       = 28;
+    static const u16 ProtocolVerMinorMinForProtoBufMultiMessages          = 28;
+    static const u16 ProtocolVerMinorMinForSendingProtocolToUFS           = 30;
+    static const u16 ProtocolVerMinorMinForMachineAuth                    = 33;
 
     MsgClientLogon() {
     }
@@ -288,7 +290,7 @@ struct MsgClientLogon {
 
 struct MsgClientVACBanStatus {
     // Static size: 4
-    std::uint32_t numBans;
+    u32 numBans;
 
     MsgClientVACBanStatus() {
         numBans = 0;
@@ -297,11 +299,11 @@ struct MsgClientVACBanStatus {
 
 struct MsgClientAppUsageEvent {
     // Static size: 4
-    std::uint32_t appUsageEvent;
+    u32 appUsageEvent;
     // Static size: 8
-    std::uint64_t gameID;
+    u64 gameID;
     // Static size: 2
-    std::uint16_t offline;
+    u16 offline;
 
     MsgClientAppUsageEvent() {
         appUsageEvent = 0;
@@ -312,11 +314,11 @@ struct MsgClientAppUsageEvent {
 
 struct MsgClientEmailAddrInfo {
     // Static size: 4
-    std::uint32_t passwordStrength;
+    u32 passwordStrength;
     // Static size: 4
-    std::uint32_t flagsAccountSecurityPolicy;
+    u32 flagsAccountSecurityPolicy;
     // Static size: 1
-    std::uint8_t validated;
+    u8 validated;
 
     MsgClientEmailAddrInfo() {
         passwordStrength           = 0;
@@ -327,11 +329,11 @@ struct MsgClientEmailAddrInfo {
 
 struct MsgClientUpdateGuestPassesList {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 4
-    std::int32_t countGuestPassesToGive;
+    i32 countGuestPassesToGive;
     // Static size: 4
-    std::int32_t countGuestPassesToRedeem;
+    i32 countGuestPassesToRedeem;
 
     MsgClientUpdateGuestPassesList() {
         result                   = 0;
@@ -342,7 +344,7 @@ struct MsgClientUpdateGuestPassesList {
 
 struct MsgClientRequestedClientStats {
     // Static size: 4
-    std::int32_t countStats;
+    i32 countStats;
 
     MsgClientRequestedClientStats() {
         countStats = 0;
@@ -351,13 +353,13 @@ struct MsgClientRequestedClientStats {
 
 struct MsgClientP2PIntroducerMessage {
     // Static size: 8
-    std::uint64_t steamID;
+    u64 steamID;
     // Static size: 4
-    std::uint32_t routingType;
+    u32 routingType;
     // Static size: 1450
     unsigned char data[1450];
     // Static size: 4
-    std::uint32_t dataLen;
+    u32 dataLen;
 
     MsgClientP2PIntroducerMessage() {
         steamID     = 0;
@@ -368,13 +370,13 @@ struct MsgClientP2PIntroducerMessage {
 
 struct MsgClientOGSBeginSession {
     // Static size: 1
-    std::uint8_t accountType;
+    u8 accountType;
     // Static size: 8
-    std::uint64_t accountId;
+    u64 accountId;
     // Static size: 4
-    std::uint32_t appId;
+    u32 appId;
     // Static size: 4
-    std::uint32_t timeStarted;
+    u32 timeStarted;
 
     MsgClientOGSBeginSession() {
         accountType = 0;
@@ -386,13 +388,13 @@ struct MsgClientOGSBeginSession {
 
 struct MsgClientOGSBeginSessionResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 1
-    std::uint8_t collectingAny;
+    u8 collectingAny;
     // Static size: 1
-    std::uint8_t collectingDetails;
+    u8 collectingDetails;
     // Static size: 8
-    std::uint64_t sessionId;
+    u64 sessionId;
 
     MsgClientOGSBeginSessionResponse() {
         result            = 0;
@@ -404,13 +406,13 @@ struct MsgClientOGSBeginSessionResponse {
 
 struct MsgClientOGSEndSession {
     // Static size: 8
-    std::uint64_t sessionId;
+    u64 sessionId;
     // Static size: 4
-    std::uint32_t timeEnded;
+    u32 timeEnded;
     // Static size: 4
-    std::int32_t reasonCode;
+    i32 reasonCode;
     // Static size: 4
-    std::int32_t countAttributes;
+    i32 countAttributes;
 
     MsgClientOGSEndSession() {
         sessionId       = 0;
@@ -422,7 +424,7 @@ struct MsgClientOGSEndSession {
 
 struct MsgClientOGSEndSessionResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
 
     MsgClientOGSEndSessionResponse() {
         result = 0;
@@ -431,9 +433,9 @@ struct MsgClientOGSEndSessionResponse {
 
 struct MsgClientOGSWriteRow {
     // Static size: 8
-    std::uint64_t sessionId;
+    u64 sessionId;
     // Static size: 4
-    std::int32_t countAttributes;
+    i32 countAttributes;
 
     MsgClientOGSWriteRow() {
         sessionId       = 0;
@@ -443,7 +445,7 @@ struct MsgClientOGSWriteRow {
 
 struct MsgClientGetFriendsWhoPlayGame {
     // Static size: 8
-    std::uint64_t gameId;
+    u64 gameId;
 
     MsgClientGetFriendsWhoPlayGame() {
         gameId = 0;
@@ -452,11 +454,11 @@ struct MsgClientGetFriendsWhoPlayGame {
 
 struct MsgClientGetFriendsWhoPlayGameResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 8
-    std::uint64_t gameId;
+    u64 gameId;
     // Static size: 4
-    std::uint32_t countFriends;
+    u32 countFriends;
 
     MsgClientGetFriendsWhoPlayGameResponse() {
         result       = 0;
@@ -467,7 +469,7 @@ struct MsgClientGetFriendsWhoPlayGameResponse {
 
 struct MsgGSPerformHardwareSurvey {
     // Static size: 4
-    std::uint32_t flags;
+    u32 flags;
 
     MsgGSPerformHardwareSurvey() {
         flags = 0;
@@ -476,13 +478,13 @@ struct MsgGSPerformHardwareSurvey {
 
 struct MsgGSGetPlayStatsResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 4
-    std::int32_t rank;
+    i32 rank;
     // Static size: 4
-    std::uint32_t lifetimeConnects;
+    u32 lifetimeConnects;
     // Static size: 4
-    std::uint32_t lifetimeMinutesPlayed;
+    u32 lifetimeMinutesPlayed;
 
     MsgGSGetPlayStatsResponse() {
         result                = 0;
@@ -494,19 +496,19 @@ struct MsgGSGetPlayStatsResponse {
 
 struct MsgGSGetReputationResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 4
-    std::uint32_t reputationScore;
+    u32 reputationScore;
     // Static size: 1
-    std::uint8_t banned;
+    u8 banned;
     // Static size: 4
-    std::uint32_t bannedIp;
+    u32 bannedIp;
     // Static size: 2
-    std::uint16_t bannedPort;
+    u16 bannedPort;
     // Static size: 8
-    std::uint64_t bannedGameId;
+    u64 bannedGameId;
     // Static size: 4
-    std::uint32_t timeBanExpires;
+    u32 timeBanExpires;
 
     MsgGSGetReputationResponse() {
         result          = 0;
@@ -521,9 +523,9 @@ struct MsgGSGetReputationResponse {
 
 struct MsgGSDeny {
     // Static size: 8
-    std::uint64_t steamId;
+    u64 steamId;
     // Static size: 4
-    std::uint32_t denyReason;
+    u32 denyReason;
 
     MsgGSDeny() {
         steamId    = 0;
@@ -533,7 +535,7 @@ struct MsgGSDeny {
 
 struct MsgGSApprove {
     // Static size: 8
-    std::uint64_t steamId;
+    u64 steamId;
 
     MsgGSApprove() {
         steamId = 0;
@@ -542,11 +544,11 @@ struct MsgGSApprove {
 
 struct MsgGSKick {
     // Static size: 8
-    std::uint64_t steamId;
+    u64 steamId;
     // Static size: 4
-    std::uint32_t denyReason;
+    u32 denyReason;
     // Static size: 4
-    std::int32_t waitTilMapChange;
+    i32 waitTilMapChange;
 
     MsgGSKick() {
         steamId          = 0;
@@ -557,9 +559,9 @@ struct MsgGSKick {
 
 struct MsgGSGetUserGroupStatus {
     // Static size: 8
-    std::uint64_t steamIdUser;
+    u64 steamIdUser;
     // Static size: 8
-    std::uint64_t steamIdGroup;
+    u64 steamIdGroup;
 
     MsgGSGetUserGroupStatus() {
         steamIdUser  = 0;
@@ -569,13 +571,13 @@ struct MsgGSGetUserGroupStatus {
 
 struct MsgGSGetUserGroupStatusResponse {
     // Static size: 8
-    std::uint64_t steamIdUser;
+    u64 steamIdUser;
     // Static size: 8
-    std::uint64_t steamIdGroup;
+    u64 steamIdGroup;
     // Static size: 4
-    std::uint32_t clanRelationship;
+    u32 clanRelationship;
     // Static size: 4
-    std::uint32_t clanRank;
+    u32 clanRank;
 
     MsgGSGetUserGroupStatusResponse() {
         steamIdUser      = 0;
@@ -587,9 +589,9 @@ struct MsgGSGetUserGroupStatusResponse {
 
 struct MsgClientJoinChat {
     // Static size: 8
-    std::uint64_t steamIdChat;
+    u64 steamIdChat;
     // Static size: 1
-    std::uint8_t isVoiceSpeaker;
+    u8 isVoiceSpeaker;
 
     MsgClientJoinChat() {
         steamIdChat    = 0;
@@ -599,19 +601,19 @@ struct MsgClientJoinChat {
 
 struct MsgClientChatEnter {
     // Static size: 8
-    std::uint64_t steamIdChat;
+    u64 steamIdChat;
     // Static size: 8
-    std::uint64_t steamIdFriend;
+    u64 steamIdFriend;
     // Static size: 4
-    std::uint32_t chatRoomType;
+    u32 chatRoomType;
     // Static size: 8
-    std::uint64_t steamIdOwner;
+    u64 steamIdOwner;
     // Static size: 8
-    std::uint64_t steamIdClan;
+    u64 steamIdClan;
     // Static size: 1
-    std::uint8_t chatFlags;
+    u8 chatFlags;
     // Static size: 4
-    std::uint32_t enterResponse;
+    u32 enterResponse;
 
     MsgClientChatEnter() {
         steamIdChat   = 0;
@@ -626,11 +628,11 @@ struct MsgClientChatEnter {
 
 struct MsgClientChatMsg {
     // Static size: 8
-    std::uint64_t steamIdChatter;
+    u64 steamIdChatter;
     // Static size: 8
-    std::uint64_t steamIdChatRoom;
+    u64 steamIdChatRoom;
     // Static size: 4
-    std::uint32_t chatMsgType;
+    u32 chatMsgType;
 
     MsgClientChatMsg() {
         steamIdChatter  = 0;
@@ -641,9 +643,9 @@ struct MsgClientChatMsg {
 
 struct MsgClientChatMemberInfo {
     // Static size: 8
-    std::uint64_t steamIdChat;
+    u64 steamIdChat;
     // Static size: 4
-    std::uint32_t type;
+    u32 type;
 
     MsgClientChatMemberInfo() {
         steamIdChat = 0;
@@ -653,11 +655,11 @@ struct MsgClientChatMemberInfo {
 
 struct MsgClientChatAction {
     // Static size: 8
-    std::uint64_t steamIdChat;
+    u64 steamIdChat;
     // Static size: 8
-    std::uint64_t steamIdUserToActOn;
+    u64 steamIdUserToActOn;
     // Static size: 4
-    std::uint32_t chatAction;
+    u32 chatAction;
 
     MsgClientChatAction() {
         steamIdChat        = 0;
@@ -668,13 +670,13 @@ struct MsgClientChatAction {
 
 struct MsgClientChatActionResult {
     // Static size: 8
-    std::uint64_t steamIdChat;
+    u64 steamIdChat;
     // Static size: 8
-    std::uint64_t steamIdUserActedOn;
+    u64 steamIdUserActedOn;
     // Static size: 4
-    std::uint32_t chatAction;
+    u32 chatAction;
     // Static size: 4
-    std::uint32_t actionResult;
+    u32 actionResult;
 
     MsgClientChatActionResult() {
         steamIdChat        = 0;
@@ -686,7 +688,7 @@ struct MsgClientChatActionResult {
 
 struct MsgClientGetNumberOfCurrentPlayers {
     // Static size: 8
-    std::uint64_t gameID;
+    u64 gameID;
 
     MsgClientGetNumberOfCurrentPlayers() {
         gameID = 0;
@@ -695,9 +697,9 @@ struct MsgClientGetNumberOfCurrentPlayers {
 
 struct MsgClientGetNumberOfCurrentPlayersResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 4
-    std::uint32_t numPlayers;
+    u32 numPlayers;
 
     MsgClientGetNumberOfCurrentPlayersResponse() {
         result     = 0;
@@ -707,11 +709,11 @@ struct MsgClientGetNumberOfCurrentPlayersResponse {
 
 struct MsgClientSetIgnoreFriend {
     // Static size: 8
-    std::uint64_t mySteamId;
+    u64 mySteamId;
     // Static size: 8
-    std::uint64_t steamIdFriend;
+    u64 steamIdFriend;
     // Static size: 1
-    std::uint8_t ignore;
+    u8 ignore;
 
     MsgClientSetIgnoreFriend() {
         mySteamId     = 0;
@@ -722,9 +724,9 @@ struct MsgClientSetIgnoreFriend {
 
 struct MsgClientSetIgnoreFriendResponse {
     // Static size: 8
-    std::uint64_t unknown;
+    u64 unknown;
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
 
     MsgClientSetIgnoreFriendResponse() {
         unknown = 0;
@@ -734,11 +736,11 @@ struct MsgClientSetIgnoreFriendResponse {
 
 struct MsgClientLoggedOff {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 4
-    std::int32_t secMinReconnectHint;
+    i32 secMinReconnectHint;
     // Static size: 4
-    std::int32_t secMaxReconnectHint;
+    i32 secMaxReconnectHint;
 
     MsgClientLoggedOff() {
         result              = 0;
@@ -749,17 +751,17 @@ struct MsgClientLoggedOff {
 
 struct MsgClientLogOnResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
     // Static size: 4
-    std::int32_t outOfGameHeartbeatRateSec;
+    i32 outOfGameHeartbeatRateSec;
     // Static size: 4
-    std::int32_t inGameHeartbeatRateSec;
+    i32 inGameHeartbeatRateSec;
     // Static size: 8
-    std::uint64_t clientSuppliedSteamId;
+    u64 clientSuppliedSteamId;
     // Static size: 4
-    std::uint32_t ipPublic;
+    u32 ipPublic;
     // Static size: 4
-    std::uint32_t serverRealTime;
+    u32 serverRealTime;
 
     MsgClientLogOnResponse() {
         result                    = 0;
@@ -773,11 +775,11 @@ struct MsgClientLogOnResponse {
 
 struct MsgClientSendGuestPass {
     // Static size: 8
-    std::uint64_t giftId;
+    u64 giftId;
     // Static size: 1
-    std::uint8_t giftType;
+    u8 giftType;
     // Static size: 4
-    std::uint32_t accountId;
+    u32 accountId;
 
     MsgClientSendGuestPass() {
         giftId    = 0;
@@ -788,7 +790,7 @@ struct MsgClientSendGuestPass {
 
 struct MsgClientSendGuestPassResponse {
     // Static size: 4
-    std::uint32_t result;
+    u32 result;
 
     MsgClientSendGuestPassResponse() {
         result = 0;
@@ -797,11 +799,11 @@ struct MsgClientSendGuestPassResponse {
 
 struct MsgClientServerUnavailable {
     // Static size: 8
-    std::uint64_t jobidSent;
+    u64 jobidSent;
     // Static size: 4
-    std::uint32_t eMsgSent;
+    u32 eMsgSent;
     // Static size: 4
-    std::uint32_t eServerTypeUnavailable;
+    u32 eServerTypeUnavailable;
 
     MsgClientServerUnavailable() {
         jobidSent              = 0;

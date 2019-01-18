@@ -558,7 +558,7 @@ enum class EBillingType {
     OEMTicket              = 8,
     NumBillingTypes        = 9,
 };
-enum class EActivationCodeClass : std::uint32_t {
+enum class EActivationCodeClass : u32 {
     WonCDKey     = 0,
     ValveCDKey   = 1,
     Doom3CDKey   = 2,
@@ -575,7 +575,7 @@ enum class EChatMemberStateChange {
     Kicked       = 0x08,
     Banned       = 0x10,
 };
-enum class ERegionCode : std::uint8_t {
+enum class ERegionCode : u8 {
     USEast       = 0x00,
     USWest       = 0x01,
     SouthAmerica = 0x02,
@@ -757,7 +757,7 @@ enum class ELeaderboardUploadScoreMethod {
     KeepBest    = 1,
     ForceUpdate = 2,
 };
-enum class EUdpPacketType : std::uint8_t {
+enum class EUdpPacketType : u8 {
     Invalid      = 0,
     ChallengeReq = 1,
     Challenge    = 2,
