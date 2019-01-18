@@ -1923,5 +1923,7 @@ enum EMsg {
     ClientVoiceCallPreAuthorizeResponse = 9801,
     ClientServerTimestampRequest        = 9802,
 
+    EMsg_Last = ClientServerTimestampRequest,
+
 };
 }

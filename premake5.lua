@@ -119,13 +119,13 @@ workspace "workspace"
         -- This is messy but was the only way to get it to work consistently
         -- across multiple platforms (circleci, windows 10, vsts...)
         filter "system:linux"
-            postbuildcommands {
+            prebuildcommands  {
                 "{MKDIR} %{wks.location}/compile_commands/",
                 "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
                 "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json"
             }
         filter "system:windows"
-            postbuildcommands {
+            prebuildcommands  {
                 "cmd.exe /c \"" .. "{MKDIR} %{wks.location}/compile_commands/",
                 "cmd.exe /c \""  .. "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
                 "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"

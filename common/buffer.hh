@@ -49,6 +49,10 @@ public:
     template <typename T>
     void SetBase() { base = sizeof(T); }
     void SetBase(u32 pos) { base = pos; }
+    void SetBaseAtCurPos() {
+        base   = offset;
+        offset = 0;
+    }
 
     size_t TellBase() { return base; }
 
