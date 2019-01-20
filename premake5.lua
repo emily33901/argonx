@@ -103,9 +103,15 @@ workspace "workspace"
         
         pchsource "client/precompiled.cc"
         
-        includedirs { "client", "protogen", "common" }
+        includedirs { "client", "protogen", "common", "external", "external/OpenSteamworks" }
 
-        files { "client/**.hh", "client/**.cc", "common/**.cc", "common/**.hh", "protogen/**.pb.*"}
+        files { "client/**.hh", "client/**.cc", 
+                "common/**.cc", "common/**.hh",
+                "protogen/**.pb.*",
+                "steam/**.hh", "steam/**.cc",
+                "external/SteamStructs/**.h",
+                "external/OpenSteamworks/Open Steamworks/**.h",
+            }
 
         filter {"system:linux"}
             links {"cryptopp", "pthread", "protobuf", "archive"}
