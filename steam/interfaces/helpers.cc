@@ -52,13 +52,47 @@ const u8 trampolineBasis[] = {
 // clang-format on
 
 constexpr u32 trampolineAddrOffset = 3;
-#else
+#elif defined(ARGONX_32)
+
+// x86 calling conventions differ
+// So deal with them here
+
+#if defined(ARGONX_WIN)
+
+// mov ecx, [ecx+8]
+// push 0xCCCCCCCC
+// ret
+
 // clang-format off
 const u8 trampolineBasis[] = {
-    0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 
+    0x8B, 0x49, 0x08,
+    0x68, 0xCC, 0xCC, 0xCC, 0xCC,
+    0xC3,
 };
 // clang-format on
-constexpr u32 trampolineAddrOffset = 0;
+constexpr u32 trampolineAddrOffset = 4;
+
+#elif defined(ARGONX_UNIX)
+
+// pop eax ; ret address
+// pop ecx ; thisptr on GCC
+// push [ecx + 8] ; push thisptr back on
+// push eax ; push ret
+// push 0xCCCCCCCC ; jmp address
+// ret ; jmp to new address
+
+// clang-format off
+const u8 trampolineBasis[] = {
+    0x58, 0x59,
+    0xFF, 0x71, 0x08,
+    0x50,
+    0x68, 0xCC, 0xCC, 0xCC, 0xCC,
+    0xC3
+};
+// clang-format on
+constexpr u32 trampolineAddrOffset = 8;
+
+#endif
 
 #endif
 

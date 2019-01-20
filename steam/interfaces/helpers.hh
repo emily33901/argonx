@@ -42,6 +42,15 @@ public:
 // Ensuring that our trampoline allocator is initialised first
 extern TrampolineAllocator *TAllocator();
 
+#if defined(ARGONX_64) || defined(ARGONX_UNIX)
+// On x64 both platforms use the same abi
+// On unix there is no "thiscall" - the thisptr is the first arg
+#define AdaptThisCall
+#elif defined(ARGONX_WIN)
+// On windows x86 passes thisptr in ecx
+#define AdaptThisCall __thiscall
+#endif
+
 // For adapting versioned interfaces to their unversioned counterparts
 #define AdaptDeclare(name)                            \
     struct name {                                     \
@@ -51,7 +60,12 @@ extern TrampolineAllocator *TAllocator();
         void *        thisptr;                        \
     }
 
-#define AdaptDefine(name)                                    \
+#define AdaptExpose(name, target, interfaceName)                                                                                              \
+    static void *                                  __Create_##name##_interface() { return reinterpret_cast<void *>(new name(new target())); } \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name{&__Create_##name##_interface, interfaceName};
+
+#define AdaptDefine(name, target, interfaceName)             \
+    AdaptExpose(name, target, interfaceName);                \
     extern void *name##_functionTable[];                     \
     void **      name::functionTable = name##_functionTable; \
     void *       name##_functionTable[]
@@ -60,7 +74,7 @@ extern TrampolineAllocator *TAllocator();
 #define AdaptPassThrough(target) AdaptCreateTrampoline(&target)
 #define AdaptOverload(signature, target) AdaptCreateTrampoline(static_cast<signature>(&target))
 #define AdaptEmpty(target) \
-    AdaptCreateTrampoline(static_cast<void (*)(void *)>([](void *thisptr) { Assert(0, "Attempt to call function '" #target "'\n"); }))
+    AdaptCreateTrampoline(static_cast<void(AdaptThisCall *)(void *)>([](void *thisptr) { Assert(0, "Attempt to call function '" #target "'\n"); }))
 
 // Helper for msvcs type parsing
 template <typename T>
@@ -74,7 +88,7 @@ using MsvcFuck = T;
 // large amount of macro bollocks
 // used like `AdaptCustom(Test2, int, { return thisptr->Test(b, a); }, int a, int b)`
 #define AdaptCustom(TT, ret, body, ...) \
-    AdaptCreateTrampoline((::Steam::InterfaceHelpers::MsvcFuck<ret (*)(TT *, __VA_ARGS__)>)[](TT * thisptr, __VA_ARGS__)->ret body)
+    AdaptCreateTrampoline((::Steam::InterfaceHelpers::MsvcFuck<ret(AdaptThisCall *)(TT *, __VA_ARGS__)>)[](TT * thisptr, __VA_ARGS__)->ret body)
 
 class InterfaceReg {
 public:
