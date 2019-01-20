@@ -9,7 +9,7 @@ typedef void *(*InstantiateInterfaceFn)(void);
 namespace Steam::InterfaceHelpers {
 // Arena allocator but for creating trampoline functions
 class TrampolineAllocator {
-    u8 * AllocatedMemory;
+    u8 * allocatedMemory;
     uptr offset;
 
 public:

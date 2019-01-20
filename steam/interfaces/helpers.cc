@@ -6,6 +6,7 @@
 #include <Windows.h>
 
 #elif defined(ARGONX_UNIX)
+#include <sys/mman.h>
 
 #endif
 
@@ -19,19 +20,18 @@ TrampolineAllocator *TAllocator() {
 
 TrampolineAllocator::TrampolineAllocator() {
 #if defined(ARGONX_WIN)
-    AllocatedMemory = (u8 *)VirtualAlloc(nullptr, allocatedSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    allocatedMemory = (u8 *)VirtualAlloc(nullptr, allocatedSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 #elif defined(ARGONX_UNIX)
-    Assert(false, "Not implemented for unix.");
+    allocatedMemory = (u8 *)mmap(nullptr, allocatedSize, PROT_EXEC | PROT_READ | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #endif
-
     offset = 0;
 }
 
 TrampolineAllocator::~TrampolineAllocator() {
 #if defined(ARGONX_WIN)
-    VirtualFree(AllocatedMemory, allocatedSize, MEM_RELEASE);
+    VirtualFree(allocatedMemory, allocatedSize, MEM_RELEASE);
 #elif defined(ARGONX_UNIX)
-    Assert(false, "Not implemented for unix.");
+    memunmap(allocatedMemory, allocatedSize);
 #endif
 }
 
@@ -65,7 +65,7 @@ constexpr u32 trampolineAddrOffset = 0;
 constexpr u32 trampolineSize = sizeof(trampolineBasis);
 
 void *TrampolineAllocator::CreateTrampoline(void *target) {
-    auto allocAddr = AllocatedMemory + offset;
+    auto allocAddr = allocatedMemory + offset;
     offset += trampolineSize;
 
     // Copy the trampoline in and write the target address
