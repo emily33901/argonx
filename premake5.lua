@@ -24,8 +24,10 @@ workspace "workspace"
     -- Set up platforms 
     filter {"platforms:x32"}
         architecture "x32"
+        defines {"ARGONX_32"}
     filter {"platforms:x64"}
         architecture "x64"
+        defines {"ARGONX_64"}
     filter {}
 
     cppdialect "C++17"

@@ -35,7 +35,7 @@ TrampolineAllocator::~TrampolineAllocator() {
 #endif
 }
 
-#if defined(__x86_x64__) || defined(_WIN64)
+#if defined(ARGONX_64)
 // clang-format off
 const u8 trampolineBasis[] = {
     // push rax
@@ -51,11 +51,18 @@ const u8 trampolineBasis[] = {
 };
 // clang-format on
 
-constexpr u32 trampolineSize       = sizeof(trampolineBasis);
 constexpr u32 trampolineAddrOffset = 3;
 #else
+// clang-format off
+const u8 trampolineBasis[] = {
+    0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 
+};
+// clang-format on
+constexpr u32 trampolineAddrOffset = 0;
 
 #endif
+
+constexpr u32 trampolineSize = sizeof(trampolineBasis);
 
 void *TrampolineAllocator::CreateTrampoline(void *target) {
     auto allocAddr = AllocatedMemory + offset;

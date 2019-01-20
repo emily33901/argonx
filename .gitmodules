@@ -9,4 +9,4 @@
 	url = https://github.com/emily33901/SteamStructs
 [submodule "external/OpenSteamworks"]
 	path = external/OpenSteamworks
-	url = https://github.com/SteamRE/open-steamworks.git
+	url = https://github.com/emily33901/open-steamworks.git

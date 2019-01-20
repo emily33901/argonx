@@ -18,17 +18,18 @@ index f5bb2fb..23e60cf 100644
      virtual unknown_ret RunFrame() = 0;
      virtual unknown_ret GetAllControllersStatus(ControllersStatus_t*) = 0;
 diff --git a/IClientControllerSerialized.h b/IClientControllerSerialized.h
-index 3038cdc..eac93c7 100644
+index 3038cdc..f34cc28 100644
 --- a/IClientControllerSerialized.h
 +++ b/IClientControllerSerialized.h
 @@ -1,8 +1,10 @@
  class IClientControllerSerialized
  {
  public:
+-    virtual unknown_ret ~IClientControllerSerializedMap() = 0;
+-    virtual unknown_ret ~IClientControllerSerializedMap() = 0;
 +    virtual unknown_ret __Destructor1() = 0;
 +#if defined(ARGONX_UNIX)
-     virtual unknown_ret ~IClientControllerSerializedMap() = 0;
--    virtual unknown_ret ~IClientControllerSerializedMap() = 0;
++    virtual unknown_ret __Destructor2() = 0;
 +#endif  
      virtual unknown_ret ShowBindingPanel(unsigned int, unsigned long long) = 0;
      virtual unknown_ret GetControllerTypeForHandle(unsigned long long) = 0;

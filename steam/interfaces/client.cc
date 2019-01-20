@@ -225,6 +225,11 @@ public:
     virtual unknown_ret __Destructor1() override {
         return unknown_ret();
     }
+#ifdef ARGONX_UNIX
+    virtual unknown_ret __Destructor2() override {
+        return unknown_ret();
+    }
+#endif
     virtual unknown_ret GetIPCServerMap() override {
         return unknown_ret();
     }

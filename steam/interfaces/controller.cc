@@ -17,6 +17,11 @@ public:
     virtual unknown_ret __Destructor1() override {
         return unknown_ret();
     }
+#if defined(ARGONX_UNIX)
+    virtual unknown_ret __Destructor2() override {
+        return unknown_ret();
+    }
+#endif
     virtual unknown_ret Init(bool, Reference::IClientControllerSerialized *) override {
         return unknown_ret();
     }
