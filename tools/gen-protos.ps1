@@ -1,8 +1,6 @@
 $mypath = Split-Path $MyInvocation.MyCommand.Path
 
-Push-Location
-
-Set-Location $mypath
+Push-Location $mypath
 
 $tools_dir = $pwd.Path
 
@@ -10,11 +8,11 @@ Set-Location "..\external\SteamKit\Resources\Protobufs"
 
 $cur_dir = $pwd
 
-foreach($d in Get-ChildItem -Directory) {
+foreach ($d in Get-ChildItem -Directory) {
     $protos = New-Object System.Collections.ArrayList
 
-    foreach($proto in Get-ChildItem -Path $d.FullName) {
-        if($proto.Extension -like "*.proto") {
+    foreach ($proto in Get-ChildItem -Path $d.FullName) {
+        if ($proto.Extension -like "*.proto") {
             [void] $protos.Add($proto)
         }
     }
@@ -40,12 +38,10 @@ foreach($d in Get-ChildItem -Directory) {
 
         # protoc -I="$($d.FullName)" -I="steam" --cpp_out="$($quote)$($tools_dir)/../protogen/$($quote)" $($full_names)
 
-        foreach($f in $protos) {
-            Push-Location
+        foreach ($f in $protos) {
+            Push-Location $d
         
             Write-Host ">> $($f)"
-
-            Set-Location $d
 
             protoc -I="." -I=".." -I="../steam" --cpp_out="$($quote)$($tools_dir)/../protogen/$($quote)" "$($f)"
 
