@@ -120,7 +120,7 @@ public:
     }
 
     void ReadInto(std::vector<u8> &x) {
-        assert(x.capacity() > 0); // If this goes off you havent reserved any space
+        Assert(x.capacity() > 0, "No space reserved in x");
 
         x.insert(x.end(), OffsetIterator(), OffsetIterator() + x.capacity());
     }

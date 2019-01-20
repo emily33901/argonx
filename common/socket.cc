@@ -124,7 +124,7 @@ void Socket::WriteUnsafe(const u8 *buffer, unsigned length) {
 
     if (length == 0) return;
 
-    assert(0); // Failed to correctly send all data
+    Assert(0, "Failed to correctly send all data");
 }
 
 void Socket::Write(const std::vector<u8> &bytes) {

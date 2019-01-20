@@ -13,3 +13,13 @@ using i16  = std::int16_t;
 using i32  = std::int32_t;
 using i64  = std::int64_t;
 using iptr = std::intptr_t;
+
+#ifdef _DEBUG
+#define Assert(exp, message)                                  \
+    if (!!(exp)) {                                            \
+        printf(__FILE__ ":%d: " #message "\n", __LINE__ - 1); \
+        assert(0);                                            \
+    }
+#else
+#define Assert(exp, message) assert(exp)
+#endif
