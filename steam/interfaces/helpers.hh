@@ -18,17 +18,17 @@ public:
 
     template <typename F>
     void *CreateTrampoline(F target) {
-        // On GCC function pointers are 16 bytes in size
+        // On GCC some function pointers are 16 bytes in size
         // becuase of the need to store the offset of the base of
         // the class instance
 
         auto realTarget = reinterpret_cast<void **>(&target);
 
-        if constexpr (sizeof(&TrampolineAllocator::NumAllocated) > sizeof(uptr)) {
+        if constexpr (sizeof(F) > sizeof(uptr)) {
             // Ensure that our thisptr is going to be correct!
             // For the purposes of what we are doing this check can
             // probably be removed to speed up init time.
-            Assert(*(realTarget + 1) == 0, "thisptr offset not 0");
+            Assert(*(realTarget + 1) == 0, "thisptr offset not 0 (was %d)", *(realTarget + 1));
         }
 
         return CreateTrampoline(*realTarget);

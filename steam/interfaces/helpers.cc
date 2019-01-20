@@ -22,7 +22,7 @@ TrampolineAllocator::TrampolineAllocator() {
 #if defined(ARGONX_WIN)
     allocatedMemory = (u8 *)VirtualAlloc(nullptr, allocatedSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 #elif defined(ARGONX_UNIX)
-    allocatedMemory = (u8 *)mmap(nullptr, allocatedSize, PROT_EXEC | PROT_READ | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    allocatedMemory = (u8 *)mmap(nullptr, allocatedSize, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #endif
     offset = 0;
 }
@@ -31,7 +31,7 @@ TrampolineAllocator::~TrampolineAllocator() {
 #if defined(ARGONX_WIN)
     VirtualFree(allocatedMemory, allocatedSize, MEM_RELEASE);
 #elif defined(ARGONX_UNIX)
-    memunmap(allocatedMemory, allocatedSize);
+    munmap(allocatedMemory, allocatedSize);
 #endif
 }
 
