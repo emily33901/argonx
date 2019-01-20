@@ -255,7 +255,7 @@ public:
 };
 
 AdaptDeclare(ISteamUGC001);
-AdaptDefine(ISteamUGC001) = {
+AdaptDefine(ISteamUGC001, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION001") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::SendQueryUGCRequest),
@@ -272,7 +272,7 @@ AdaptDefine(ISteamUGC001) = {
     AdaptPassThrough(IClientUGCMap::RequestUGCDetails),
 };
 AdaptDeclare(ISteamUGC002);
-AdaptDefine(ISteamUGC002) = {
+AdaptDefine(ISteamUGC002, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION002") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::SendQueryUGCRequest),
@@ -306,7 +306,7 @@ AdaptDefine(ISteamUGC002) = {
     AdaptEmpty(IClientUGCMap::GetItemUpdateInfo),
 };
 AdaptDeclare(ISteamUGC003);
-AdaptDefine(ISteamUGC003) = {
+AdaptDefine(ISteamUGC003, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION003") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::SendQueryUGCRequest),
@@ -340,7 +340,7 @@ AdaptDefine(ISteamUGC003) = {
     AdaptEmpty(IClientUGCMap::GetItemUpdateInfo),
 };
 AdaptDeclare(ISteamUGC004);
-AdaptDefine(ISteamUGC004) = {
+AdaptDefine(ISteamUGC004, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION004") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::SendQueryUGCRequest),
@@ -376,7 +376,7 @@ AdaptDefine(ISteamUGC004) = {
     AdaptPassThrough(IClientUGCMap::DownloadItem),
 };
 AdaptDeclare(ISteamUGC005);
-AdaptDefine(ISteamUGC005) = {
+AdaptDefine(ISteamUGC005, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION005") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::CreateQueryUGCDetailsRequest),
@@ -425,7 +425,7 @@ AdaptDefine(ISteamUGC005) = {
     AdaptPassThrough(IClientUGCMap::DownloadItem),
 };
 AdaptDeclare(ISteamUGC006);
-AdaptDefine(ISteamUGC006) = {
+AdaptDefine(ISteamUGC006, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION006") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::CreateQueryUGCDetailsRequest),
@@ -478,7 +478,7 @@ AdaptDefine(ISteamUGC006) = {
     AdaptPassThrough(IClientUGCMap::DownloadItem),
 };
 AdaptDeclare(ISteamUGC007);
-AdaptDefine(ISteamUGC007) = {
+AdaptDefine(ISteamUGC007, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION007") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::CreateQueryUGCDetailsRequest),
@@ -539,7 +539,7 @@ AdaptDefine(ISteamUGC007) = {
     AdaptPassThrough(IClientUGCMap::SuspendDownloads),
 };
 AdaptDeclare(ISteamUGC008);
-AdaptDefine(ISteamUGC008) = {
+AdaptDefine(ISteamUGC008, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION008") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::CreateQueryUGCDetailsRequest),
@@ -608,7 +608,7 @@ AdaptDefine(ISteamUGC008) = {
     AdaptPassThrough(IClientUGCMap::StopPlaytimeTrackingForAllItems),
 };
 AdaptDeclare(ISteamUGC009);
-AdaptDefine(ISteamUGC009) = {
+AdaptDefine(ISteamUGC009, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION009") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::CreateQueryUGCDetailsRequest),
@@ -678,7 +678,7 @@ AdaptDefine(ISteamUGC009) = {
     AdaptPassThrough(IClientUGCMap::StopPlaytimeTrackingForAllItems),
 };
 AdaptDeclare(ISteamUGC010);
-AdaptDefine(ISteamUGC010) = {
+AdaptDefine(ISteamUGC010, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION010") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::CreateQueryUGCDetailsRequest),
@@ -755,7 +755,7 @@ AdaptDefine(ISteamUGC010) = {
     AdaptPassThrough(IClientUGCMap::DeleteItem),
 };
 AdaptDeclare(ISteamUGC011);
-AdaptDefine(ISteamUGC011) = {
+AdaptDefine(ISteamUGC011, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION011") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptPassThrough(IClientUGCMap::CreateQueryUGCDetailsRequest),
@@ -833,7 +833,7 @@ AdaptDefine(ISteamUGC011) = {
     AdaptPassThrough(IClientUGCMap::DeleteItem),
 };
 AdaptDeclare(ISteamUGC012);
-AdaptDefine(ISteamUGC012) = {
+AdaptDefine(ISteamUGC012, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION012") = {
     AdaptPassThrough(IClientUGCMap::CreateQueryUserUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, unsigned int), IClientUGCMap::CreateQueryAllUGCRequest),
     AdaptOverload(unknown_ret (IClientUGCMap::*)(EUGCQuery, EUGCMatchingUGCType, unsigned int, unsigned int, const char *), IClientUGCMap::CreateQueryAllUGCRequest),

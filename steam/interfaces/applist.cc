@@ -272,7 +272,7 @@ public:
 };
 
 AdaptDeclare(ISteamAppList001);
-AdaptDefine(ISteamAppList001) = {
+AdaptDefine(ISteamAppList001, IClientAppManager, "STEAMAPPLIST_INTERFACE_VERSION001") = {
     AdaptPassThrough(IClientAppManager::GetNumInstalledApps),
     AdaptPassThrough(IClientAppManager::GetInstalledApps),
     AdaptEmpty(IClientAppManager::GetAppName),

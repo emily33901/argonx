@@ -675,7 +675,7 @@ public:
 };
 
 AdaptDeclare(ISteamUser004);
-AdaptDefine(ISteamUser004) = {
+AdaptDefine(ISteamUser004, IClientUserMap, "SteamUser004") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::LogOn),
     AdaptPassThrough(IClientUserMap::LogOff),
@@ -704,7 +704,7 @@ AdaptDefine(ISteamUser004) = {
     AdaptPassThrough(IClientUserMap::RequestLegacyCDKey),
 };
 AdaptDeclare(ISteamUser005);
-AdaptDefine(ISteamUser005) = {
+AdaptDefine(ISteamUser005, IClientUserMap, "SteamUser005") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::LogOn),
     AdaptPassThrough(IClientUserMap::LogOff),
@@ -746,7 +746,7 @@ AdaptDefine(ISteamUser005) = {
     AdaptEmpty(IClientUserMap::SetAccountCreationTime),
 };
 AdaptDeclare(ISteamUser006);
-AdaptDefine(ISteamUser006) = {
+AdaptDefine(ISteamUser006, IClientUserMap, "SteamUser006") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::LogOn),
     AdaptPassThrough(IClientUserMap::LogOff),
@@ -761,7 +761,7 @@ AdaptDefine(ISteamUser006) = {
     AdaptPassThrough(IClientUserMap::TrackAppUsageEvent),
 };
 AdaptDeclare(ISteamUser007);
-AdaptDefine(ISteamUser007) = {
+AdaptDefine(ISteamUser007, IClientUserMap, "SteamUser007") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::LogOn),
     AdaptPassThrough(IClientUserMap::LogOff),
@@ -777,7 +777,7 @@ AdaptDefine(ISteamUser007) = {
     AdaptEmpty(IClientUserMap::RefreshSteam2Login),
 };
 AdaptDeclare(ISteamUser008);
-AdaptDefine(ISteamUser008) = {
+AdaptDefine(ISteamUser008, IClientUserMap, "SteamUser008") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -787,7 +787,7 @@ AdaptDefine(ISteamUser008) = {
     AdaptEmpty(IClientUserMap::RefreshSteam2Login),
 };
 AdaptDeclare(ISteamUser009);
-AdaptDefine(ISteamUser009) = {
+AdaptDefine(ISteamUser009, IClientUserMap, "SteamUser009") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -797,7 +797,7 @@ AdaptDefine(ISteamUser009) = {
     AdaptEmpty(IClientUserMap::RefreshSteam2Login),
 };
 AdaptDeclare(ISteamUser010);
-AdaptDefine(ISteamUser010) = {
+AdaptDefine(ISteamUser010, IClientUserMap, "SteamUser010") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -806,7 +806,7 @@ AdaptDefine(ISteamUser010) = {
     AdaptPassThrough(IClientUserMap::TrackAppUsageEvent),
 };
 AdaptDeclare(ISteamUser011);
-AdaptDefine(ISteamUser011) = {
+AdaptDefine(ISteamUser011, IClientUserMap, "SteamUser011") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -820,7 +820,7 @@ AdaptDefine(ISteamUser011) = {
     AdaptEmpty(IClientUserMap::DecompressVoice),
 };
 AdaptDeclare(ISteamUser012);
-AdaptDefine(ISteamUser012) = {
+AdaptDefine(ISteamUser012, IClientUserMap, "SteamUser012") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -839,7 +839,7 @@ AdaptDefine(ISteamUser012) = {
     AdaptPassThrough(IClientUserMap::IsUserSubscribedAppInTicket),
 };
 AdaptDeclare(ISteamUser013);
-AdaptDefine(ISteamUser013) = {
+AdaptDefine(ISteamUser013, IClientUserMap, "SteamUser013") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -860,7 +860,7 @@ AdaptDefine(ISteamUser013) = {
     AdaptPassThrough(IClientUserMap::BIsBehindNAT),
 };
 AdaptDeclare(ISteamUser014);
-AdaptDefine(ISteamUser014) = {
+AdaptDefine(ISteamUser014, IClientUserMap, "SteamUser014") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -884,7 +884,7 @@ AdaptDefine(ISteamUser014) = {
     AdaptPassThrough(IClientUserMap::GetEncryptedAppTicket),
 };
 AdaptDeclare(ISteamUser015);
-AdaptDefine(ISteamUser015) = {
+AdaptDefine(ISteamUser015, IClientUserMap, "SteamUser015") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -909,7 +909,7 @@ AdaptDefine(ISteamUser015) = {
     AdaptPassThrough(IClientUserMap::GetEncryptedAppTicket),
 };
 AdaptDeclare(ISteamUser016);
-AdaptDefine(ISteamUser016) = {
+AdaptDefine(ISteamUser016, IClientUserMap, "SteamUser016") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -934,7 +934,7 @@ AdaptDefine(ISteamUser016) = {
     AdaptPassThrough(IClientUserMap::GetEncryptedAppTicket),
 };
 AdaptDeclare(ISteamUser017);
-AdaptDefine(ISteamUser017) = {
+AdaptDefine(ISteamUser017, IClientUserMap, "SteamUser017") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -961,7 +961,7 @@ AdaptDefine(ISteamUser017) = {
     AdaptPassThrough(IClientUserMap::GetPlayerSteamLevel),
 };
 AdaptDeclare(ISteamUser018);
-AdaptDefine(ISteamUser018) = {
+AdaptDefine(ISteamUser018, IClientUserMap, "SteamUser018") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -989,7 +989,7 @@ AdaptDefine(ISteamUser018) = {
     AdaptPassThrough(IClientUserMap::RequestStoreAuthURL),
 };
 AdaptDeclare(ISteamUser019);
-AdaptDefine(ISteamUser019) = {
+AdaptDefine(ISteamUser019, IClientUserMap, "SteamUser019") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),
@@ -1021,7 +1021,7 @@ AdaptDefine(ISteamUser019) = {
     AdaptPassThrough(IClientUserMap::BIsPhoneRequiringVerification),
 };
 AdaptDeclare(ISteamUser020);
-AdaptDefine(ISteamUser020) = {
+AdaptDefine(ISteamUser020, IClientUserMap, "SteamUser020") = {
     AdaptPassThrough(IClientUserMap::GetHSteamUser),
     AdaptPassThrough(IClientUserMap::BLoggedOn),
     AdaptPassThrough(IClientUserMap::GetSteamID),

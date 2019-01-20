@@ -47,11 +47,11 @@ public:
 };
 
 AdaptDeclare(ISteamApps001);
-AdaptDefine(ISteamApps001) = {
+AdaptDefine(ISteamApps001, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION001") = {
     AdaptPassThrough(IClientAppsMap::GetAppData),
 };
 AdaptDeclare(ISteamApps003);
-AdaptDefine(ISteamApps003) = {
+AdaptDefine(ISteamApps003, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION003") = {
     AdaptEmpty(IClientAppsMap::BIsSubscribed),
     AdaptEmpty(IClientAppsMap::BIsLowViolence),
     AdaptEmpty(IClientAppsMap::BIsCybercafe),
@@ -62,7 +62,7 @@ AdaptDefine(ISteamApps003) = {
     AdaptEmpty(IClientAppsMap::BIsDlcInstalled),
 };
 AdaptDeclare(ISteamApps004);
-AdaptDefine(ISteamApps004) = {
+AdaptDefine(ISteamApps004, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION004") = {
     AdaptEmpty(IClientAppsMap::BIsSubscribed),
     AdaptEmpty(IClientAppsMap::BIsLowViolence),
     AdaptEmpty(IClientAppsMap::BIsCybercafe),
@@ -79,7 +79,7 @@ AdaptDefine(ISteamApps004) = {
     AdaptEmpty(IClientAppsMap::UninstallDLC),
 };
 AdaptDeclare(ISteamApps005);
-AdaptDefine(ISteamApps005) = {
+AdaptDefine(ISteamApps005, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION005") = {
     AdaptEmpty(IClientAppsMap::BIsSubscribed),
     AdaptEmpty(IClientAppsMap::BIsLowViolence),
     AdaptEmpty(IClientAppsMap::BIsCybercafe),
@@ -102,7 +102,7 @@ AdaptDefine(ISteamApps005) = {
     AdaptEmpty(IClientAppsMap::BIsAppInstalled),
 };
 AdaptDeclare(ISteamApps006);
-AdaptDefine(ISteamApps006) = {
+AdaptDefine(ISteamApps006, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION006") = {
     AdaptEmpty(IClientAppsMap::BIsSubscribed),
     AdaptEmpty(IClientAppsMap::BIsLowViolence),
     AdaptEmpty(IClientAppsMap::BIsCybercafe),
@@ -128,7 +128,7 @@ AdaptDefine(ISteamApps006) = {
     AdaptEmpty(IClientAppsMap::GetDlcDownloadProgress),
 };
 AdaptDeclare(ISteamApps007);
-AdaptDefine(ISteamApps007) = {
+AdaptDefine(ISteamApps007, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION007") = {
     AdaptEmpty(IClientAppsMap::BIsSubscribed),
     AdaptEmpty(IClientAppsMap::BIsLowViolence),
     AdaptEmpty(IClientAppsMap::BIsCybercafe),
@@ -156,7 +156,7 @@ AdaptDefine(ISteamApps007) = {
     AdaptEmpty(IClientAppsMap::RequestAllProofOfPurchaseKeys),
 };
 AdaptDeclare(ISteamApps008);
-AdaptDefine(ISteamApps008) = {
+AdaptDefine(ISteamApps008, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION008") = {
     AdaptEmpty(IClientAppsMap::BIsSubscribed),
     AdaptEmpty(IClientAppsMap::BIsLowViolence),
     AdaptEmpty(IClientAppsMap::BIsCybercafe),

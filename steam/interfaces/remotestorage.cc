@@ -267,7 +267,7 @@ public:
 };
 
 AdaptDeclare(ISteamRemoteStorage001);
-AdaptDefine(ISteamRemoteStorage001) = {
+AdaptDefine(ISteamRemoteStorage001, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION001") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::GetFileSize),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
@@ -278,7 +278,7 @@ AdaptDefine(ISteamRemoteStorage001) = {
     AdaptPassThrough(IClientRemoteStorageMap::GetQuota),
 };
 AdaptDeclare(ISteamRemoteStorage002);
-AdaptDefine(ISteamRemoteStorage002) = {
+AdaptDefine(ISteamRemoteStorage002, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION002") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::GetFileSize),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
@@ -288,7 +288,7 @@ AdaptDefine(ISteamRemoteStorage002) = {
     AdaptPassThrough(IClientRemoteStorageMap::GetQuota),
 };
 AdaptDeclare(ISteamRemoteStorage003);
-AdaptDefine(ISteamRemoteStorage003) = {
+AdaptDefine(ISteamRemoteStorage003, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION003") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -311,7 +311,7 @@ AdaptDefine(ISteamRemoteStorage003) = {
     AdaptPassThrough(IClientRemoteStorageMap::GetCachedUGCHandle),
 };
 AdaptDeclare(ISteamRemoteStorage004);
-AdaptDefine(ISteamRemoteStorage004) = {
+AdaptDefine(ISteamRemoteStorage004, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION004") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -336,7 +336,7 @@ AdaptDefine(ISteamRemoteStorage004) = {
     AdaptPassThrough(IClientRemoteStorageMap::GetCachedUGCHandle),
 };
 AdaptDeclare(ISteamRemoteStorage005);
-AdaptDefine(ISteamRemoteStorage005) = {
+AdaptDefine(ISteamRemoteStorage005, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION005") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -370,7 +370,7 @@ AdaptDefine(ISteamRemoteStorage005) = {
     AdaptPassThrough(IClientRemoteStorageMap::UnsubscribePublishedFile),
 };
 AdaptDeclare(ISteamRemoteStorage006);
-AdaptDefine(ISteamRemoteStorage006) = {
+AdaptDefine(ISteamRemoteStorage006, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION006") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -420,7 +420,7 @@ AdaptDefine(ISteamRemoteStorage006) = {
     AdaptPassThrough(IClientRemoteStorageMap::EnumeratePublishedWorkshopFiles),
 };
 AdaptDeclare(ISteamRemoteStorage007);
-AdaptDefine(ISteamRemoteStorage007) = {
+AdaptDefine(ISteamRemoteStorage007, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION007") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -470,7 +470,7 @@ AdaptDefine(ISteamRemoteStorage007) = {
     AdaptPassThrough(IClientRemoteStorageMap::EnumeratePublishedWorkshopFiles),
 };
 AdaptDeclare(ISteamRemoteStorage008);
-AdaptDefine(ISteamRemoteStorage008) = {
+AdaptDefine(ISteamRemoteStorage008, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION008") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -524,7 +524,7 @@ AdaptDefine(ISteamRemoteStorage008) = {
     AdaptPassThrough(IClientRemoteStorageMap::EnumeratePublishedWorkshopFiles),
 };
 AdaptDeclare(ISteamRemoteStorage009);
-AdaptDefine(ISteamRemoteStorage009) = {
+AdaptDefine(ISteamRemoteStorage009, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION009") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -578,7 +578,7 @@ AdaptDefine(ISteamRemoteStorage009) = {
     AdaptPassThrough(IClientRemoteStorageMap::EnumeratePublishedWorkshopFiles),
 };
 AdaptDeclare(ISteamRemoteStorage010);
-AdaptDefine(ISteamRemoteStorage010) = {
+AdaptDefine(ISteamRemoteStorage010, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION010") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -633,7 +633,7 @@ AdaptDefine(ISteamRemoteStorage010) = {
     AdaptPassThrough(IClientRemoteStorageMap::UGCDownloadToLocation),
 };
 AdaptDeclare(ISteamRemoteStorage011);
-AdaptDefine(ISteamRemoteStorage011) = {
+AdaptDefine(ISteamRemoteStorage011, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION011") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -688,7 +688,7 @@ AdaptDefine(ISteamRemoteStorage011) = {
     AdaptPassThrough(IClientRemoteStorageMap::UGCDownloadToLocation),
 };
 AdaptDeclare(ISteamRemoteStorage012);
-AdaptDefine(ISteamRemoteStorage012) = {
+AdaptDefine(ISteamRemoteStorage012, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION012") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileForget),
@@ -743,7 +743,7 @@ AdaptDefine(ISteamRemoteStorage012) = {
     AdaptPassThrough(IClientRemoteStorageMap::UGCDownloadToLocation),
 };
 AdaptDeclare(ISteamRemoteStorage013);
-AdaptDefine(ISteamRemoteStorage013) = {
+AdaptDefine(ISteamRemoteStorage013, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION013") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileWriteAsync),
@@ -801,7 +801,7 @@ AdaptDefine(ISteamRemoteStorage013) = {
     AdaptPassThrough(IClientRemoteStorageMap::UGCDownloadToLocation),
 };
 AdaptDeclare(ISteamRemoteStorage014);
-AdaptDefine(ISteamRemoteStorage014) = {
+AdaptDefine(ISteamRemoteStorage014, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION014") = {
     AdaptPassThrough(IClientRemoteStorageMap::FileWrite),
     AdaptPassThrough(IClientRemoteStorageMap::FileRead),
     AdaptPassThrough(IClientRemoteStorageMap::FileWriteAsync),

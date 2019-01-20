@@ -744,7 +744,7 @@ public:
 };
 
 AdaptDeclare(ISteamFriends002);
-AdaptDefine(ISteamFriends002) = {
+AdaptDefine(ISteamFriends002, IClientFriendsMap, "SteamFriends002") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -777,7 +777,7 @@ AdaptDefine(ISteamFriends002) = {
     AdaptPassThrough(IClientFriendsMap::GetFriendFromSourceByIndex),
 };
 AdaptDeclare(ISteamFriends003);
-AdaptDefine(ISteamFriends003) = {
+AdaptDefine(ISteamFriends003, IClientFriendsMap, "SteamFriends003") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -800,7 +800,7 @@ AdaptDefine(ISteamFriends003) = {
     AdaptPassThrough(IClientFriendsMap::ActivateGameOverlay),
 };
 AdaptDeclare(ISteamFriends004);
-AdaptDefine(ISteamFriends004) = {
+AdaptDefine(ISteamFriends004, IClientFriendsMap, "SteamFriends004") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -823,7 +823,7 @@ AdaptDefine(ISteamFriends004) = {
     AdaptPassThrough(IClientFriendsMap::ActivateGameOverlay),
 };
 AdaptDeclare(ISteamFriends005);
-AdaptDefine(ISteamFriends005) = {
+AdaptDefine(ISteamFriends005, IClientFriendsMap, "SteamFriends005") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -850,7 +850,7 @@ AdaptDefine(ISteamFriends005) = {
     AdaptPassThrough(IClientFriendsMap::SetPlayedWith),
 };
 AdaptDeclare(ISteamFriends006);
-AdaptDefine(ISteamFriends006) = {
+AdaptDefine(ISteamFriends006, IClientFriendsMap, "SteamFriends006") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -879,7 +879,7 @@ AdaptDefine(ISteamFriends006) = {
     AdaptPassThrough(IClientFriendsMap::ActivateGameOverlayInviteDialog),
 };
 AdaptDeclare(ISteamFriends007);
-AdaptDefine(ISteamFriends007) = {
+AdaptDefine(ISteamFriends007, IClientFriendsMap, "SteamFriends007") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -911,7 +911,7 @@ AdaptDefine(ISteamFriends007) = {
     AdaptPassThrough(IClientFriendsMap::RequestUserInformation),
 };
 AdaptDeclare(ISteamFriends008);
-AdaptDefine(ISteamFriends008) = {
+AdaptDefine(ISteamFriends008, IClientFriendsMap, "SteamFriends008") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -948,7 +948,7 @@ AdaptDefine(ISteamFriends008) = {
     AdaptPassThrough(IClientFriendsMap::GetUserRestrictions),
 };
 AdaptDeclare(ISteamFriends009);
-AdaptDefine(ISteamFriends009) = {
+AdaptDefine(ISteamFriends009, IClientFriendsMap, "SteamFriends009") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -995,7 +995,7 @@ AdaptDefine(ISteamFriends009) = {
     AdaptPassThrough(IClientFriendsMap::GetFriendCoplayGame),
 };
 AdaptDeclare(ISteamFriends010);
-AdaptDefine(ISteamFriends010) = {
+AdaptDefine(ISteamFriends010, IClientFriendsMap, "SteamFriends010") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -1057,7 +1057,7 @@ AdaptDefine(ISteamFriends010) = {
     AdaptPassThrough(IClientFriendsMap::GetFriendMessage),
 };
 AdaptDeclare(ISteamFriends011);
-AdaptDefine(ISteamFriends011) = {
+AdaptDefine(ISteamFriends011, IClientFriendsMap, "SteamFriends011") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -1123,7 +1123,7 @@ AdaptDefine(ISteamFriends011) = {
     AdaptPassThrough(IClientFriendsMap::EnumerateFollowingList),
 };
 AdaptDeclare(ISteamFriends012);
-AdaptDefine(ISteamFriends012) = {
+AdaptDefine(ISteamFriends012, IClientFriendsMap, "SteamFriends012") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -1189,7 +1189,7 @@ AdaptDefine(ISteamFriends012) = {
     AdaptPassThrough(IClientFriendsMap::EnumerateFollowingList),
 };
 AdaptDeclare(ISteamFriends013);
-AdaptDefine(ISteamFriends013) = {
+AdaptDefine(ISteamFriends013, IClientFriendsMap, "SteamFriends013") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -1255,7 +1255,7 @@ AdaptDefine(ISteamFriends013) = {
     AdaptPassThrough(IClientFriendsMap::EnumerateFollowingList),
 };
 AdaptDeclare(ISteamFriends014);
-AdaptDefine(ISteamFriends014) = {
+AdaptDefine(ISteamFriends014, IClientFriendsMap, "SteamFriends014") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -1322,7 +1322,7 @@ AdaptDefine(ISteamFriends014) = {
     AdaptPassThrough(IClientFriendsMap::EnumerateFollowingList),
 };
 AdaptDeclare(ISteamFriends015);
-AdaptDefine(ISteamFriends015) = {
+AdaptDefine(ISteamFriends015, IClientFriendsMap, "SteamFriends015") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -1397,7 +1397,7 @@ AdaptDefine(ISteamFriends015) = {
     AdaptPassThrough(IClientFriendsMap::IsClanOfficialGameGroup),
 };
 AdaptDeclare(ISteamFriends016);
-AdaptDefine(ISteamFriends016) = {
+AdaptDefine(ISteamFriends016, IClientFriendsMap, "SteamFriends016") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),
@@ -1473,7 +1473,7 @@ AdaptDefine(ISteamFriends016) = {
     AdaptPassThrough(IClientFriendsMap::GetNumChatsWithUnreadPriorityMessages),
 };
 AdaptDeclare(ISteamFriends017);
-AdaptDefine(ISteamFriends017) = {
+AdaptDefine(ISteamFriends017, IClientFriendsMap, "SteamFriends017") = {
     AdaptPassThrough(IClientFriendsMap::GetPersonaName),
     AdaptPassThrough(IClientFriendsMap::SetPersonaName),
     AdaptPassThrough(IClientFriendsMap::GetPersonaState),

@@ -210,7 +210,7 @@ public:
 };
 
 AdaptDeclare(ISteamGameServer002);
-AdaptDefine(ISteamGameServer002) = {
+AdaptDefine(ISteamGameServer002, IClientGameServerMap, "SteamGameServer002") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -234,7 +234,7 @@ AdaptDefine(ISteamGameServer002) = {
     AdaptEmpty(IClientGameServerMap::_GSSetGameType),
 };
 AdaptDeclare(ISteamGameServer003);
-AdaptDefine(ISteamGameServer003) = {
+AdaptDefine(ISteamGameServer003, IClientGameServerMap, "SteamGameServer003") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -254,7 +254,7 @@ AdaptDefine(ISteamGameServer003) = {
     AdaptEmpty(IClientGameServerMap::_GSGetUserAchievementStatus),
 };
 AdaptDeclare(ISteamGameServer004);
-AdaptDefine(ISteamGameServer004) = {
+AdaptDefine(ISteamGameServer004, IClientGameServerMap, "SteamGameServer004") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -271,7 +271,7 @@ AdaptDefine(ISteamGameServer004) = {
     AdaptEmpty(IClientGameServerMap::BGetUserAchievementStatus),
 };
 AdaptDeclare(ISteamGameServer005);
-AdaptDefine(ISteamGameServer005) = {
+AdaptDefine(ISteamGameServer005, IClientGameServerMap, "SteamGameServer005") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -289,7 +289,7 @@ AdaptDefine(ISteamGameServer005) = {
     AdaptPassThrough(IClientGameServerMap::GetGameplayStats),
 };
 AdaptDeclare(ISteamGameServer006);
-AdaptDefine(ISteamGameServer006) = {
+AdaptDefine(ISteamGameServer006, IClientGameServerMap, "SteamGameServer006") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -307,7 +307,7 @@ AdaptDefine(ISteamGameServer006) = {
     AdaptPassThrough(IClientGameServerMap::GetGameplayStats),
 };
 AdaptDeclare(ISteamGameServer007);
-AdaptDefine(ISteamGameServer007) = {
+AdaptDefine(ISteamGameServer007, IClientGameServerMap, "SteamGameServer007") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -326,7 +326,7 @@ AdaptDefine(ISteamGameServer007) = {
     AdaptPassThrough(IClientGameServerMap::RequestUserGroupStatus),
 };
 AdaptDeclare(ISteamGameServer008);
-AdaptDefine(ISteamGameServer008) = {
+AdaptDefine(ISteamGameServer008, IClientGameServerMap, "SteamGameServer008") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -346,7 +346,7 @@ AdaptDefine(ISteamGameServer008) = {
     AdaptPassThrough(IClientGameServerMap::GetPublicIP),
 };
 AdaptDeclare(ISteamGameServer009);
-AdaptDefine(ISteamGameServer009) = {
+AdaptDefine(ISteamGameServer009, IClientGameServerMap, "SteamGameServer009") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -368,7 +368,7 @@ AdaptDefine(ISteamGameServer009) = {
     AdaptEmpty(IClientGameServerMap::UserHasLicenseForApp),
 };
 AdaptDeclare(ISteamGameServer010);
-AdaptDefine(ISteamGameServer010) = {
+AdaptDefine(ISteamGameServer010, IClientGameServerMap, "SteamGameServer010") = {
     AdaptPassThrough(IClientGameServerMap::LogOn),
     AdaptPassThrough(IClientGameServerMap::LogOff),
     AdaptPassThrough(IClientGameServerMap::BLoggedOn),
@@ -394,7 +394,7 @@ AdaptDefine(ISteamGameServer010) = {
     AdaptPassThrough(IClientGameServerMap::CancelAuthTicket),
 };
 AdaptDeclare(ISteamGameServer011);
-AdaptDefine(ISteamGameServer011) = {
+AdaptDefine(ISteamGameServer011, IClientGameServerMap, "SteamGameServer011") = {
     AdaptPassThrough(IClientGameServerMap::InitGameServer),
     AdaptPassThrough(IClientGameServerMap::SetProduct),
     AdaptPassThrough(IClientGameServerMap::SetGameDescription),
@@ -441,7 +441,7 @@ AdaptDefine(ISteamGameServer011) = {
     AdaptPassThrough(IClientGameServerMap::ComputeNewPlayerCompatibility),
 };
 AdaptDeclare(ISteamGameServer012);
-AdaptDefine(ISteamGameServer012) = {
+AdaptDefine(ISteamGameServer012, IClientGameServerMap, "SteamGameServer012") = {
     AdaptPassThrough(IClientGameServerMap::InitGameServer),
     AdaptPassThrough(IClientGameServerMap::SetProduct),
     AdaptPassThrough(IClientGameServerMap::SetGameDescription),

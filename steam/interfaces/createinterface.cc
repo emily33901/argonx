@@ -6,6 +6,10 @@ using namespace Steam::InterfaceHelpers;
 
 InterfaceReg *InterfaceReg::head = nullptr;
 
+InterfaceReg *GetInterfaceList() {
+    return InterfaceReg::head;
+}
+
 void *CreateInterfaceInternal(const char *name, int *err) {
     InterfaceReg *cur;
 
@@ -27,4 +31,11 @@ __declspec(dllexport) void *CreateInterface(const char *name, int *err) {
 void *CreateInterface(const char *name, int *err) {
 #endif
     return CreateInterfaceInternal(name, err);
+}
+
+InterfaceReg::InterfaceReg(InstantiateInterfaceFn fn, const char *name) : name(name) {
+    create = fn;
+
+    next = head;
+    head = this;
 }

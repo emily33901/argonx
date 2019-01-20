@@ -231,7 +231,7 @@ public:
 };
 
 AdaptDeclare(ISteamUtils001);
-AdaptDefine(ISteamUtils001) = {
+AdaptDefine(ISteamUtils001, IClientUtilsMap, "SteamUtils001") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -241,7 +241,7 @@ AdaptDefine(ISteamUtils001) = {
     AdaptPassThrough(IClientUtilsMap::GetImageRGBA),
 };
 AdaptDeclare(ISteamUtils002);
-AdaptDefine(ISteamUtils002) = {
+AdaptDefine(ISteamUtils002, IClientUtilsMap, "SteamUtils002") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -255,7 +255,7 @@ AdaptDefine(ISteamUtils002) = {
     AdaptEmpty(IClientUtilsMap::SetOverlayNotificationPosition),
 };
 AdaptDeclare(ISteamUtils003);
-AdaptDefine(ISteamUtils003) = {
+AdaptDefine(ISteamUtils003, IClientUtilsMap, "SteamUtils003") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -275,7 +275,7 @@ AdaptDefine(ISteamUtils003) = {
     AdaptEmpty(IClientUtilsMap::SetWarningMessageHook),
 };
 AdaptDeclare(ISteamUtils004);
-AdaptDefine(ISteamUtils004) = {
+AdaptDefine(ISteamUtils004, IClientUtilsMap, "SteamUtils004") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -296,7 +296,7 @@ AdaptDefine(ISteamUtils004) = {
     AdaptEmpty(IClientUtilsMap::IsOverlayEnabled),
 };
 AdaptDeclare(ISteamUtils005);
-AdaptDefine(ISteamUtils005) = {
+AdaptDefine(ISteamUtils005, IClientUtilsMap, "SteamUtils005") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -322,7 +322,7 @@ AdaptDefine(ISteamUtils005) = {
     AdaptPassThrough(IClientUtilsMap::GetEnteredGamepadTextInput),
 };
 AdaptDeclare(ISteamUtils006);
-AdaptDefine(ISteamUtils006) = {
+AdaptDefine(ISteamUtils006, IClientUtilsMap, "SteamUtils006") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -350,7 +350,7 @@ AdaptDefine(ISteamUtils006) = {
     AdaptPassThrough(IClientUtilsMap::IsSteamRunningInVR),
 };
 AdaptDeclare(ISteamUtils007);
-AdaptDefine(ISteamUtils007) = {
+AdaptDefine(ISteamUtils007, IClientUtilsMap, "SteamUtils007") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -380,7 +380,7 @@ AdaptDefine(ISteamUtils007) = {
     AdaptEmpty(IClientUtilsMap::IsSteamInBigPictureMode),
 };
 AdaptDeclare(ISteamUtils008);
-AdaptDefine(ISteamUtils008) = {
+AdaptDefine(ISteamUtils008, IClientUtilsMap, "SteamUtils008") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),
@@ -411,7 +411,7 @@ AdaptDefine(ISteamUtils008) = {
     AdaptPassThrough(IClientUtilsMap::StartVRDashboard),
 };
 AdaptDeclare(ISteamUtils009);
-AdaptDefine(ISteamUtils009) = {
+AdaptDefine(ISteamUtils009, IClientUtilsMap, "SteamUtils009") = {
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceAppActive),
     AdaptPassThrough(IClientUtilsMap::GetSecondsSinceComputerActive),
     AdaptPassThrough(IClientUtilsMap::GetConnectedUniverse),

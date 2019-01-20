@@ -164,7 +164,7 @@ public:
 };
 
 AdaptDeclare(ISteamUserStats001);
-AdaptDefine(ISteamUserStats001) = {
+AdaptDefine(ISteamUserStats001, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION001") = {
     AdaptPassThrough(IClientUserStatsMap::GetNumStats),
     AdaptPassThrough(IClientUserStatsMap::GetStatName),
     AdaptPassThrough(IClientUserStatsMap::GetStatType),
@@ -189,7 +189,7 @@ AdaptDefine(ISteamUserStats001) = {
     AdaptPassThrough(IClientUserStatsMap::GetAchievementDisplayAttribute),
 };
 AdaptDeclare(ISteamUserStats002);
-AdaptDefine(ISteamUserStats002) = {
+AdaptDefine(ISteamUserStats002, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION002") = {
     AdaptPassThrough(IClientUserStatsMap::GetNumStats),
     AdaptPassThrough(IClientUserStatsMap::GetStatName),
     AdaptPassThrough(IClientUserStatsMap::GetStatType),
@@ -210,7 +210,7 @@ AdaptDefine(ISteamUserStats002) = {
     AdaptPassThrough(IClientUserStatsMap::IndicateAchievementProgress),
 };
 AdaptDeclare(ISteamUserStats003);
-AdaptDefine(ISteamUserStats003) = {
+AdaptDefine(ISteamUserStats003, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION003") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -226,7 +226,7 @@ AdaptDefine(ISteamUserStats003) = {
     AdaptPassThrough(IClientUserStatsMap::IndicateAchievementProgress),
 };
 AdaptDeclare(ISteamUserStats004);
-AdaptDefine(ISteamUserStats004) = {
+AdaptDefine(ISteamUserStats004, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION004") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -247,7 +247,7 @@ AdaptDefine(ISteamUserStats004) = {
     AdaptPassThrough(IClientUserStatsMap::ResetAllStats),
 };
 AdaptDeclare(ISteamUserStats005);
-AdaptDefine(ISteamUserStats005) = {
+AdaptDefine(ISteamUserStats005, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION005") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -277,7 +277,7 @@ AdaptDefine(ISteamUserStats005) = {
     AdaptPassThrough(IClientUserStatsMap::UploadLeaderboardScore),
 };
 AdaptDeclare(ISteamUserStats006);
-AdaptDefine(ISteamUserStats006) = {
+AdaptDefine(ISteamUserStats006, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION006") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -308,7 +308,7 @@ AdaptDefine(ISteamUserStats006) = {
     AdaptPassThrough(IClientUserStatsMap::GetNumberOfCurrentPlayers),
 };
 AdaptDeclare(ISteamUserStats007);
-AdaptDefine(ISteamUserStats007) = {
+AdaptDefine(ISteamUserStats007, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION007") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -341,7 +341,7 @@ AdaptDefine(ISteamUserStats007) = {
     AdaptPassThrough(IClientUserStatsMap::GetNumberOfCurrentPlayers),
 };
 AdaptDeclare(ISteamUserStats008);
-AdaptDefine(ISteamUserStats008) = {
+AdaptDefine(ISteamUserStats008, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION008") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -375,7 +375,7 @@ AdaptDefine(ISteamUserStats008) = {
     AdaptPassThrough(IClientUserStatsMap::GetNumberOfCurrentPlayers),
 };
 AdaptDeclare(ISteamUserStats009);
-AdaptDefine(ISteamUserStats009) = {
+AdaptDefine(ISteamUserStats009, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION009") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -410,7 +410,7 @@ AdaptDefine(ISteamUserStats009) = {
     AdaptPassThrough(IClientUserStatsMap::GetNumberOfCurrentPlayers),
 };
 AdaptDeclare(ISteamUserStats010);
-AdaptDefine(ISteamUserStats010) = {
+AdaptDefine(ISteamUserStats010, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION010") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),
@@ -454,7 +454,7 @@ AdaptDefine(ISteamUserStats010) = {
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, double *, unsigned int), IClientUserStatsMap::GetGlobalStatHistory),
 };
 AdaptDeclare(ISteamUserStats011);
-AdaptDefine(ISteamUserStats011) = {
+AdaptDefine(ISteamUserStats011, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION011") = {
     AdaptPassThrough(IClientUserStatsMap::RequestCurrentStats),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, int *), IClientUserStatsMap::GetStat),
     AdaptOverload(unknown_ret (IClientUserStatsMap::*)(CGameID, char const *, float *), IClientUserStatsMap::GetStat),

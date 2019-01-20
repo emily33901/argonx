@@ -513,9 +513,8 @@ public:
     }
 };
 
-
 AdaptDeclare(ISteamController001);
-AdaptDefine(ISteamController001) = {
+AdaptDefine(ISteamController001, IClientControllerMap, "SteamController002") = {
     AdaptPassThrough(IClientControllerMap::Init),
     AdaptPassThrough(IClientControllerMap::Shutdown),
     AdaptPassThrough(IClientControllerMap::RunFrame),
@@ -524,7 +523,7 @@ AdaptDefine(ISteamController001) = {
     AdaptEmpty(IClientControllerMap::SetOverrideMode),
 };
 AdaptDeclare(ISteamController003);
-AdaptDefine(ISteamController003) = {
+AdaptDefine(ISteamController003, IClientControllerMap, "SteamController003") = {
     AdaptPassThrough(IClientControllerMap::Init),
     AdaptPassThrough(IClientControllerMap::Shutdown),
     AdaptPassThrough(IClientControllerMap::RunFrame),
@@ -544,7 +543,7 @@ AdaptDefine(ISteamController003) = {
     AdaptPassThrough(IClientControllerMap::TriggerRepeatedHapticPulseOnHandle),
 };
 AdaptDeclare(ISteamController004);
-AdaptDefine(ISteamController004) = {
+AdaptDefine(ISteamController004, IClientControllerMap, "SteamController004") = {
     AdaptPassThrough(IClientControllerMap::Init),
     AdaptPassThrough(IClientControllerMap::Shutdown),
     AdaptPassThrough(IClientControllerMap::RunFrame),
@@ -569,7 +568,7 @@ AdaptDefine(ISteamController004) = {
     AdaptEmpty(IClientControllerMap::ShowAnalogActionOrigins),
 };
 AdaptDeclare(ISteamController005);
-AdaptDefine(ISteamController005) = {
+AdaptDefine(ISteamController005, IClientControllerMap, "SteamController005") = {
     AdaptPassThrough(IClientControllerMap::Init),
     AdaptPassThrough(IClientControllerMap::Shutdown),
     AdaptPassThrough(IClientControllerMap::RunFrame),
@@ -598,7 +597,7 @@ AdaptDefine(ISteamController005) = {
     AdaptPassThrough(IClientControllerMap::GetGlyphForActionOrigin),
 };
 AdaptDeclare(ISteamController006);
-AdaptDefine(ISteamController006) = {
+AdaptDefine(ISteamController006, IClientControllerMap, "SteamController006") = {
     AdaptPassThrough(IClientControllerMap::Init),
     AdaptPassThrough(IClientControllerMap::Shutdown),
     AdaptPassThrough(IClientControllerMap::RunFrame),
@@ -632,7 +631,7 @@ AdaptDefine(ISteamController006) = {
     AdaptPassThrough(IClientControllerMap::GetInputTypeForHandle),
 };
 AdaptDeclare(ISteamController007);
-AdaptDefine(ISteamController007) = {
+AdaptDefine(ISteamController007, IClientControllerMap, "SteamController007") = {
     AdaptPassThrough(IClientControllerMap::Init),
     AdaptPassThrough(IClientControllerMap::Shutdown),
     AdaptPassThrough(IClientControllerMap::RunFrame),

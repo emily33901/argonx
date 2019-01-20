@@ -507,7 +507,7 @@ public:
 };
 
 AdaptDeclare(ISteamClient006);
-AdaptDefine(ISteamClient006) = {
+AdaptDefine(ISteamClient006, ISteamClientMap, "SteamClient006") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::CreateGlobalUser),
@@ -531,7 +531,7 @@ AdaptDefine(ISteamClient006) = {
     AdaptPassThrough(ISteamClientMap::GetIPCCallCount),
 };
 AdaptDeclare(ISteamClient007);
-AdaptDefine(ISteamClient007) = {
+AdaptDefine(ISteamClient007, ISteamClientMap, "SteamClient007") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -556,7 +556,7 @@ AdaptDefine(ISteamClient007) = {
     AdaptPassThrough(ISteamClientMap::GetISteamRemoteStorage),
 };
 AdaptDeclare(ISteamClient008);
-AdaptDefine(ISteamClient008) = {
+AdaptDefine(ISteamClient008, ISteamClientMap, "SteamClient008") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -580,7 +580,7 @@ AdaptDefine(ISteamClient008) = {
     AdaptPassThrough(ISteamClientMap::SetWarningMessageHook),
 };
 AdaptDeclare(ISteamClient009);
-AdaptDefine(ISteamClient009) = {
+AdaptDefine(ISteamClient009, ISteamClientMap, "SteamClient009") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -605,7 +605,7 @@ AdaptDefine(ISteamClient009) = {
     AdaptPassThrough(ISteamClientMap::SetWarningMessageHook),
 };
 AdaptDeclare(ISteamClient010);
-AdaptDefine(ISteamClient010) = {
+AdaptDefine(ISteamClient010, ISteamClientMap, "SteamClient010") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -632,7 +632,7 @@ AdaptDefine(ISteamClient010) = {
     AdaptPassThrough(ISteamClientMap::GetISteamHTTP),
 };
 AdaptDeclare(ISteamClient011);
-AdaptDefine(ISteamClient011) = {
+AdaptDefine(ISteamClient011, ISteamClientMap, "SteamClient011") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -660,7 +660,7 @@ AdaptDefine(ISteamClient011) = {
     AdaptPassThrough(ISteamClientMap::GetISteamHTTP),
 };
 AdaptDeclare(ISteamClient012);
-AdaptDefine(ISteamClient012) = {
+AdaptDefine(ISteamClient012, ISteamClientMap, "SteamClient012") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -690,7 +690,7 @@ AdaptDefine(ISteamClient012) = {
     AdaptPassThrough(ISteamClientMap::GetISteamUGC),
 };
 AdaptDeclare(ISteamClient013);
-AdaptDefine(ISteamClient013) = {
+AdaptDefine(ISteamClient013, ISteamClientMap, "SteamClient013") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -723,7 +723,7 @@ AdaptDefine(ISteamClient013) = {
     AdaptPassThrough(ISteamClientMap::GetISteamAppList),
 };
 AdaptDeclare(ISteamClient014);
-AdaptDefine(ISteamClient014) = {
+AdaptDefine(ISteamClient014, ISteamClientMap, "SteamClient014") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -755,7 +755,7 @@ AdaptDefine(ISteamClient014) = {
     AdaptPassThrough(ISteamClientMap::GetISteamMusic),
 };
 AdaptDeclare(ISteamClient015);
-AdaptDefine(ISteamClient015) = {
+AdaptDefine(ISteamClient015, ISteamClientMap, "SteamClient015") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -788,7 +788,7 @@ AdaptDefine(ISteamClient015) = {
     AdaptPassThrough(ISteamClientMap::GetISteamMusicRemote),
 };
 AdaptDeclare(ISteamClient016);
-AdaptDefine(ISteamClient016) = {
+AdaptDefine(ISteamClient016, ISteamClientMap, "SteamClient016") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -825,7 +825,7 @@ AdaptDefine(ISteamClient016) = {
     AdaptPassThrough(ISteamClientMap::Set_SteamAPI_CCheckCallbackRegisteredInProcess),
 };
 AdaptDeclare(ISteamClient017);
-AdaptDefine(ISteamClient017) = {
+AdaptDefine(ISteamClient017, ISteamClientMap, "SteamClient017") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -865,7 +865,7 @@ AdaptDefine(ISteamClient017) = {
     AdaptPassThrough(ISteamClientMap::GetISteamParentalSettings),
 };
 AdaptDeclare(ISteamClient018);
-AdaptDefine(ISteamClient018) = {
+AdaptDefine(ISteamClient018, ISteamClientMap, "SteamClient018") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
@@ -908,7 +908,7 @@ AdaptDefine(ISteamClient018) = {
     AdaptPassThrough(ISteamClientMap::GetISteamParties),
 };
 AdaptDeclare(ISteamClient019);
-AdaptDefine(ISteamClient019) = {
+AdaptDefine(ISteamClient019, ISteamClientMap, "SteamClient019") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
     AdaptPassThrough(ISteamClientMap::BReleaseSteamPipe),
     AdaptPassThrough(ISteamClientMap::ConnectToGlobalUser),
