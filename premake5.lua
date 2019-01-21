@@ -72,7 +72,7 @@ workspace "workspace"
     project "client"
         kind "ConsoleApp"
         language "C++"
-        targetdir "bin/%{cfg.buildcfg}"
+        targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}"
         
         -- Windows and linux use different precompiled header path locations
         filter {"system:linux"}
@@ -82,7 +82,8 @@ workspace "workspace"
         filter {}
 
         filter {"files:**.pb.cc"}
-            flags { 'NoPCH' }
+            flags { "NoPCH" }
+            warnings "off"
         filter {}
 
         filter {"system:windows", "platforms:x64"}
@@ -99,7 +100,7 @@ workspace "workspace"
 
         filter {"system:windows", "platforms:x64", "configurations:Release"}
             libdirs {vcpkg_root .. "installed\\x64-windows\\lib"}
-        filter {"system:windows", "platforms:x32", "configurations:Release"}
+        filter {"system:windows", "platforms:x32", "configurations:Debug"}
             libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
         filter {}
         
@@ -113,6 +114,7 @@ workspace "workspace"
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
+                "tests/**.cc"
             }
 
         filter {"system:linux"}

@@ -14,9 +14,12 @@ int main(const int argCount, const char **argStrings) {
     auto a = CreateInterface("SteamUtils009", nullptr);
     Assert(a != nullptr, "CreateInterface test failed");
 
-    extern Steam::InterfaceHelpers::InterfaceReg *GetInterfaceList();
+    extern void TestTrampolines();
+    TestTrampolines();
 
     {
+        extern Steam::InterfaceHelpers::InterfaceReg *GetInterfaceList();
+
         auto head  = GetInterfaceList();
         auto total = 0;
 
@@ -24,7 +27,10 @@ int main(const int argCount, const char **argStrings) {
             total += 1;
             printf("[I] %s\n", cur->name);
         }
+
+        printf("[I] %d total interfaces\n", total);
     }
+
     Argonx::SteamClient sClient;
 
     printf("Pumping...\n");
