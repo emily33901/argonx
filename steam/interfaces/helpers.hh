@@ -46,9 +46,11 @@ extern TrampolineAllocator *TAllocator();
 // On x64 both platforms use the same abi
 // On unix there is no "thiscall" - the thisptr is the first arg
 #define AdaptThisCall
+#define AdaptEdx
 #elif defined(ARGONX_WIN)
 // On windows x86 passes thisptr in ecx
-#define AdaptThisCall __thiscall
+#define AdaptThisCall __fastcall
+#define AdaptEdx void *__edx,
 #endif
 
 // For adapting versioned interfaces to their unversioned counterparts
@@ -74,7 +76,7 @@ extern TrampolineAllocator *TAllocator();
 #define AdaptPassThrough(target) AdaptCreateTrampoline(&target)
 #define AdaptOverload(signature, target) AdaptCreateTrampoline(static_cast<signature>(&target))
 #define AdaptEmpty(target) \
-    AdaptCreateTrampoline(static_cast<void(AdaptThisCall *)(void *)>([](void *thisptr) { Assert(0, "Attempt to call function '" #target "'\n"); }))
+    AdaptCreateTrampoline(static_cast<void(AdaptThisCall *)(void *)>([](void *thisptr) -> void { Assert(0, "Attempt to call function '" #target "'\n"); }))
 
 // Helper for msvcs type parsing
 template <typename T>
@@ -88,7 +90,7 @@ using MsvcFuck = T;
 // large amount of macro bollocks
 // used like `AdaptCustom(Test2, int, { return thisptr->Test(b, a); }, int a, int b)`
 #define AdaptCustom(TT, ret, body, ...) \
-    AdaptCreateTrampoline((::Steam::InterfaceHelpers::MsvcFuck<ret(AdaptThisCall *)(TT *, __VA_ARGS__)>)[](TT * thisptr, __VA_ARGS__)->ret body)
+    AdaptCreateTrampoline((::Steam::InterfaceHelpers::MsvcFuck<ret(AdaptThisCall *)(TT *, AdaptEdx __VA_ARGS__)>)[](TT * thisptr, AdaptEdx __VA_ARGS__)->ret body)
 
 class InterfaceReg {
 public:

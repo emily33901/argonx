@@ -59,13 +59,13 @@ constexpr u32 trampolineAddrOffset = 3;
 
 #if defined(ARGONX_WIN)
 
-// mov ecx, [ecx+8]
+// mov ecx, [ecx+4]
 // push 0xCCCCCCCC
 // ret
 
 // clang-format off
 const u8 trampolineBasis[] = {
-    0x8B, 0x49, 0x08,
+    0x8B, 0x49, 0x04,
     0x68, 0xCC, 0xCC, 0xCC, 0xCC,
     0xC3,
 };
@@ -76,7 +76,7 @@ constexpr u32 trampolineAddrOffset = 4;
 
 // pop eax ; ret address
 // pop ecx ; thisptr on GCC
-// push [ecx + 8] ; push thisptr back on
+// push [ecx + 4] ; push thisptr back on
 // push eax ; push ret
 // push 0xCCCCCCCC ; jmp address
 // ret ; jmp to new address
@@ -84,7 +84,7 @@ constexpr u32 trampolineAddrOffset = 4;
 // clang-format off
 const u8 trampolineBasis[] = {
     0x58, 0x59,
-    0xFF, 0x71, 0x08,
+    0xFF, 0x71, 0x04,
     0x50,
     0x68, 0xCC, 0xCC, 0xCC, 0xCC,
     0xC3

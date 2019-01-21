@@ -33,7 +33,7 @@ void *CreateInterface(const char *name, int *err) {
     return CreateInterfaceInternal(name, err);
 }
 
-InterfaceReg::InterfaceReg(InstantiateInterfaceFn fn, const char *name) : name(name) {
+InterfaceReg::InterfaceReg(Steam::InstantiateInterfaceFn fn, const char *name) : name(name) {
     create = fn;
 
     next = head;
