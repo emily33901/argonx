@@ -1,5 +1,7 @@
 #include "precompiled.hh"
 
+#include "catch2/catch.hpp"
+
 #include "../steam/interfaces/helpers.hh"
 
 namespace {

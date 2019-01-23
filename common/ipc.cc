@@ -95,7 +95,7 @@ void Pipe::ProcessMessages() {
             auto handle = childPipes.size();
 
             auto              data = newAddr.data();
-            RequestPipeResult p{handle};
+            RequestPipeResult p{static_cast<Handle>(handle)};
             memcpy(&p.address, data, newAddr.size());
 
             sock->send(&p, sizeof(p));

@@ -115,7 +115,7 @@ workspace "workspace"
             }
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread", "protobuf", "archive"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq"}
         filter {"system:windows"}
             links {"cryptopp-static"}
         filter {}
@@ -163,3 +163,7 @@ workspace "workspace"
 
         includedirs {"external", "steam", "tests", "common"}
         files {"common/**.cc", "tests/**.cc", "tests/**.hh", "steam/interfaces/helpers.cc", "steam/interfaces/createinterface.cc"}
+
+        filter {"system:linux"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq"}
+        filter {}
