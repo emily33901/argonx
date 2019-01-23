@@ -60,7 +60,6 @@ workspace "workspace"
             buildoptions "-g3 -fdiagnostics-absolute-paths" -- need this for gdb
         filter {}
 
-
     filter {"configurations:Release"}
         defines { "NDEBUG" }
         optimize "Full"
@@ -72,7 +71,7 @@ workspace "workspace"
     project "client"
         kind "ConsoleApp"
         language "C++"
-        targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}"
+        targetdir "bin/client/%{cfg.platform}/%{cfg.buildcfg}"
         
         -- Windows and linux use different precompiled header path locations
         filter {"system:linux"}
@@ -80,6 +79,7 @@ workspace "workspace"
         filter {"system:windows"}
             pchheader "precompiled.hh"
         filter {}
+        pchsource "client/precompiled.cc"
 
         filter {"files:**.pb.cc"}
             flags { "NoPCH" }
@@ -104,8 +104,6 @@ workspace "workspace"
             libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
         filter {}
         
-        pchsource "client/precompiled.cc"
-        
         includedirs { "client", "protogen", "common", "external", "external/OpenSteamworks" }
 
         files { "client/**.hh", "client/**.cc", 
@@ -114,7 +112,6 @@ workspace "workspace"
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
-                "tests/**.cc"
             }
 
         filter {"system:linux"}
@@ -140,3 +137,29 @@ workspace "workspace"
                 "cmd.exe /c \""  .. "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
                 "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"
             }
+
+    project "tests"
+        kind "ConsoleApp"
+        language "C++"
+        targetdir "bin/tests/%{cfg.platform}/%{cfg.buildcfg}"
+        
+        -- Windows and linux use different precompiled header path locations
+        filter {"system:linux"}
+            pchheader "tests/precompiled.hh"
+        filter {"system:windows"}
+            pchheader "precompiled.hh"
+        filter {}
+
+        pchsource "tests/precompiled.cc"
+
+        filter {"files:**.pb.cc"}
+            flags { "NoPCH" }
+            warnings "off"
+        filter {}
+
+        filter {"files:**/main.cc"}
+            flags {"NoPCH"}
+        filter {}
+
+        includedirs {"external", "steam", "tests", "common"}
+        files {"common/**.cc", "tests/**.cc", "tests/**.hh", "steam/interfaces/helpers.cc", "steam/interfaces/createinterface.cc"}
