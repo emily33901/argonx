@@ -10,3 +10,6 @@
 [submodule "external/OpenSteamworks"]
 	path = external/OpenSteamworks
 	url = https://github.com/emily33901/open-steamworks.git
+[submodule "external/cppzmq"]
+	path = external/cppzmq
+	url = https://github.com/zeromq/cppzmq.git
