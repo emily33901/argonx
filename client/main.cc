@@ -1,8 +1,22 @@
 #include "precompiled.hh"
 
+#include <thread>
+
 #include "steamclient.hh"
 
 #include "../steam/interfaces/helpers.hh"
+
+#include "ipc.hh"
+
+Pipe *p;
+Pipe *p2;
+
+u8 data[] = {
+    0xFF,
+    0xFF,
+    0xFF,
+    0xFF,
+};
 
 int main(const int argCount, const char **argStrings) {
     printf("%d trampolines allocated (%d bytes)...\n",
@@ -13,9 +27,6 @@ int main(const int argCount, const char **argStrings) {
 
     auto a = CreateInterface("SteamUtils009", nullptr);
     Assert(a != nullptr, "CreateInterface test failed");
-
-    extern void TestTrampolines();
-    TestTrampolines();
 
     {
         extern Steam::InterfaceHelpers::InterfaceReg *GetInterfaceList();
@@ -38,4 +49,43 @@ int main(const int argCount, const char **argStrings) {
     sClient.Run();
 
     return 0;
+}
+
+void TestPipes() {
+
+    p                 = new Pipe(true, "tcp://127.0.0.1:33901", 33901);
+    p->processMessage = [](u8 *data, u32 size) {
+        printf("[serverpipe] size:%d\n", size);
+    };
+
+    bool done = false;
+
+    std::thread serverPipe{
+        [&done]() {
+            while (!done) {
+                p->ProcessMessages();
+
+                if (p->PipeCount() > 0)
+                    p->SendMessage(1, data, rand() % 2 ? 3 : 4);
+
+                using namespace std::chrono_literals;
+                std::this_thread::sleep_for(10ms);
+            }
+        }};
+
+    p2                 = new Pipe(false, "tcp://127.0.0.1:33901");
+    p2->processMessage = [](u8 *data, u32 size) {
+        printf("[clientpipe] size:%d\n", size);
+    };
+
+    std::thread clientPipe{
+        [&done]() {
+            while (!done) {
+                p2->ProcessMessages();
+                p2->SendMessage(0, data, rand() % 2 ? 3 : 4);
+
+                using namespace std::chrono_literals;
+                std::this_thread::sleep_for(100ms);
+            }
+        }};
 }
