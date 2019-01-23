@@ -4,7 +4,6 @@
 
 #ifdef ARGONX_WIN
 #include <Windows.h>
-
 #elif defined(ARGONX_UNIX)
 #include <sys/mman.h>
 
