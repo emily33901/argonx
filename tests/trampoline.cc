@@ -1,4 +1,4 @@
-#include <precompiled.hh>
+#include "precompiled.hh"
 
 #include "../steam/interfaces/helpers.hh"
 
@@ -39,10 +39,15 @@ public:
 
 } // namespace
 
-void TestTrampolines() {
+bool TestTrampolines() {
     auto t1 = (TestTarget *)__Create_Test001_interface();
 
     t1->AddToBasis(5);
     t1->SubFromBasis(4, 8);
-    Assert(t1->GetBasis() == 3, "Trampoline test failed.");
+
+    return t1->GetBasis() == 3;
 }
+
+TEST_CASE("Trampolines work", "[trampoline]") {
+    REQUIRE(TestTrampolines() == 1);
+};
