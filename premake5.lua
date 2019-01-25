@@ -39,6 +39,8 @@ workspace "workspace"
         toolset "msc-v141"
         characterset "MBCS"
 
+        flags {"MultiProcessorCompile"}
+
         defines {"ARGONX_WIN"}
 
     filter {"system:linux"}
