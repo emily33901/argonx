@@ -2,6 +2,8 @@
 
 #include "platform.hh"
 
+#include "../rpc.hh"
+
 namespace Steam {
 typedef void *(*InstantiateInterfaceFn)(void);
 }

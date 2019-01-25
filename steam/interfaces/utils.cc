@@ -9,6 +9,8 @@ namespace Reference {
 #include "SteamStructs/IClientUtils.h"
 }
 
+extern Pipe *clientPipe;
+
 class IClientUtilsMap : public Reference::IClientUtils {
 public:
     // Inherited via IClientUtils
@@ -22,7 +24,8 @@ public:
         return unknown_ret();
     }
     virtual unknown_ret GetSecondsSinceAppActive() override {
-        return unknown_ret();
+        Rpc<decltype(&IClientUtilsMap::GetSecondsSinceAppActive)> r{this, &IClientUtilsMap::GetSecondsSinceAppActive, InterfaceTarget::utils};
+        return r.Call(0, *clientPipe);
     }
     virtual unknown_ret GetSecondsSinceComputerActive() override {
         return unknown_ret();
