@@ -3,9 +3,8 @@
 #include "platform.hh"
 
 u32 Platform::GetMemberFunctionIndex(void *instance, void *f) {
-    u8 *functionBytes = (u8 *)f;
-
 #ifdef ARGONX_WIN
+    u8 *functionBytes = (u8 *)f;
     // Msvcs thunks on both platforms are just jmps (e9...)
     // To the virtual call thunk (ff ...)
     if (functionBytes[0] == 0xE9) {
@@ -27,7 +26,10 @@ u32 Platform::GetMemberFunctionIndex(void *instance, void *f) {
         }
     }
 #else
-    Assert(0, "Unknown platform");
+    // The function pointer is just the index + 1
+    auto index = *(uptr *)&f;
+    Assert(index & 1, "Pointer does not comply!");
+    return (index - 1) / sizeof(uptr);
 #endif
     return 0;
 }

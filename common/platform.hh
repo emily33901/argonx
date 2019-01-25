@@ -21,16 +21,20 @@ using iptr = std::intptr_t;
         assert(0);                                                         \
     }
 #elif defined(_DEBUG) && defined(ARGONX_UNIX)
-#define Assert(exp, message, ...)                            \
-    _Pragma("GCC diagnostic push")                           \
-        _Pragma("GCC diagnostic ignored \"-Wunused-value\"") \
-            assert((message, exp));                          \
-    _Pragma("GCC diagnostic pop")
+#define Assert(exp, message, ...)                                            \
+    if (!!!(exp)) {                                                          \
+        _Pragma("GCC diagnostic push");                                      \
+        _Pragma("GCC diagnostic ignored \"-Wformat\"");                      \
+        printf(__FILE__ ":%d: " #message "\n", __LINE__ - 1, ##__VA_ARGS__); \
+        assert(0);                                                           \
+        _Pragma("GCC diagnostic pop");                                       \
+    }
 #else
 #define Assert(exp, message, ...) assert(exp)
 #endif
 
 namespace Platform {
+u32 GetMemberFunctionIndex(void *instance, void *function);
 template <typename F>
 inline u32 GetMemberFunctionIndex(void *instance, F function) {
     // On GCC some function pointers are wide
@@ -44,12 +48,9 @@ inline u32 GetMemberFunctionIndex(void *instance, F function) {
         // For the purposes of what we are doing this check can
         // probably be removed to speed up init time.
         // static_assert(0, "Unknown platform");
-        Assert(0, "Unknown platform");
+        // Assert(0, "Unknown platform");
     }
 
     return GetMemberFunctionIndex(instance, *realTarget);
 }
-u32 GetMemberFunctionIndex(void *instance, void *function);
-}
-
-
+} // namespace Platform
