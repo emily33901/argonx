@@ -70,10 +70,13 @@ public:
         if constexpr (!std::is_same_v<decltype(args), std::tuple<>>)
             std::apply([&b](auto &&x) { b.Write(x); }, args);
 
-        if constexpr (!std::is_same_v<typename Types::Ret, void>)
-            return MakeRpcCall(b, handle, p, true).Read<typename Types::Ret>();
-        else
+        if constexpr (!std::is_same_v<typename Types::Ret, void>) {
+            Buffer r = MakeRpcCall(b, handle, p, true);
+
+            return r.template Read<typename Types::Ret>();
+        } else {
             MakeRpcCall(b, handle, p, false);
+        }
     }
 };
 } // namespace Steam
