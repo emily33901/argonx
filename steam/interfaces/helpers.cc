@@ -35,6 +35,8 @@ TrampolineAllocator::~TrampolineAllocator() {
 }
 
 #if defined(ARGONX_64)
+
+#if defined(ARGONX_WIN)
 // clang-format off
 const u8 trampolineBasis[] = {
     // push rax
@@ -49,8 +51,24 @@ const u8 trampolineBasis[] = {
     0xC3,
 };
 // clang-format on
-
 constexpr u32 trampolineAddrOffset = 3;
+
+#elif defined(ARGONX_UNIX)
+// clang-format off
+const u8 trampolineBasis[] = {
+    // mov rax, [rdi+0x4]
+    0x48, 0x8B, 0x47, 0x08,
+    // mov rax, [rax]
+    0x48, 0x8b, 0x00,
+    // add rax 0xCCCCCCCC
+    0x48, 0x05, 0xCC, 0xCC, 0xCC, 0x00,
+    // jmp [rax]
+    0xFF, 0x20, 0xCC
+};
+// clang-format on
+constexpr u32 trampolineAddrOffset = 9;
+
+#endif
 #elif defined(ARGONX_32)
 
 // x86 calling conventions differ
@@ -103,7 +121,15 @@ void *TrampolineAllocator::CreateTrampoline(void *target) {
 
     // Copy the trampoline in and write the target address
     memcpy(allocAddr, trampolineBasis, trampolineSize);
-    *reinterpret_cast<uptr *>(allocAddr + trampolineAddrOffset) = (uptr)target;
+
+    if ((uptr)target & 1) {
+        auto realTarget = (uptr)target & ~1;
+        // Clang virtual member function pointer
+        // and associated trampoline
+        *reinterpret_cast<u32 *>(allocAddr + trampolineAddrOffset) = (u32)realTarget;
+    } else {
+        *reinterpret_cast<uptr *>(allocAddr + trampolineAddrOffset) = (uptr)target;
+    }
 
     return allocAddr;
 }

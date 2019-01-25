@@ -24,7 +24,9 @@ public:
         // becuase of the need to store the offset of the base of
         // the class instance
 
-        auto realTarget = reinterpret_cast<void **>(&target);
+        auto targetAddr = &target;
+
+        auto realTarget = reinterpret_cast<void **>(targetAddr);
 
         if constexpr (sizeof(F) > sizeof(uptr)) {
             // Ensure that our thisptr is going to be correct!
