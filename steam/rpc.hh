@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Buffer.hh"
+#include "buffer.hh"
 
 #include "interfaces.hh"
 
