@@ -29,3 +29,27 @@ using iptr = std::intptr_t;
 #else
 #define Assert(exp, message, ...) assert(exp)
 #endif
+
+namespace Platform {
+template <typename F>
+inline u32 GetMemberFunctionIndex(void *instance, F function) {
+    // On GCC some function pointers are wide
+    // becuase of the need to store the offset of the base of
+    // the class instance
+
+    auto realTarget = reinterpret_cast<void **>(&function);
+
+    if constexpr (sizeof(F) > sizeof(uptr)) {
+        // Ensure that our thisptr is going to be correct!
+        // For the purposes of what we are doing this check can
+        // probably be removed to speed up init time.
+        // static_assert(0, "Unknown platform");
+        Assert(0, "Unknown platform");
+    }
+
+    return GetMemberFunctionIndex(instance, *realTarget);
+}
+u32 GetMemberFunctionIndex(void *instance, void *function);
+}
+
+
