@@ -31,7 +31,7 @@ private:
     u16 basePort;
 
 public:
-    std::function<void(u8 *data, u32 size)> processMessage;
+    std::function<void(Pipe::Handle from, u8 *data, u32 size)> processMessage;
 
     Pipe(bool isServer, const char *serverAddr, u16 basePort = 0);
     ~Pipe();

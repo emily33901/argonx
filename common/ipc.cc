@@ -69,11 +69,12 @@ void Pipe::ProcessMessages() {
     zmq::message_t msg;
 
     if (isServer) {
-        for (auto &s : childPipes) {
+        for (auto i = 0; i < childPipes.size(); i++) {
+            auto &s = childPipes[i];
             if (s == nullptr) continue;
 
             while (s->recv(&msg, ZMQ_DONTWAIT)) {
-                processMessage((u8 *)msg.data(), msg.size());
+                processMessage(i + 1, (u8 *)msg.data(), msg.size());
             }
         }
 
@@ -102,7 +103,7 @@ void Pipe::ProcessMessages() {
         }
     } else {
         while (sock->recv(&msg, ZMQ_DONTWAIT)) {
-            processMessage((u8 *)msg.data(), msg.size());
+            processMessage(0, (u8 *)msg.data(), msg.size());
         }
     }
 }
