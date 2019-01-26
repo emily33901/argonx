@@ -60,15 +60,16 @@ public:
         targetIndex = RpcHelpers::GetVirtualFunctionIndex(instance, function);
     }
 
-    void SetArgs(typename Types::Args &&a) {
-        args(std::forward<typename Types::Args &&>(a));
+    template<typename... Args>
+    void SetArgs(Args &&... a) {
+        args = std::forward_as_tuple<Args...>(a...);
     }
 
     typename Types::Ret Call(Pipe::Handle handle, Pipe &p) {
         Buffer b;
 
         if constexpr (!std::is_same_v<decltype(args), std::tuple<>>)
-            std::apply([&b](auto &&x) { b.Write(x); }, args);
+            std::apply([&b](auto &&... x) { (b.Write(x), ...); }, args);
 
         if constexpr (!std::is_same_v<typename Types::Ret, void>) {
             Buffer r = MakeRpcCall(b, handle, p, true);
