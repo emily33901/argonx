@@ -69,17 +69,21 @@ public:
     virtual unknown_ret GetAppID() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetAPIDebuggingActive(bool, bool) override {
-        return unknown_ret();
+    virtual unknown_ret SetAPIDebuggingActive(bool a, bool b) override {
+        Rpc<decltype(&IClientUtilsMap::SetAPIDebuggingActive)> r{this, &IClientUtilsMap::SetAPIDebuggingActive, InterfaceTarget::utils};
+        r.SetArgs(a, b);
+        return r.Call(0, *clientPipe);
     }
     virtual unknown_ret AllocPendingAPICallHandle() override {
         return unknown_ret();
     }
-    virtual unknown_ret IsAPICallCompleted(unsigned long long, bool *) override {
+    virtual unknown_ret IsAPICallCompleted(unsigned long long a, bool *b) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAPICallFailureReason(unsigned long long) override {
-        return unknown_ret();
+    virtual unknown_ret GetAPICallFailureReason(unsigned long long a) override {
+        Rpc<decltype(&IClientUtilsMap::GetAPICallFailureReason)> r{this, &IClientUtilsMap::GetAPICallFailureReason, InterfaceTarget::utils};
+        r.SetArgs(a);
+        return r.Call(0, *clientPipe);
     }
     virtual unknown_ret GetAPICallResult(unsigned long long, void *, int, int, bool *) override {
         return unknown_ret();

@@ -122,14 +122,15 @@ void *TrampolineAllocator::CreateTrampoline(void *target) {
     // Copy the trampoline in and write the target address
     memcpy(allocAddr, trampolineBasis, trampolineSize);
 
+#ifdef ARGONX_UNIX
     if ((uptr)target & 1) {
         auto realTarget = (uptr)target & ~1;
         // Clang virtual member function pointer
         // and associated trampoline
         *reinterpret_cast<u32 *>(allocAddr + trampolineAddrOffset) = (u32)realTarget;
-    } else {
+    } else
+#endif
         *reinterpret_cast<uptr *>(allocAddr + trampolineAddrOffset) = (uptr)target;
-    }
 
     return allocAddr;
 }
