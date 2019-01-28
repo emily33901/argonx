@@ -24,6 +24,7 @@ public:
         return unknown_ret();
     }
     virtual unknown_ret GetSecondsSinceAppActive() override {
+        printf(">>>>>>> GetSecondsSinceAppActive called! <<<<<<<<<<\n");
         Rpc<decltype(&IClientUtilsMap::GetSecondsSinceAppActive)> r{this, &IClientUtilsMap::GetSecondsSinceAppActive, InterfaceTarget::utils};
         return r.Call(0, *clientPipe);
     }

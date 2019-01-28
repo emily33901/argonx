@@ -11,11 +11,27 @@
 class ISteamUtils009 {
 public:
     virtual uptr GetSecondsSinceAppActive() = 0;
+
+    virtual void pad0()  = 0;
+    virtual void pad1()  = 0;
+    virtual void pad2()  = 0;
+    virtual void pad3()  = 0;
+    virtual void pad4()  = 0;
+    virtual void pad5()  = 0;
+    virtual void pad6()  = 0;
+    virtual void pad7()  = 0;
+    virtual void pad8()  = 0;
+    virtual void pad9()  = 0;
+    virtual void pad10() = 0;
+
+    virtual uptr GetAPICallFailureReason(unsigned long long) = 0;
 };
 
 Pipe *fakeServer;
 Pipe *clientPipe;
 void  ClientRpcPipe();
+
+ISteamUtils009 *utils;
 
 int main(const int argCount, const char **argStrings) {
     fakeServer                 = new Pipe(true, "tcp://127.0.0.1:33901", 33901);
@@ -28,7 +44,25 @@ int main(const int argCount, const char **argStrings) {
 
         u64 jobId = b.Read<u64>();
 
-        b.Write<u32>(0xCCCCCCCC);
+        Steam::RpcCallHeader header;
+        b.ReadInto(header);
+
+        using DispatchFromBufferFn = void (*)(void *instance, u32 functionIndex, Buffer &);
+
+        auto dispatch = Steam::RpcDispatches()[header.dispatchIndex];
+        auto fn = (DispatchFromBufferFn)dispatch.first;
+
+        printf("Dispatch:%s\n", dispatch.second);
+
+        b.SetBaseAtCurPos();
+
+        fn(((Steam::InterfaceHelpers::GenericAdaptor *)utils)->realThisptr, header.functionIndex, b);
+
+        printf("Target:%s index:%d\n", Steam::interfaceNames[(u32)header.targetInterface], header.functionIndex);
+
+        b = Buffer{};
+        b.Write(jobId);
+        b.Write<u64>(0xCCCCCCCCAABBAABB);
         b.SetPos(0);
 
         fakeServer->SendMessage(h, b.Read(0), b.Size());
@@ -50,8 +84,8 @@ int main(const int argCount, const char **argStrings) {
 
     extern void *CreateInterface(const char *name, int *err);
 
-    ISteamUtils009 *a = (ISteamUtils009 *)CreateInterface("SteamUtils009", nullptr);
-    Assert(a != nullptr, "CreateInterface test failed");
+    utils = (ISteamUtils009 *)CreateInterface("SteamUtils009", nullptr);
+    Assert(utils != nullptr, "CreateInterface test failed");
 
     {
         extern Steam::InterfaceHelpers::InterfaceReg *GetInterfaceList();
@@ -77,10 +111,16 @@ int main(const int argCount, const char **argStrings) {
         }
     }};
 
-    a->GetSecondsSinceAppActive();
-    a->GetSecondsSinceAppActive();
-    a->GetSecondsSinceAppActive();
-    a->GetSecondsSinceAppActive();
+    auto r = utils->GetSecondsSinceAppActive();
+    printf("r is %llX\n", r);
+    r = utils->GetAPICallFailureReason(0xCCFFCCFFAABBAABB);
+    printf("r is %llX\n", r);
+    r = utils->GetSecondsSinceAppActive();
+    printf("r is %llX\n", r);
+    r = utils->GetSecondsSinceAppActive();
+    printf("r is %llX\n", r);
+    r = utils->GetSecondsSinceAppActive();
+    printf("r is %llX\n", r);
 
     Argonx::SteamClient sClient;
 
