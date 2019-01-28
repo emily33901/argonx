@@ -39,7 +39,7 @@ struct GetRpcImpl<R (C::*)(A...)> {
     using Class = C;
     using Args  = std::tuple<Platform::remove_cvref_t<A>...>;
 
-    using VirtualType = Ret(AdaptThisCall *)(void *instance, AdaptEdx A...);
+    using VirtualType = Ret(PlatformThisCall *)(void *instance, PlatformEdx A...);
 };
 
 template <typename F>
@@ -125,6 +125,10 @@ void Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionInd
     std::apply([&b](auto &... x) { (b.ReadInto(x), ...); }, temp);
     std::apply([instance, fptr](auto... x) { fptr(instance, std::forward<decltype(x)>(x)...); }, temp);
 }
+
+// TODO: there are probably much more robust ways
+// of storing these dispatch functions
+// than hoping that compilers put them in the same order
 
 inline u32 MakeDispatch(void *f, const char *debugName) {
     RpcDispatches().push_back(std::make_pair(f, debugName));

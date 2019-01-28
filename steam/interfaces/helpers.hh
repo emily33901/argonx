@@ -74,7 +74,7 @@ struct GenericAdaptor {
 #define AdaptPassThrough(target) AdaptCreateTrampoline(&target)
 #define AdaptOverload(signature, target) AdaptCreateTrampoline(static_cast<signature>(&target))
 #define AdaptEmpty(target) \
-    AdaptCreateTrampoline(static_cast<void(AdaptThisCall *)(void *)>([](void *thisptr) -> void { Assert(0, "Attempt to call function '" #target "'\n"); }))
+    AdaptCreateTrampoline(static_cast<void(PlatformThisCall *)(void *)>([](void *thisptr) -> void { Assert(0, "Attempt to call function '" #target "'\n"); }))
 
 // Helper for msvcs type parsing
 template <typename T>
@@ -88,7 +88,7 @@ using MsvcFuck = T;
 // large amount of macro bollocks
 // used like `AdaptCustom(Test2, int, { return thisptr->Test(b, a); }, int a, int b)`
 #define AdaptCustom(TT, ret, body, ...) \
-    AdaptCreateTrampoline((::Steam::InterfaceHelpers::MsvcFuck<ret(AdaptThisCall *)(TT *, AdaptEdx __VA_ARGS__)>)[](TT * thisptr, AdaptEdx __VA_ARGS__)->ret body)
+    AdaptCreateTrampoline((::Steam::InterfaceHelpers::MsvcFuck<ret(PlatformThisCall *)(TT *, PlatformEdx __VA_ARGS__)>)[](TT * thisptr, PlatformEdx __VA_ARGS__)->ret body)
 
 class InterfaceReg {
 public:

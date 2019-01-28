@@ -79,10 +79,10 @@ using remove_cvref_t = typename RemoveCvRef<T>::type;
 #if defined(ARGONX_64) || defined(ARGONX_UNIX)
 // On x64 both platforms use the same abi
 // On unix there is no "thiscall" - the thisptr is the first arg
-#define AdaptThisCall
-#define AdaptEdx
+#define PlatformThisCall
+#define PlatformEdx
 #elif defined(ARGONX_WIN)
 // On windows x86 passes thisptr in ecx
-#define AdaptThisCall __fastcall
-#define AdaptEdx void *__edx,
+#define PlatformThisCall __fastcall
+#define PlatformEdx void *__edx,
 #endif
