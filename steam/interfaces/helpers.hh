@@ -46,16 +46,10 @@ public:
 // Ensuring that our trampoline allocator is initialised first
 extern TrampolineAllocator *TAllocator();
 
-#if defined(ARGONX_64) || defined(ARGONX_UNIX)
-// On x64 both platforms use the same abi
-// On unix there is no "thiscall" - the thisptr is the first arg
-#define AdaptThisCall
-#define AdaptEdx
-#elif defined(ARGONX_WIN)
-// On windows x86 passes thisptr in ecx
-#define AdaptThisCall __fastcall
-#define AdaptEdx void *__edx,
-#endif
+struct GenericAdaptor {
+    void *vtable;
+    void *realThisptr;
+};
 
 // For adapting versioned interfaces to their unversioned counterparts
 #define AdaptDeclare(name)                            \

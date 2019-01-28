@@ -14,23 +14,31 @@ using i32  = std::int32_t;
 using i64  = std::int64_t;
 using iptr = std::intptr_t;
 
-#if defined(_DEBUG) && defined(ARGONX_WIN)
-#define Assert(exp, message, ...)                                          \
+#if defined(ARGONX_WIN)
+#define AssertImpl(exp, message, ...)                                      \
     if (!!!(exp)) {                                                        \
         printf(__FILE__ ":%d: " #message "\n", __LINE__ - 1, __VA_ARGS__); \
         assert(0);                                                         \
+        abort();                                                           \
     }
-#elif defined(_DEBUG) && defined(ARGONX_UNIX)
-#define Assert(exp, message, ...)                                            \
+#elif defined(ARGONX_UNIX)
+#define AssertImpl(exp, message, ...)                                        \
     if (!!!(exp)) {                                                          \
         _Pragma("GCC diagnostic push");                                      \
         _Pragma("GCC diagnostic ignored \"-Wformat\"");                      \
         printf(__FILE__ ":%d: " #message "\n", __LINE__ - 1, ##__VA_ARGS__); \
         assert(0);                                                           \
+        abort();                                                             \
         _Pragma("GCC diagnostic pop");                                       \
     }
+#endif
+
+#if defined(_DEBUG)
+#define Assert AssertImpl
+#define AssertAlways AssertImpl
 #else
 #define Assert(exp, message, ...) assert(exp)
+#define AssertAlways AssertImpl
 #endif
 
 namespace Platform {
@@ -53,4 +61,19 @@ inline u32 GetMemberFunctionIndex(void *instance, F function) {
 
     return GetMemberFunctionIndex(instance, *realTarget);
 }
+inline void *FunctionFromIndex(void *instance, u32 index) {
+    auto vtable = *(void ***)instance;
+    return vtable[index];
+}
 } // namespace Platform
+
+#if defined(ARGONX_64) || defined(ARGONX_UNIX)
+// On x64 both platforms use the same abi
+// On unix there is no "thiscall" - the thisptr is the first arg
+#define AdaptThisCall
+#define AdaptEdx
+#elif defined(ARGONX_WIN)
+// On windows x86 passes thisptr in ecx
+#define AdaptThisCall __fastcall
+#define AdaptEdx void *__edx,
+#endif
