@@ -65,6 +65,15 @@ inline void *FunctionFromIndex(void *instance, u32 index) {
     auto vtable = *(void ***)instance;
     return vtable[index];
 }
+
+template <typename T>
+struct RemoveCvRef {
+    typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+};
+
+template <typename T>
+using remove_cvref_t = typename RemoveCvRef<T>::type;
+
 } // namespace Platform
 
 #if defined(ARGONX_64) || defined(ARGONX_UNIX)

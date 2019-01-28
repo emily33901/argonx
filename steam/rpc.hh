@@ -37,7 +37,7 @@ template <typename R, typename C, typename... A>
 struct GetRpcImpl<R (C::*)(A...)> {
     using Ret   = R;
     using Class = C;
-    using Args  = std::tuple<std::remove_cvref_t<A>...>;
+    using Args  = std::tuple<Platform::remove_cvref_t<A>...>;
 
     using VirtualType = Ret(AdaptThisCall *)(void *instance, AdaptEdx A...);
 };
