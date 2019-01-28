@@ -71,12 +71,20 @@ JobManagerBase *Jobs() {
     return &j;
 }
 
-Buffer RpcBase::MakeRpcCall(Buffer &serializedArgs, Pipe::Handle handle, Pipe &p, bool hasReturn) {
+Buffer RpcBase::MakeRpcCall(Buffer &serializedArgs, Pipe::Handle handle, Pipe &p, int dispatchPosition, bool hasReturn) {
     serializedArgs.SetPos(0);
-    serializedArgs.Write(target, targetIndex);
+
+    // TODO: write userHandle
+    RpcCallHeader h{target, dispatchPosition, targetIndex, 0};
+    serializedArgs.Write(h);
+
     serializedArgs.SetPos(0);
 
     return Jobs()->MakeCall(serializedArgs, handle, p, hasReturn);
 }
 
+std::vector<std::pair<void *, const char *>> &RpcDispatches() {
+    static std::vector<std::pair<void *, const char *>> dispatches;
+    return dispatches;
+}
 } // namespace Steam
