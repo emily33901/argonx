@@ -71,7 +71,7 @@ JobManagerBase *Jobs() {
     return &j;
 }
 
-Buffer RpcBase::MakeRpcCall(Buffer &serializedArgs, Pipe::Handle handle, Pipe &p, int dispatchPosition, bool hasReturn) {
+Buffer RpcBase::MakeRpcCall(Buffer &serializedArgs, Pipe::Handle handle, Pipe &p, u32 dispatchPosition, bool hasReturn) {
     serializedArgs.SetPos(0);
 
     // TODO: write userHandle

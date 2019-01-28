@@ -67,7 +67,7 @@ protected:
     u32 targetIndex;
 
 public:
-    Buffer MakeRpcCall(Buffer &serializedArgs, Pipe::Handle handle, Pipe &p, int dispatchPosition, bool hasReturn);
+    Buffer MakeRpcCall(Buffer &serializedArgs, Pipe::Handle handle, Pipe &p, u32 dispatchPosition, bool hasReturn);
 };
 
 std::vector<std::pair<void *, const char *>> &RpcDispatches();
@@ -79,7 +79,7 @@ class Rpc : public RpcBase {
     // Arguments to function
     typename Types::Args args;
 
-    static int dispatchPosition;
+    static u32 dispatchPosition;
 
 public:
     Rpc(typename Types::Class *instance, F function, InterfaceTarget t) {
@@ -126,13 +126,13 @@ void Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionInd
     std::apply([instance, fptr](auto... x) { fptr(instance, std::forward<decltype(x)>(x)...); }, temp);
 }
 
-inline int MakeDispatch(void *f, const char *debugName) {
+inline u32 MakeDispatch(void *f, const char *debugName) {
     RpcDispatches().push_back(std::make_pair(f, debugName));
     return RpcDispatches().size() - 1;
 }
 
 template <typename F>
-int Rpc<F>::dispatchPosition = MakeDispatch(&Rpc<F>::DispatchFromBuffer, typeid(Rpc<F>).name());
+u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer, typeid(Rpc<F>).name());
 
 } // namespace Steam
 
