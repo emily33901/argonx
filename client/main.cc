@@ -32,6 +32,9 @@ Pipe *clientPipe;
 void  ClientRpcPipe();
 
 ISteamUtils009 *utils;
+extern void *   CreateServerClientUtils();
+
+void *serverUtils = CreateServerClientUtils();
 
 int main(const int argCount, const char **argStrings) {
     fakeServer                 = new Pipe(true, "tcp://127.0.0.1:33901", 33901);
@@ -56,7 +59,7 @@ int main(const int argCount, const char **argStrings) {
 
         b.SetBaseAtCurPos();
 
-        fn(((Steam::InterfaceHelpers::GenericAdaptor *)utils)->realThisptr, header.functionIndex, b);
+        fn(serverUtils, header.functionIndex, b);
 
         printf("Target:%s index:%d\n", Steam::interfaceNames[(u32)header.targetInterface], header.functionIndex);
 

@@ -11,7 +11,8 @@ namespace Reference {
 
 extern Pipe *clientPipe;
 
-class IClientUtilsMap : public Reference::IClientUtils {
+template <bool isServer = false>
+class ClientUtilsMap : public Reference::IClientUtils {
 public:
     // Inherited via IClientUtils
     virtual unknown_ret GetInstallPath() override {
@@ -25,8 +26,10 @@ public:
     }
     virtual unknown_ret GetSecondsSinceAppActive() override {
         printf(">>>>>>> GetSecondsSinceAppActive called! <<<<<<<<<<\n");
-        Rpc<decltype(&IClientUtilsMap::GetSecondsSinceAppActive)> r{this, &IClientUtilsMap::GetSecondsSinceAppActive, InterfaceTarget::utils};
-        return r.Call(0, *clientPipe);
+        RpcMakeCallIfClient(GetSecondsSinceAppActive, utils) {
+            printf(">>>>>>> SERVER WOOP! <<<<<<<<<<\n");
+            return 0;
+        }
     }
     virtual unknown_ret GetSecondsSinceComputerActive() override {
         return unknown_ret();
@@ -71,9 +74,11 @@ public:
         return unknown_ret();
     }
     virtual unknown_ret SetAPIDebuggingActive(bool a, bool b) override {
-        Rpc<decltype(&IClientUtilsMap::SetAPIDebuggingActive)> r{this, &IClientUtilsMap::SetAPIDebuggingActive, InterfaceTarget::utils};
-        r.SetArgs(a, b);
-        return r.Call(0, *clientPipe);
+        RpcMakeCallIfClient(SetAPIDebuggingActive, utils, a, b) {
+            printf(">>>>> SetApiDebuggingActive SERVER\n");
+
+            return 0;
+        }
     }
     virtual unknown_ret AllocPendingAPICallHandle() override {
         return unknown_ret();
@@ -82,9 +87,11 @@ public:
         return unknown_ret();
     }
     virtual unknown_ret GetAPICallFailureReason(unsigned long long a) override {
-        Rpc<decltype(&IClientUtilsMap::GetAPICallFailureReason)> r{this, &IClientUtilsMap::GetAPICallFailureReason, InterfaceTarget::utils};
-        r.SetArgs(a);
-        return r.Call(0, *clientPipe);
+        RpcMakeCallIfClient(GetAPICallFailureReason, utils, a) {
+            printf(">>>>> GetAPICallFailureReason SERVER\n");
+
+            return 0;
+        }
     }
     virtual unknown_ret GetAPICallResult(unsigned long long, void *, int, int, bool *) override {
         return unknown_ret();
@@ -237,6 +244,12 @@ public:
         return unknown_ret();
     }
 };
+
+void *CreateServerClientUtils() {
+    return new ClientUtilsMap<true>();
+}
+
+using IClientUtilsMap = ClientUtilsMap<false>;
 
 AdaptDeclare(ISteamUtils001);
 AdaptDefine(ISteamUtils001, IClientUtilsMap, "SteamUtils001") = {

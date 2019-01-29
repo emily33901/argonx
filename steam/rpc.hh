@@ -85,8 +85,6 @@ public:
     Rpc(typename Types::Class *instance, F function, InterfaceTarget t) {
         target      = t;
         targetIndex = RpcHelpers::GetVirtualFunctionIndex(instance, function);
-
-        // volatile auto thisTest = &test;
     }
 
     template <typename... Args>
@@ -137,6 +135,22 @@ inline u32 MakeDispatch(void *f, const char *debugName) {
 
 template <typename F>
 u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer, typeid(Rpc<F>).name());
+
+// Helper macro for making rpc dispatch calls
+// Use case:
+// virtual unknown_ret a() override {
+//     printf("a called!\n");
+//     RpcMakeCallIfClient(a, target) {
+//         printf("Called a on server\n");
+//         return 0;
+//     }
+// }
+#define RpcMakeCallIfClient(fname, tname, ...)                                                                                                             \
+    if constexpr (!isServer) {                                                                                                                             \
+        Rpc<decltype(&std::remove_reference_t<decltype(*this)>::fname)> r{this, &std::remove_reference_t<decltype(*this)>::fname, InterfaceTarget::tname}; \
+        r.SetArgs(__VA_ARGS__);                                                                                                                            \
+        return r.Call(0, *clientPipe);                                                                                                                     \
+    } else
 
 } // namespace Steam
 
