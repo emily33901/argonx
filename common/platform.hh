@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include <typeinfo>
+
 using u8   = std::uint8_t;
 using u16  = std::uint16_t;
 using u32  = std::uint32_t;
@@ -74,6 +76,12 @@ struct RemoveCvRef {
 template <typename T>
 using remove_cvref_t = typename RemoveCvRef<T>::type;
 
+const char *DemangleName(const char *n);
+
+template <typename T>
+const char *DemangleName() {
+    return DemangleName(typeid(T).name());
+}
 } // namespace Platform
 
 #if defined(ARGONX_64) || defined(ARGONX_UNIX)

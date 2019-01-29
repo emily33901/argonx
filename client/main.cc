@@ -50,7 +50,7 @@ int main(const int argCount, const char **argStrings) {
         using DispatchFromBufferFn = void (*)(void *instance, u32 functionIndex, Buffer &);
 
         auto dispatch = Steam::RpcDispatches()[header.dispatchIndex];
-        auto fn = (DispatchFromBufferFn)dispatch.first;
+        auto fn       = (DispatchFromBufferFn)dispatch.first;
 
         printf("Dispatch:%s\n", dispatch.second);
 
@@ -86,6 +86,13 @@ int main(const int argCount, const char **argStrings) {
 
     utils = (ISteamUtils009 *)CreateInterface("SteamUtils009", nullptr);
     Assert(utils != nullptr, "CreateInterface test failed");
+
+    {
+        u32 counter = 0;
+        for (auto &p : Steam::RpcDispatches()) {
+            printf("%d: %s\n", counter++, Platform::DemangleName(p.second));
+        }
+    }
 
     {
         extern Steam::InterfaceHelpers::InterfaceReg *GetInterfaceList();
