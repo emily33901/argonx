@@ -20,7 +20,6 @@ struct RpcCallHeader {
 // already exists
 
 // Other packets will have a jobId of -1 (CallResults etc...)
-
 enum class RpcType : u32 {
 
 };
@@ -29,6 +28,13 @@ struct RpcNonJob {
     RpcType t;
 };
 
+// Pipes that are used for clients
+Pipe *ClientPipe();
+void  SetClientPipe(Pipe *newPipe);
+Pipe *ServerPipe();
+void  SetServerPipe(Pipe *newPipe);
+
+// Helpers for Rpc templating
 namespace RpcHelpers {
 template <typename F>
 struct GetRpcImpl;
@@ -48,16 +54,13 @@ inline u32 GetVirtualFunctionIndex(void *instance, F function) {
 }
 } // namespace RpcHelpers
 
-// TODO: clean up job manager access
+// Manages jobs that exist between the client and server.
+namespace JobManager {
+void   PostResult(u64 jobId, Buffer &result);
+Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn);
+} // namespace JobManager
 
-class JobManagerBase {
-public:
-    virtual void   PostResult(u64 jobId, Buffer &result)                                = 0;
-    virtual Buffer MakeCall(Buffer &data, Pipe::Handle handle, Pipe &p, bool hasReturn) = 0;
-};
-
-JobManagerBase *Jobs();
-
+// Non-templated base for making rpc calls.
 class RpcBase {
 protected:
     // Target interface type
@@ -67,10 +70,14 @@ protected:
     u32 targetIndex;
 
 public:
-    Buffer MakeRpcCall(Buffer &serializedArgs, Pipe::Handle handle, Pipe &p, u32 dispatchPosition, bool hasReturn);
+    Buffer MakeRpcCall(Buffer &serializedArgs, Pipe::Target handle, Pipe &p, u32 dispatchPosition, bool hasReturn);
 };
 
-std::vector<std::pair<void *, const char *>> &RpcDispatches();
+// TODO: we need a way of extracting
+// - "out" pointers
+// - "out" buffers
+// from the function type and allowing them to be returned
+// through rpc.
 
 template <typename F>
 class Rpc : public RpcBase {
@@ -94,7 +101,7 @@ public:
 
     static void DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b);
 
-    typename Types::Ret Call(Pipe::Handle handle, Pipe &p) {
+    typename Types::Ret Call(Pipe::Target handle, Pipe &p) {
         Buffer b;
 
         if constexpr (!std::is_same_v<decltype(args), std::tuple<>>)
@@ -111,7 +118,6 @@ public:
 };
 
 // TODO: add support for returning a result / results!
-
 template <typename F>
 void Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b) {
     auto fptr = (typename Types::VirtualType)Platform::FunctionFromIndex(instance, functionIndex);
@@ -128,11 +134,14 @@ void Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionInd
 // of storing these dispatch functions
 // than hoping that compilers put them in the same order
 
+std::vector<std::pair<void *, const char *>> &RpcDispatches();
+
 inline u32 MakeDispatch(void *f, const char *debugName) {
     RpcDispatches().push_back(std::make_pair(f, debugName));
     return RpcDispatches().size() - 1;
 }
 
+// On msvc .name() returns an already mangled name
 template <typename F>
 u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer, typeid(Rpc<F>).name());
 
@@ -149,7 +158,7 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
     if constexpr (!isServer) {                                                                                                                             \
         Rpc<decltype(&std::remove_reference_t<decltype(*this)>::fname)> r{this, &std::remove_reference_t<decltype(*this)>::fname, InterfaceTarget::tname}; \
         r.SetArgs(__VA_ARGS__);                                                                                                                            \
-        return r.Call(0, *clientPipe);                                                                                                                     \
+        return r.Call(0, *::Steam::ClientPipe());                                                                                                           \
     } else
 
 } // namespace Steam

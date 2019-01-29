@@ -88,7 +88,7 @@ public:
     }
     virtual unknown_ret GetAPICallFailureReason(unsigned long long a) override {
         RpcMakeCallIfClient(GetAPICallFailureReason, utils, a) {
-            printf(">>>>> GetAPICallFailureReason SERVER\n");
+            printf(">>>>> GetAPICallFailureReason SERVER a is %llx\n", a);
 
             return 0;
         }

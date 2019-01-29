@@ -27,18 +27,30 @@ public:
     virtual uptr GetAPICallFailureReason(unsigned long long) = 0;
 };
 
-Pipe *fakeServer;
-Pipe *clientPipe;
-void  ClientRpcPipe();
-
 ISteamUtils009 *utils;
 extern void *   CreateServerClientUtils();
 
 void *serverUtils = CreateServerClientUtils();
 
-int main(const int argCount, const char **argStrings) {
-    fakeServer                 = new Pipe(true, "tcp://127.0.0.1:33901", 33901);
-    fakeServer->processMessage = [](Pipe::Handle h, u8 *data, u32 size) {
+void CreateClientPipe() {
+    Steam::SetClientPipe(new Pipe(false, "tcp://127.0.0.1:33901"));
+    Steam::ClientPipe()->processMessage = [](Pipe::Target, u8 *data, u32 size) {
+        printf("[clientpipe] size:%d\n", size);
+
+        // Assume rpc job
+        Buffer b;
+        b.Write(std::make_pair(data, size));
+        b.SetPos(0);
+
+        auto jobId = b.Read<u64>();
+        b.SetBaseAtCurPos();
+        Steam::JobManager::PostResult(jobId, b);
+    };
+}
+
+void CreateServerPipe() {
+    Steam::SetServerPipe(new Pipe(true, "tcp://127.0.0.1:33901", 33901));
+    Steam::ServerPipe()->processMessage = [](Pipe::Target target, u8 *data, u32 size) {
         printf("[serverpipe] size:%d\n", size);
 
         Buffer b;
@@ -68,13 +80,16 @@ int main(const int argCount, const char **argStrings) {
         b.Write<u64>(0xCCCCCCCCAABBAABB);
         b.SetPos(0);
 
-        fakeServer->SendMessage(h, b.Read(0), b.Size());
+        Steam::ServerPipe()->SendMessage(target, b.Read(0), b.Size());
     };
+}
 
+int main(const int argCount, const char **argStrings) {
+    CreateServerPipe();
     std::thread serverThread{
         []() {
             while (true) {
-                fakeServer->ProcessMessages();
+                Steam::ServerPipe()->ProcessMessages();
 
                 using namespace std::chrono_literals;
                 std::this_thread::sleep_for(1ms);
@@ -111,10 +126,10 @@ int main(const int argCount, const char **argStrings) {
         printf("[I] %d total interfaces\n", total);
     }
 
-    ClientRpcPipe();
+    CreateClientPipe();
     std::thread pipeThread{[]() {
         while (true) {
-            clientPipe->ProcessMessages();
+            Steam::ClientPipe()->ProcessMessages();
 
             using namespace std::chrono_literals;
             std::this_thread::sleep_for(1ms);
@@ -142,19 +157,3 @@ int main(const int argCount, const char **argStrings) {
 }
 
 #include "../steam/rpc.hh"
-
-void ClientRpcPipe() {
-    clientPipe                 = new Pipe(false, "tcp://127.0.0.1:33901");
-    clientPipe->processMessage = [](Pipe::Handle, u8 *data, u32 size) {
-        printf("[clientpipe] size:%d\n", size);
-
-        // Assume rpc job
-        Buffer b;
-        b.Write(std::make_pair(data, size));
-        b.SetPos(0);
-
-        auto jobId = b.Read<u64>();
-        b.SetBaseAtCurPos();
-        Steam::Jobs()->PostResult(jobId, b);
-    };
-}

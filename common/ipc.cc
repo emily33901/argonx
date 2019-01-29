@@ -6,7 +6,7 @@
 static u32 magic = 0xF155104;
 
 struct RequestPipeResult {
-    Pipe::Handle id;
+    Pipe::Target id;
     char         address[64];
 };
 
@@ -60,7 +60,7 @@ Pipe::Pipe(bool isServer, const char *serverAddr, u16 basePort) : isServer(isSer
 Pipe::~Pipe() {
     delete sock;
 
-    for (auto &s : childPipes) {
+    for (auto &s : childSockets) {
         delete s;
     }
 }
@@ -69,8 +69,8 @@ void Pipe::ProcessMessages() {
     zmq::message_t msg;
 
     if (isServer) {
-        for (auto i = 0; i < childPipes.size(); i++) {
-            auto &s = childPipes[i];
+        for (auto i = 0; i < childSockets.size(); i++) {
+            auto &s = childSockets[i];
             if (s == nullptr) continue;
 
             while (s->recv(&msg, ZMQ_DONTWAIT)) {
@@ -92,11 +92,11 @@ void Pipe::ProcessMessages() {
                 Assert(0, "ZMQ Error: %s\n", e.what());
             }
 
-            childPipes.push_back(s);
-            auto handle = childPipes.size();
+            childSockets.push_back(s);
+            auto handle = childSockets.size();
 
             auto              data = newAddr.data();
-            RequestPipeResult p{static_cast<Handle>(handle)};
+            RequestPipeResult p{static_cast<Target>(handle)};
             memcpy(&p.address, data, newAddr.size());
 
             sock->send(&p, sizeof(p));
@@ -108,9 +108,9 @@ void Pipe::ProcessMessages() {
     }
 }
 
-void Pipe::SendMessage(Pipe::Handle h, void *data, u32 size) {
+void Pipe::SendMessage(Pipe::Target h, void *data, u32 size) {
     if (isServer)
-        childPipes[h - 1]->send(data, size);
+        childSockets[h - 1]->send(data, size);
     else
         sock->send(data, size);
 }
