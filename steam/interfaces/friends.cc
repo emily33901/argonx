@@ -9,7 +9,8 @@ namespace Reference {
 #include "SteamStructs/IClientFriends.h"
 } // namespace Reference
 
-class IClientFriendsMap : public Reference::IClientFriends {
+template<bool isServer>
+class ClientFriendsMap : public Reference::IClientFriends {
 public:
     // Inherited via IClientFriends
     virtual unknown_ret GetPersonaName() override {
@@ -742,6 +743,8 @@ public:
         return unknown_ret();
     }
 };
+
+using IClientFriendsMap = ClientFriendsMap<false>;
 
 AdaptDeclare(ISteamFriends002);
 AdaptDefine(ISteamFriends002, IClientFriendsMap, "SteamFriends002") = {

@@ -11,7 +11,8 @@ namespace Reference {
 #include "SteamStructs/IClientApps.h"
 }
 
-class IClientAppsMap : public Reference::IClientApps {
+template<bool isServer>
+class ClientAppsMap : public Reference::IClientApps {
 public:
     // Inherited via IClientApps
     virtual unknown_ret GetAppData(unsigned int, char const *, char *, int) override {
@@ -45,6 +46,8 @@ public:
         return unknown_ret();
     }
 };
+
+using IClientAppsMap = ClientAppsMap<false>;
 
 AdaptDeclare(ISteamApps001);
 AdaptDefine(ISteamApps001, IClientAppsMap, "STEAMAPPS_INTERFACE_VERSION001") = {

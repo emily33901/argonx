@@ -9,7 +9,7 @@ namespace Reference {
 #include "SteamStructs/IClientEngine.h"
 }
 
-class IClientEngineMap : Reference::IClientEngine {
+class ClientEngineMap : Reference::IClientEngine {
 public:
     // Inherited via IClientEngine
     virtual unknown_ret CreateSteamPipe() override {
@@ -244,7 +244,8 @@ public:
     }
 };
 
-class ISteamClientMap {
+template <bool isServer>
+class SteamClientMap {
 public:
     virtual unknown_ret CreateSteamPipe() {
         return unknown_ret();
@@ -505,6 +506,8 @@ public:
         return unknown_ret();
     }
 };
+
+using ISteamClientMap = SteamClientMap<false>;
 
 AdaptDeclare(ISteamClient006);
 AdaptDefine(ISteamClient006, ISteamClientMap, "SteamClient006") = {

@@ -9,7 +9,8 @@ namespace Reference {
 #include "SteamStructs/IClientUser.h"
 }
 
-class IClientUserMap : public Reference::IClientUser {
+template<bool isServer>
+class ClientUserMap : public Reference::IClientUser {
 public:
     // Inherited via IClientUser
     virtual unknown_ret GetHSteamUser() override {
@@ -673,6 +674,8 @@ public:
         return unknown_ret();
     }
 };
+
+using IClientUserMap = ClientUserMap<false>;
 
 AdaptDeclare(ISteamUser004);
 AdaptDefine(ISteamUser004, IClientUserMap, "SteamUser004") = {

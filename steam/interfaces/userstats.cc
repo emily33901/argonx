@@ -11,7 +11,8 @@ namespace Reference {
 #include "SteamStructs/IClientUserStats.h"
 }
 
-class IClientUserStatsMap : public Reference::IClientUserStats {
+template <bool isServer>
+class ClientUserStatsMap : public Reference::IClientUserStats {
 public:
     // Inherited via IClientUserStats
     virtual unknown_ret GetNumStats(CGameID) override {
@@ -162,6 +163,8 @@ public:
         return unknown_ret();
     }
 };
+
+using IClientUserStatsMap = ClientUserStatsMap<false>;
 
 AdaptDeclare(ISteamUserStats001);
 AdaptDefine(ISteamUserStats001, IClientUserStatsMap, "STEAMUSERSTATS_INTERFACE_VERSION001") = {

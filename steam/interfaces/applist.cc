@@ -11,7 +11,8 @@ namespace Reference {
 #include "SteamStructs/IClientAppManager.h"
 }
 
-class IClientAppManager : public Reference::IClientAppManager {
+template<bool isServer>
+class ClientAppManagerMap : public Reference::IClientAppManager {
 public:
     // Inherited via IClientAppManager
     virtual unknown_ret InstallApp(unsigned int, int, bool) override {
@@ -271,11 +272,13 @@ public:
     }
 };
 
+using IClientAppManagerMap = ClientAppManagerMap<false>;
+
 AdaptDeclare(ISteamAppList001);
-AdaptDefine(ISteamAppList001, IClientAppManager, "STEAMAPPLIST_INTERFACE_VERSION001") = {
-    AdaptPassThrough(IClientAppManager::GetNumInstalledApps),
-    AdaptPassThrough(IClientAppManager::GetInstalledApps),
-    AdaptEmpty(IClientAppManager::GetAppName),
-    AdaptPassThrough(IClientAppManager::GetAppInstallDir),
-    AdaptPassThrough(IClientAppManager::GetAppBuildID),
+AdaptDefine(ISteamAppList001, IClientAppManagerMap, "STEAMAPPLIST_INTERFACE_VERSION001") = {
+    AdaptPassThrough(IClientAppManagerMap::GetNumInstalledApps),
+    AdaptPassThrough(IClientAppManagerMap::GetInstalledApps),
+    AdaptEmpty(IClientAppManagerMap::GetAppName),
+    AdaptPassThrough(IClientAppManagerMap::GetAppInstallDir),
+    AdaptPassThrough(IClientAppManagerMap::GetAppBuildID),
 };

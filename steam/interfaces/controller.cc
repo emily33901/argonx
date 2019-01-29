@@ -11,7 +11,8 @@ namespace Reference {
 #include "SteamStructs/IClientController.h"
 } // namespace Reference
 
-class IClientControllerMap : public Reference::IClientController {
+template<bool isServer>
+class ClientControllerMap : public Reference::IClientController {
 public:
     // Inherited via IClientController
     virtual unknown_ret __Destructor1() override {
@@ -512,6 +513,8 @@ public:
         return unknown_ret();
     }
 };
+
+using IClientControllerMap = ClientControllerMap<false>;
 
 AdaptDeclare(ISteamController001);
 AdaptDefine(ISteamController001, IClientControllerMap, "SteamController002") = {

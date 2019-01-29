@@ -9,7 +9,8 @@ namespace Reference {
 #include "SteamStructs/IClientRemoteStorage.h"
 }
 
-class IClientRemoteStorageMap : public Reference::IClientRemoteStorage {
+template<bool isServer>
+class ClientRemoteStorageMap : public Reference::IClientRemoteStorage {
 public:
     // Inherited via IClientRemoteStorage
     virtual unknown_ret FileWrite(unsigned int, ERemoteStorageFileRoot, char const *, void const *, int) override {
@@ -265,6 +266,8 @@ public:
         return unknown_ret();
     }
 };
+
+using IClientRemoteStorageMap = ClientRemoteStorageMap<false>;
 
 AdaptDeclare(ISteamRemoteStorage001);
 AdaptDefine(ISteamRemoteStorage001, IClientRemoteStorageMap, "STEAMREMOTESTORAGE_INTERFACE_VERSION001") = {

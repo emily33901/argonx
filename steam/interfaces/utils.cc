@@ -11,7 +11,7 @@ namespace Reference {
 
 extern Pipe *clientPipe;
 
-template <bool isServer = false>
+template <bool isServer>
 class ClientUtilsMap : public Reference::IClientUtils {
 public:
     // Inherited via IClientUtils
