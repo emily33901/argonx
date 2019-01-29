@@ -1,5 +1,8 @@
 #pragma once
 
+#include <type_traits>
+#include <utility>
+
 #include "buffer.hh"
 
 #include "interfaces.hh"
@@ -36,6 +39,35 @@ void  SetServerPipe(Pipe *newPipe);
 
 // Helpers for Rpc templating
 namespace RpcHelpers {
+template <typename T, typename Tuple, typename Res = std::tuple<>>
+struct RemoveTHelper;
+
+template <typename T, typename Res>
+struct RemoveTHelper<T, std::tuple<>, Res> {
+    using Type = Res;
+};
+
+template <typename T, typename... Ts, typename... TRes>
+struct RemoveTHelper<T, std::tuple<T, Ts...>, std::tuple<TRes...>> : RemoveTHelper<T, std::tuple<Ts...>, std::tuple<TRes...>> {};
+
+template <typename T, typename T1, typename... Ts, typename... TRes>
+struct RemoveTHelper<T, std::tuple<T1, Ts...>, std::tuple<TRes...>> : RemoveTHelper<T, std::tuple<Ts...>, std::tuple<TRes..., T1>> {};
+
+template <typename T, typename... Ts>
+struct RemoveT {
+    using Type = typename RemoveTHelper<T, std::tuple<Ts...>>::Type;
+};
+
+template <typename T>
+struct PointerOrVoid {
+    using Type = std::conditional_t<std::is_pointer_v<T>, T, void>;
+};
+
+template <typename... A>
+struct OutParams {
+    using Type = typename RemoveT<void, typename PointerOrVoid<A>::Type...>::Type;
+};
+
 template <typename F>
 struct GetRpcImpl;
 
@@ -46,6 +78,8 @@ struct GetRpcImpl<R (C::*)(A...)> {
     using Args  = std::tuple<Platform::remove_cvref_t<A>...>;
 
     using VirtualType = Ret(PlatformThisCall *)(void *instance, PlatformEdx A...);
+
+    using OutParam = typename OutParams<A...>::Type;
 };
 
 template <typename F>
@@ -158,7 +192,7 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
     if constexpr (!isServer) {                                                                                                                             \
         Rpc<decltype(&std::remove_reference_t<decltype(*this)>::fname)> r{this, &std::remove_reference_t<decltype(*this)>::fname, InterfaceTarget::tname}; \
         r.SetArgs(__VA_ARGS__);                                                                                                                            \
-        return r.Call(0, *::Steam::ClientPipe());                                                                                                           \
+        return r.Call(0, *::Steam::ClientPipe());                                                                                                          \
     } else
 
 } // namespace Steam
