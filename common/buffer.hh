@@ -88,6 +88,10 @@ public:
         Write(std::make_pair(x, N));
     }
 
+    void Write(const char *str) {
+        return Write(std::make_pair(str, strlen(str) + 1));
+    }
+
     void Write(const Buffer b) {
         return Write(b.storage);
     }
@@ -109,6 +113,23 @@ public:
         return ReadDataInPlace(size);
     }
 
+    const char *Read() {
+        static char temp[8][2048];
+        static int  idx = 0;
+
+        idx += 1;
+
+        auto pos = idx % 8;
+        
+        auto ptr = Read(0);
+        auto length = strlen((const char *)ptr);
+
+        offset += length;
+
+        memcpy(temp[pos], ptr, sizeof(temp[pos]));
+        return temp[pos];
+    }
+
     template <typename T>
     std::enable_if_t<ValidToWrite<T>, T> Read() {
         return *reinterpret_cast<T *>(ReadDataInPlace(sizeof(T)));
@@ -117,6 +138,10 @@ public:
     template <typename T>
     std::enable_if_t<ValidToWrite<T>, void> ReadInto(T &x) {
         x = Read<T>();
+    }
+
+    void ReadInto(const char *&str) {
+        str = Read();
     }
 
     void ReadInto(std::vector<u8> &x) {

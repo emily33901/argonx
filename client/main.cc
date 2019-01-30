@@ -25,6 +25,15 @@ public:
     virtual void pad10() = 0;
 
     virtual uptr GetAPICallFailureReason(unsigned long long) = 0;
+
+    virtual void pad11() = 0;
+    virtual void pad12() = 0;
+    virtual void pad13() = 0;
+    virtual void pad14() = 0;
+    virtual void pad15() = 0;
+    virtual void pad16() = 0;
+
+    virtual uptr CheckFileSignature(const char *) = 0;
 };
 
 ISteamUtils009 *utils;
@@ -139,7 +148,7 @@ int main(const int argCount, const char **argStrings) {
     printf("r is %llX\n", r);
     r = utils->GetAPICallFailureReason(0xCCFFCCFFAABBAABB);
     printf("r is %llX\n", r);
-    r = utils->GetSecondsSinceAppActive();
+    r = utils->CheckFileSignature("wow nice meme");
     printf("r is %llX\n", r);
     r = utils->GetSecondsSinceAppActive();
     printf("r is %llX\n", r);
