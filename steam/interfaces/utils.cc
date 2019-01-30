@@ -28,7 +28,7 @@ public:
         printf(">>>>>>> GetSecondsSinceAppActive called! <<<<<<<<<<\n");
         RpcMakeCallIfClient(GetSecondsSinceAppActive, utils) {
             printf(">>>>>>> SERVER WOOP! <<<<<<<<<<\n");
-            return 0;
+            return 11;
         }
     }
     virtual unknown_ret GetSecondsSinceComputerActive() override {
@@ -90,7 +90,7 @@ public:
         RpcMakeCallIfClient(GetAPICallFailureReason, utils, a) {
             printf(">>>>> GetAPICallFailureReason SERVER a is %llx\n", a);
 
-            return 0;
+            return 15;
         }
     }
     virtual unknown_ret GetAPICallResult(unsigned long long, void *, int, int, bool *) override {

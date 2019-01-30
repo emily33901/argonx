@@ -62,7 +62,7 @@ void CreateServerPipe() {
         Steam::RpcCallHeader header;
         b.ReadInto(header);
 
-        using DispatchFromBufferFn = void (*)(void *instance, u32 functionIndex, Buffer &);
+        using DispatchFromBufferFn = Buffer (*)(void *instance, u32 functionIndex, Buffer &);
 
         auto dispatch = Steam::RpcDispatches()[header.dispatchIndex];
         auto fn       = (DispatchFromBufferFn)dispatch.first;
@@ -71,13 +71,12 @@ void CreateServerPipe() {
 
         b.SetBaseAtCurPos();
 
-        fn(serverUtils, header.functionIndex, b);
+        b = fn(serverUtils, header.functionIndex, b);
 
         printf("Target:%s index:%d\n", Steam::interfaceNames[(u32)header.targetInterface], header.functionIndex);
 
-        b = Buffer{};
+        b.SetPos(0);
         b.Write(jobId);
-        b.Write<u64>(0xCCCCCCCCAABBAABB);
         b.SetPos(0);
 
         Steam::ServerPipe()->SendMessage(target, b.Read(0), b.Size());

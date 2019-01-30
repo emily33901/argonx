@@ -133,7 +133,7 @@ public:
         args = std::forward_as_tuple<Args...>(a...);
     }
 
-    static void DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b);
+    static Buffer DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b);
 
     typename Types::Ret Call(Pipe::Target handle, Pipe &p) {
         Buffer b;
@@ -153,7 +153,7 @@ public:
 
 // TODO: add support for returning a result / results!
 template <typename F>
-void Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b) {
+Buffer Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b) {
     auto fptr = (typename Types::VirtualType)Platform::FunctionFromIndex(instance, functionIndex);
 
     b.SetPos(0);
@@ -161,7 +161,12 @@ void Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionInd
     decltype(args) temp;
 
     std::apply([&b](auto &... x) { (b.ReadInto(x), ...); }, temp);
-    std::apply([instance, fptr](auto... x) { fptr(instance, std::forward<decltype(x)>(x)...); }, temp);
+
+    b = Buffer{};
+
+    b.Write(std::apply([instance, fptr](auto... x) { return fptr(instance, std::forward<decltype(x)>(x)...); }, temp));
+    
+    return b;
 }
 
 // TODO: there are probably much more robust ways
