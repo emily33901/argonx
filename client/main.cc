@@ -15,7 +15,7 @@ public:
     virtual void pad0()  = 0;
     virtual void pad1()  = 0;
     virtual void pad2()  = 0;
-    virtual void pad3()  = 0;
+    virtual const char *GetIPCountry() = 0;
     virtual void pad4()  = 0;
     virtual void pad5()  = 0;
     virtual void pad6()  = 0;
@@ -150,10 +150,8 @@ int main(const int argCount, const char **argStrings) {
     printf("r is %llX\n", r);
     r = utils->CheckFileSignature("wow nice meme");
     printf("r is %llX\n", r);
-    r = utils->GetSecondsSinceAppActive();
-    printf("r is %llX\n", r);
-    r = utils->GetSecondsSinceAppActive();
-    printf("r is %llX\n", r);
+    const char *country = utils->GetIPCountry();
+    printf("country is %s\n", country);
 
     Argonx::SteamClient sClient;
 

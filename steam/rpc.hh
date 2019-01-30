@@ -60,7 +60,10 @@ struct RemoveT {
 
 template <typename T>
 struct PointerOrVoid {
-    using Type = std::conditional_t<std::is_pointer_v<T>, T, void>;
+    using Type = std::conditional_t<
+        (std::is_pointer_v<T> && !std::is_same_v<Platform::remove_cvref_t<std::remove_pointer_t<T>>, char>),
+        T,
+        void>;
 };
 
 template <typename... A>
@@ -80,6 +83,12 @@ struct GetRpcImpl<R (C::*)(A...)> {
     using VirtualType = Ret(PlatformThisCall *)(void *instance, PlatformEdx A...);
 
     using OutParam = typename OutParams<A...>::Type;
+};
+
+struct Test {
+    using R = std::remove_pointer_t<const char *>;
+    static_assert(std::is_same_v<R, const char>, "bad meme");
+    using T = OutParams<const char *, int, char, bool *, float *, u32 *>::Type;
 };
 
 template <typename F>
@@ -115,15 +124,19 @@ public:
 
 template <typename F>
 class Rpc : public RpcBase {
-    using Types = RpcHelpers::GetRpcImpl<F>;
+    using Types       = RpcHelpers::GetRpcImpl<F>;
+    using Return      = typename Types::Ret;
+    using Args        = typename Types::Args;
+    using Class       = typename Types::Class;
+    using VirtualType = typename Types::VirtualType;
 
     // Arguments to function
-    typename Types::Args args;
+    Args args;
 
     static u32 dispatchPosition;
 
 public:
-    Rpc(typename Types::Class *instance, F function, InterfaceTarget t) {
+    Rpc(Class *instance, F function, InterfaceTarget t) {
         target      = t;
         targetIndex = RpcHelpers::GetVirtualFunctionIndex(instance, function);
     }
@@ -133,18 +146,18 @@ public:
         args = std::forward_as_tuple<Args...>(a...);
     }
 
-    static Buffer DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b);
+    static Buffer DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b);
 
     typename Types::Ret Call(Pipe::Target handle, Pipe &p) {
         Buffer b;
 
-        if constexpr (!std::is_same_v<decltype(args), std::tuple<>>)
+        if constexpr (!std::is_same_v<Args, std::tuple<>>)
             std::apply([&b](auto &&... x) { (b.Write(x), ...); }, args);
 
-        if constexpr (!std::is_same_v<typename Types::Ret, void>) {
+        if constexpr (!std::is_same_v<Return, void>) {
             Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true);
 
-            return r.template Read<typename Types::Ret>();
+            return r.template Read<Return>();
         } else {
             MakeRpcCall(b, handle, p, dispatchPosition, false);
         }
@@ -153,19 +166,19 @@ public:
 
 // TODO: add support for returning a result / results!
 template <typename F>
-Buffer Rpc<F>::DispatchFromBuffer(typename Types::Class *instance, u32 functionIndex, Buffer &b) {
-    auto fptr = (typename Types::VirtualType)Platform::FunctionFromIndex(instance, functionIndex);
+Buffer Rpc<F>::DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b) {
+    auto fptr = (VirtualType)Platform::FunctionFromIndex(instance, functionIndex);
 
     b.SetPos(0);
 
-    decltype(args) temp;
+    Args temp;
 
     std::apply([&b](auto &... x) { (b.ReadInto(x), ...); }, temp);
 
     b = Buffer{};
 
     b.Write(std::apply([instance, fptr](auto... x) { return fptr(instance, std::forward<decltype(x)>(x)...); }, temp));
-    
+
     return b;
 }
 

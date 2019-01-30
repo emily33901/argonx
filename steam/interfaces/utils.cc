@@ -43,8 +43,10 @@ public:
     virtual unknown_ret GetServerRealTime() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIPCountry() override {
-        return unknown_ret();
+    virtual const char *GetIPCountry() override {
+        RpcMakeCallIfClient(GetIPCountry, utils) {
+            return "GB";
+        }
     }
     virtual unknown_ret GetImageSize(int, unsigned int *, unsigned int *) override {
         return unknown_ret();
