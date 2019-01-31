@@ -114,7 +114,7 @@ public:
     }
 
     template <typename T>
-    std::enable_if_t<std::is_same_v<T, const char *>, const char *> Read() {
+    std::enable_if_t<std::is_same_v<Platform::pointer_base_t<T>, char>, const char *> Read() {
         static char temp[8][2048];
         static int  idx = 0;
 
@@ -142,7 +142,7 @@ public:
     }
 
     template <typename T>
-    std::enable_if_t<std::is_same_v<T, const char *>, void> ReadInto(T &str) {
+    std::enable_if_t<std::is_same_v<Platform::pointer_base_t<T>, char>, void> ReadInto(T &str) {
         str = Read<const char *>();
     }
 

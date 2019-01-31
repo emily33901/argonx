@@ -61,7 +61,7 @@ struct RemoveT {
 template <typename T>
 struct PointerOrVoid {
     using Type = std::conditional_t<
-        (std::is_pointer_v<T> && !std::is_same_v<Platform::remove_cvref_t<std::remove_pointer_t<T>>, char>),
+        (std::is_pointer_v<T> && !std::is_same_v<Platform::pointer_base_t<T>, char>),
         T,
         void>;
 };

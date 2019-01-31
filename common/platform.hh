@@ -76,6 +76,14 @@ struct RemoveCvRef {
 template <typename T>
 using remove_cvref_t = typename RemoveCvRef<T>::type;
 
+template <typename T>
+struct BasePointerType {
+    using Type = remove_cvref_t<std::remove_pointer_t<T>>;
+};
+
+template <typename T>
+using pointer_base_t = typename BasePointerType<T>::Type;
+
 const char *DemangleName(const char *n);
 
 template <typename T>
