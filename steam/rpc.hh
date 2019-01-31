@@ -85,12 +85,6 @@ struct GetRpcImpl<R (C::*)(A...)> {
     using OutParam = typename OutParams<A...>::Type;
 };
 
-struct Test {
-    using R = std::remove_pointer_t<const char *>;
-    static_assert(std::is_same_v<R, const char>, "bad meme");
-    using T = OutParams<const char *, int, char, bool *, float *, u32 *>::Type;
-};
-
 template <typename F>
 inline u32 GetVirtualFunctionIndex(void *instance, F function) {
     return Platform::GetMemberFunctionIndex(instance, function);
