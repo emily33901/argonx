@@ -113,15 +113,16 @@ public:
         return ReadDataInPlace(size);
     }
 
-    const char *Read() {
+    template <typename T>
+    std::enable_if_t<std::is_same_v<T, const char *>, const char *> Read() {
         static char temp[8][2048];
         static int  idx = 0;
 
         idx += 1;
 
         auto pos = idx % 8;
-        
-        auto ptr = Read(0);
+
+        auto ptr    = Read(0);
         auto length = strlen((const char *)ptr);
 
         offset += length;
@@ -140,8 +141,9 @@ public:
         x = Read<T>();
     }
 
-    void ReadInto(const char *&str) {
-        str = Read();
+    template <typename T>
+    std::enable_if_t<std::is_same_v<T, const char *>, void> ReadInto(T &str) {
+        str = Read<const char *>();
     }
 
     void ReadInto(std::vector<u8> &x) {
