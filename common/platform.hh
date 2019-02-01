@@ -84,6 +84,18 @@ struct BasePointerType {
 template <typename T>
 using pointer_base_t = typename BasePointerType<T>::Type;
 
+template<typename T>
+struct IsPair : std::false_type { };
+
+template<typename First, typename Second>
+struct IsPair<std::pair<First, Second>> : std::true_type {
+    //using First = First;
+    //using Second = Second;
+};
+
+template<typename T>
+inline constexpr bool is_pair_v = IsPair<T>::value;
+
 const char *DemangleName(const char *n);
 
 template <typename T>

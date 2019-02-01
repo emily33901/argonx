@@ -146,6 +146,20 @@ public:
         str = Read<const char *>();
     }
 
+    template <typename T, typename SizeT>
+    std::enable_if_t<(ValidToWrite<T>), void> ReadInto(std::pair<T *, SizeT> x) {
+        const size_t scaledSize = sizeof(T) * x.second;
+        std::memcpy((void *)x.first, Read(scaledSize), scaledSize);
+    }
+
+    template <typename T>
+    std::enable_if_t<ValidToWrite<T>, void> ReadInto(T *x) {
+        if constexpr (std::is_same_v<T, const char>)
+            x = Read<const char *>();
+        else
+            *x = Read<T>();
+    }
+
     void ReadInto(std::vector<u8> &x) {
         Assert(x.capacity() > 0, "No space reserved in x");
 
