@@ -76,8 +76,7 @@ workspace "workspace"
         
         -- Windows and linux use different precompiled header path locations
         filter {"system:linux"}
-            flags {"NoPCH"}
-            -- pchheader "client/precompiled.hh"
+            pchheader "client/precompiled.hh"
         filter {"system:windows"}
             pchheader "precompiled.hh"
         filter {}
@@ -86,17 +85,6 @@ workspace "workspace"
         filter {"files:**.pb.cc"}
             flags { "NoPCH" }
             warnings "off"
-        filter {}
-
-        filter {"system:linux", "files:**.cc"}
-            -- this is REQUIRED for explicit template specialization in class scope
-            -- which we HEAVILY rely on!
-            buildoptions "-fms-compatibility -fms-compatibility-version=19 -fdelayed-template-parsing"
-        filter {}
-        filter {"system:linux", "files:**.hh"}
-            -- this is REQUIRED for explicit template specialization in class scope
-            -- which we HEAVILY rely on!
-            buildoptions "-fms-compatibility -fms-compatibility-version=19 -fdelayed-template-parsing"
         filter {}
 
         filter {"system:windows", "platforms:x64"}

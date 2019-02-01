@@ -62,9 +62,35 @@ struct OutParamsHelper<idx, std::tuple<T, Ts...>, std::tuple<TRes...>, std::tupl
 
 template <typename... Ts>
 struct _OutParams {
-    using Result     = typename OutParamsHelper<0, std::tuple<Ts...>>;
+    using Result     = OutParamsHelper<0, std::tuple<Ts...>>;
     using OutParams  = typename Result::OutParams;
     using RealParams = typename Result::RealParams;
+};
+
+template <typename T>
+struct _OutParamsNonPointer;
+
+template <>
+struct _OutParamsNonPointer<std::tuple<>> {
+    using Type = std::tuple<>;
+};
+
+template <typename... T, int... idx>
+struct _OutParamsNonPointer<std::tuple<IndexedParam<T, idx>...>> {
+    using Type = std::tuple<IndexedParam<std::remove_pointer_t<T>, idx>...>;
+};
+
+template <typename T>
+struct _OutParamsStorage;
+
+template <>
+struct _OutParamsStorage<std::tuple<>> {
+    using Type = std::tuple<>;
+};
+
+template <typename... T, int... idx>
+struct _OutParamsStorage<std::tuple<IndexedParam<T, idx>...>> {
+    using Type = std::tuple<T...>;
 };
 
 template <typename F>
@@ -83,36 +109,358 @@ struct GetRpcImpl<R (C::*)(A...)> {
 
     using VirtualType = Ret(PlatformThisCall *)(void *instance, PlatformEdx A...);
 
-    template <typename T>
-    struct _OutParamsNonPointer;
-
-    template <>
-    struct _OutParamsNonPointer<std::tuple<>> {
-        using Type = std::tuple<>;
-    };
-
-    template <typename... T, int... idx>
-    struct _OutParamsNonPointer<std::tuple<IndexedParam<T, idx>...>> {
-        using Type = std::tuple<IndexedParam<std::remove_pointer_t<T>, idx>...>;
-    };
-
     using OutParamsNonPointer = typename _OutParamsNonPointer<OutParams>::Type;
-
-    template <typename T>
-    struct _OutParamsStorage;
-
-    template <>
-    struct _OutParamsStorage<std::tuple<>> {
-        using Type = std::tuple<>;
-    };
-
-    template <typename... T, int... idx>
-    struct _OutParamsStorage<std::tuple<IndexedParam<T, idx>...>> {
-        using Type = std::tuple<T...>;
-    };
 
     using OutParamsStorage = typename _OutParamsStorage<OutParamsNonPointer>::Type;
     using RealArgsStorage  = typename _OutParamsStorage<RealArgs>::Type;
+};
+
+template <typename Args, typename T>
+struct _ReadHelper;
+
+template <typename Args, typename T>
+struct _ReadHelper<Args, std::tuple<T>> {
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Read(Buffer &data, Args &args) {
+        data.ReadInto(std::get<thisIdx>(args));
+    }
+};
+
+template <typename Args, typename T, typename... Ts>
+struct _ReadHelper<Args, std::tuple<T, Ts...>> {
+    using Base                   = _ReadHelper<Args, std::tuple<Ts...>>;
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Read(Buffer &data, Args &args) {
+        data.ReadInto(std::get<thisIdx>(args));
+
+        return Base::Read(data, args);
+    }
+};
+
+template <typename Args, typename T>
+struct _SetOutVariablesHelper;
+
+template <typename Args, typename T>
+struct _SetOutVariablesHelper<Args, std::tuple<T>> {
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Read(Buffer &data, Args &args) {
+        if constexpr (Platform::is_pair_v<ThisT>)
+            data.ReadInto(std::make_pair(std::get<thisIdx>(args), std::get<(thisIdx + 1)>(args)));
+        else
+            data.ReadInto(std::get<thisIdx>(args));
+    }
+};
+
+template <typename Args, typename T, typename... Ts>
+struct _SetOutVariablesHelper<Args, std::tuple<T, Ts...>> {
+    using Base                   = _SetOutVariablesHelper<Args, std::tuple<Ts...>>;
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Read(Buffer &data, Args &args) {
+        if constexpr (Platform::is_pair_v<ThisT>)
+            data.ReadInto(std::make_pair(std::get<thisIdx>(args), std::get<(thisIdx + 1)>(args)));
+        else
+            data.ReadInto(std::get<thisIdx>(args));
+
+        return Base::Read(data, args);
+    }
+};
+
+template <typename Args, typename T>
+struct _WriteRealHelper;
+
+template <typename Args, typename T>
+struct _WriteRealHelper<Args, std::tuple<T>> {
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Write(Buffer &data, Args &args) {
+        data.Write(std::get<thisIdx>(args));
+
+        // Special exception for if it is a pair
+        // We need to write the length afterwards
+        if constexpr (Platform::is_pair_v<ThisT>)
+            data.Write(std ::get<thisIdx>(args).second);
+    }
+};
+
+template <typename Args, typename T, typename... Ts>
+struct _WriteRealHelper<Args, std::tuple<T, Ts...>> {
+    using Base                   = _WriteRealHelper<Args, std::tuple<Ts...>>;
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Write(Buffer &data, Args &args) {
+        data.Write(std::get<thisIdx>(args));
+
+        // Special exception for if it is a pair
+        // We need to write the length afterwards
+        if constexpr (Platform::is_pair_v<ThisT>)
+            data.Write(std ::get<thisIdx>(args).second);
+
+        return Base::Write(data, args);
+    }
+};
+
+template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename TOut>
+struct _SpliceRead;
+
+template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut>
+struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal, thisIdxOut, std::tuple<>, std::tuple<>> {
+    static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {}
+};
+
+template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename... TReals, int idxReal>
+struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>> {
+
+    using BaseIfReal       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<>>;
+    using BaseIfRealIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<>>;
+    // using BaseIfOut  = _SpliceRead<(thisIdx + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>>;
+
+    static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
+        if constexpr (thisIdx == idxReal) {
+            std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
+
+            if constexpr (Platform::is_pair_v<TReal>)
+                BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
+            else
+                BaseIfReal::Read(toBuild, realStorage, outStore);
+        } else {
+            Assert(0, "This should NEVER happen! Your two types do not line up correctly");
+        }
+    }
+};
+
+template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TOut, typename... TOuts, int idxOut>
+struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal, thisIdxOut, std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>> {
+
+    // using BaseIfReal = _SpliceRead<(thisIdx + 1), std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
+    using BaseIfOut       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<>, std::tuple<TOuts...>>;
+    using BaseIfOutIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<>, std::tuple<TOuts...>>;
+
+    static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
+        if constexpr (thisIdx == idxOut) {
+            if constexpr (Platform::is_pair_v<TOut>) {
+                auto &[ptr, len] = std::get<thisIdxOut>(outStore);
+
+                // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
+                ptr = (u8 *)malloc(len);
+
+                std::get<thisIdx>(toBuild)       = ptr;
+                std::get<(thisIdx + 1)>(toBuild) = len;
+
+                BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
+            } else {
+                std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
+
+                BaseIfOut::Read(toBuild, realStorage, outStore);
+            }
+        } else {
+            Assert(0, "This should NEVER happen! Your two types do not line up correctly");
+        }
+    }
+};
+
+template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename TOut, typename... TOuts, int idxReal, int idxOut>
+struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>> {
+
+    using BaseIfReal       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
+    using BaseIfRealIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
+
+    using BaseIfOut       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>>, std::tuple<TOuts...>>;
+    using BaseIfOutIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>>, std::tuple<TOuts...>>;
+
+    static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
+        if constexpr (thisIdx == idxReal) {
+            std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
+
+            if constexpr (Platform::is_pair_v<TReal>)
+                BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
+            else
+                BaseIfReal::Read(toBuild, realStorage, outStore);
+        } else if constexpr (thisIdx == idxOut) {
+            if constexpr (Platform::is_pair_v<TOut>) {
+                auto &[ptr, len] = std::get<thisIdxOut>(outStore);
+
+                // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
+                ptr = (u8 *)malloc(len);
+
+                std::get<thisIdx>(toBuild)       = ptr;
+                std::get<(thisIdx + 1)>(toBuild) = len;
+
+                BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
+            } else {
+                std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
+
+                BaseIfOut::Read(toBuild, realStorage, outStore);
+            }
+        }
+    }
+};
+
+template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename... TReals, typename TOut, int idxReal, int idxOut>
+struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>>> {
+
+    using BaseIfReal       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>>>;
+    using BaseIfRealIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>>>;
+
+    using BaseIfOut       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>>;
+    using BaseIfOutIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>>;
+
+    static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
+        if constexpr (thisIdx == idxReal) {
+            std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
+
+            if constexpr (Platform::is_pair_v<TReal>)
+                BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
+            else
+                BaseIfReal::Read(toBuild, realStorage, outStore);
+        } else if constexpr (thisIdx == idxOut) {
+            if constexpr (Platform::is_pair_v<TOut>) {
+                auto &[ptr, len] = std::get<thisIdxOut>(outStore);
+
+                // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
+                ptr = (u8 *)malloc(len);
+
+                std::get<thisIdx>(toBuild)       = ptr;
+                std::get<(thisIdx + 1)>(toBuild) = len;
+
+                BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
+            } else {
+                std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
+
+                BaseIfOut::Read(toBuild, realStorage, outStore);
+            }
+        }
+    }
+};
+
+template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename TOut, typename... TReals, typename... TOuts, int idxReal, int idxOut>
+struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>> {
+
+    using BaseIfReal       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
+    using BaseIfRealIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
+
+    using BaseIfOut       = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<TOuts...>>;
+    using BaseIfOutIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<TOuts...>>;
+
+    static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
+        if constexpr (thisIdx == idxReal) {
+            std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
+
+            if constexpr (Platform::is_pair_v<TReal>)
+                BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
+            else
+                BaseIfReal::Read(toBuild, realStorage, outStore);
+        } else if constexpr (thisIdx == idxOut) {
+            if constexpr (Platform::is_pair_v<TOut>) {
+                auto &[ptr, len] = std::get<thisIdxOut>(outStore);
+
+                // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
+                ptr = (u8 *)malloc(len);
+
+                std::get<thisIdx>(toBuild)       = ptr;
+                std::get<(thisIdx + 1)>(toBuild) = len;
+
+                BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
+            } else {
+                std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
+
+                BaseIfOut::Read(toBuild, realStorage, outStore);
+            }
+        }
+    }
+};
+
+template <typename Args, u32 idx, typename T>
+struct _ReadBufferSize;
+
+template <typename Args, u32 idx, typename T>
+struct _ReadBufferSize<Args, idx, std::tuple<T>> {
+    static void Read(Buffer &b, Args &args) {}
+};
+
+template <typename Args, u32 idx, typename T, typename T1>
+struct _ReadBufferSize<Args, idx, std::tuple<T, T1>> {
+    static void Read(Buffer &b, Args &args) {
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+            b.ReadInto(std::get<(idx + 1)>(args));
+    }
+};
+
+template <typename Args, u32 idx, typename T, typename T1, typename... Ts>
+struct _ReadBufferSize<Args, idx, std::tuple<T, T1, Ts...>> {
+    using Base = _ReadBufferSize<Args, (idx + 1), std::tuple<T1, Ts...>>;
+
+    static void Read(Buffer &b, Args &args) {
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+            b.ReadInto(std::get<(idx + 1)>(args));
+
+        Base::Read(b, args);
+    }
+};
+
+template <typename Args, typename OutParamsStorage, u32 idx, typename T>
+struct _WriteBufferSizeToStorage;
+
+template <typename Args, typename OutParamsStorage, u32 idx, typename T>
+struct _WriteBufferSizeToStorage<Args, OutParamsStorage, idx, std::tuple<T>> {
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Write(Args &args, OutParamsStorage &storage) {
+        if constexpr (Platform::is_pair_v<ThisT>)
+            std::get<idx>(storage).second = std::get<(thisIdx + 1)>(args);
+    }
+};
+
+template <typename Args, typename OutParamsStorage, u32 idx, typename T, typename... Ts>
+struct _WriteBufferSizeToStorage<Args, OutParamsStorage, idx, std::tuple<T, Ts...>> {
+    using Base                   = _WriteBufferSizeToStorage<Args, OutParamsStorage, (idx + 1), std::tuple<Ts...>>;
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Write(Args &args, OutParamsStorage &storage) {
+        if constexpr (Platform::is_pair_v<ThisT>)
+            std::get<idx>(storage).second = std::get<(thisIdx + 1)>(args);
+
+        return Base::Write(args, storage);
+    }
+};
+
+template <typename Args, u32 idx, typename T>
+struct _WriteBufferSize;
+
+template <typename Args, u32 idx, typename T>
+struct _WriteBufferSize<Args, idx, std::tuple<T>> {
+    static void Write(Buffer &b, Args &args) {}
+};
+
+template <typename Args, u32 idx, typename T, typename T1>
+struct _WriteBufferSize<Args, idx, std::tuple<T, T1>> {
+    static void Write(Buffer &b, Args &args) {
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+            b.Write(std::get<(idx + 1)>(args));
+    }
+};
+
+template <typename Args, u32 idx, typename T, typename T1, typename... Ts>
+struct _WriteBufferSize<Args, idx, std::tuple<T, T1, Ts...>> {
+    using Base = _WriteBufferSize<Args, (idx + 1), std::tuple<T1, Ts...>>;
+
+    static void Write(Buffer &b, Args &args) {
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+            b.Write(std::get<(idx + 1)>(args).second);
+
+        Base::Write(b, args);
+    }
 };
 
 template <typename F>
@@ -128,389 +476,41 @@ struct RpcInternalDetail {
     using OutParamsNonPointer = typename Types::OutParamsNonPointer;
     using OutParamsStorage    = typename Types::OutParamsStorage;
 
-    template <typename T>
-    struct _ReadHelper;
-
-    template <typename T>
-    struct _ReadHelper<std::tuple<T>> {
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Read(Buffer &data, Args &args) {
-            data.ReadInto(std::get<thisIdx>(args));
-        }
-    };
-
-    template <typename T, typename... Ts>
-    struct _ReadHelper<std::tuple<T, Ts...>> {
-        using Base                   = _ReadHelper<std::tuple<Ts...>>;
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Read(Buffer &data, Args &args) {
-            data.ReadInto(std::get<thisIdx>(args));
-
-            return Base::Read(data, args);
-        }
-    };
-
     static void ReadRealVariables(Buffer &data, Args &args) {
         if constexpr (!std::is_same_v<RealArgs, std::tuple<>>)
-            _ReadHelper<RealArgs>::Read(data, args);
+            _ReadHelper<Args, RealArgs>::Read(data, args);
     }
-
-    template <typename T>
-    struct _SetOutVariablesHelper;
-
-    template <typename T>
-    struct _SetOutVariablesHelper<std::tuple<T>> {
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Read(Buffer &data, Args &args) {
-            if constexpr (Platform::is_pair_v<ThisT>)
-                data.ReadInto(std::make_pair(std::get<thisIdx>(args), std::get<(thisIdx + 1)>(args)));
-            else
-                data.ReadInto(std::get<thisIdx>(args));
-        }
-    };
-
-    template <typename T, typename... Ts>
-    struct _SetOutVariablesHelper<std::tuple<T, Ts...>> {
-        using Base                   = _SetOutVariablesHelper<std::tuple<Ts...>>;
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Read(Buffer &data, Args &args) {
-            if constexpr (Platform::is_pair_v<ThisT>)
-                data.ReadInto(std::make_pair(std::get<thisIdx>(args), std::get<(thisIdx + 1)>(args)));
-            else
-                data.ReadInto(std::get<thisIdx>(args));
-
-            return Base::Read(data, args);
-        }
-    };
 
     static void SetOutVariables(Buffer &data, Args &args) {
         if constexpr (!std::is_same_v<OutParams, std::tuple<>>)
-            _SetOutVariablesHelper<OutParams>::Read(data, args);
+            _SetOutVariablesHelper<Args, OutParams>::Read(data, args);
     }
-
-    template <typename T>
-    struct _WriteRealHelper;
-
-    template <typename T>
-    struct _WriteRealHelper<std::tuple<T>> {
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Write(Buffer &data, Args &args) {
-            data.Write(std::get<thisIdx>(args));
-
-            // Special exception for if it is a pair
-            // We need to write the length afterwards
-            if constexpr (Platform::is_pair_v<ThisT>)
-                data.Write(std ::get<thisIdx>(args).second);
-        }
-    };
-
-    template <typename T, typename... Ts>
-    struct _WriteRealHelper<std::tuple<T, Ts...>> {
-        using Base                   = _WriteRealHelper<std::tuple<Ts...>>;
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Write(Buffer &data, Args &args) {
-            data.Write(std::get<thisIdx>(args));
-
-            // Special exception for if it is a pair
-            // We need to write the length afterwards
-            if constexpr (Platform::is_pair_v<ThisT>)
-                data.Write(std ::get<thisIdx>(args).second);
-
-            return Base::Write(data, args);
-        }
-    };
 
     static void WriteRealArgsToBuffer(Buffer &data, Args &args) {
         if constexpr (!std::is_same_v<RealArgs, std::tuple<>>)
-            _WriteRealHelper<RealArgs>::Write(data, args);
+            _WriteRealHelper<Args, RealArgs>::Write(data, args);
     }
-
-    template <u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename TOut>
-    struct _SpliceRead;
-
-    template <u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut>
-    struct _SpliceRead<thisIdx, thisIdxReal, thisIdxOut, std::tuple<>, std::tuple<>> {
-        static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {}
-    };
-
-    template <u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename... TReals, int idxReal>
-    struct _SpliceRead<thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>> {
-
-        using BaseIfReal       = _SpliceRead<(thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<>>;
-        using BaseIfRealIfPair = _SpliceRead<(thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<>>;
-        // using BaseIfOut  = _SpliceRead<(thisIdx + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>>;
-
-        static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
-            if constexpr (thisIdx == idxReal) {
-                std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
-
-                if constexpr (Platform::is_pair_v<TReal>)
-                    BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
-                else
-                    BaseIfReal::Read(toBuild, realStorage, outStore);
-            } else {
-                static_assert(0, "This should NEVER happen! Your two types do not line up correctly");
-            }
-        }
-    };
-
-    template <u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TOut, typename... TOuts, int idxOut>
-    struct _SpliceRead<thisIdx, thisIdxReal, thisIdxOut, std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>> {
-
-        // using BaseIfReal = _SpliceRead<(thisIdx + 1), std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
-        using BaseIfOut       = _SpliceRead<(thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<>, std::tuple<TOuts...>>;
-        using BaseIfOutIfPair = _SpliceRead<(thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<>, std::tuple<TOuts...>>;
-
-        static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
-            if constexpr (thisIdx == idxOut) {
-                if constexpr (Platform::is_pair_v<TOut>) {
-                    auto &[ptr, len] = std::get<thisIdxOut>(outStore);
-
-                    // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
-                    ptr = (u8 *)malloc(len);
-
-                    std::get<thisIdx>(toBuild)       = ptr;
-                    std::get<(thisIdx + 1)>(toBuild) = len;
-
-                    BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
-                } else {
-                    std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
-
-                    BaseIfOut::Read(toBuild, realStorage, outStore);
-                }
-            } else {
-                static_assert(0, "This should NEVER happen! Your two types do not line up correctly");
-            }
-        }
-    };
-
-    template <u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename TOut, typename... TOuts, int idxReal, int idxOut>
-    struct _SpliceRead<thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>> {
-
-        using BaseIfReal       = _SpliceRead<(thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
-        using BaseIfRealIfPair = _SpliceRead<(thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
-
-        using BaseIfOut       = _SpliceRead<(thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>>, std::tuple<TOuts...>>;
-        using BaseIfOutIfPair = _SpliceRead<(thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>>, std::tuple<TOuts...>>;
-
-        static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
-            if constexpr (thisIdx == idxReal) {
-                std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
-
-                if constexpr (Platform::is_pair_v<TReal>)
-                    BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
-                else
-                    BaseIfReal::Read(toBuild, realStorage, outStore);
-            } else if constexpr (thisIdx == idxOut) {
-                if constexpr (Platform::is_pair_v<TOut>) {
-                    auto &[ptr, len] = std::get<thisIdxOut>(outStore);
-
-                    // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
-                    ptr = (u8 *)malloc(len);
-
-                    std::get<thisIdx>(toBuild)       = ptr;
-                    std::get<(thisIdx + 1)>(toBuild) = len;
-
-                    BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
-                } else {
-                    std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
-
-                    BaseIfOut::Read(toBuild, realStorage, outStore);
-                }
-            }
-        }
-    };
-
-    template <u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename... TReals, typename TOut, int idxReal, int idxOut>
-    struct _SpliceRead<thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>>> {
-
-        using BaseIfReal       = _SpliceRead<(thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>>>;
-        using BaseIfRealIfPair = _SpliceRead<(thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>>>;
-
-        using BaseIfOut       = _SpliceRead<(thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>>;
-        using BaseIfOutIfPair = _SpliceRead<(thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>>;
-
-        static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
-            if constexpr (thisIdx == idxReal) {
-                std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
-
-                if constexpr (Platform::is_pair_v<TReal>)
-                    BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
-                else
-                    BaseIfReal::Read(toBuild, realStorage, outStore);
-            } else if constexpr (thisIdx == idxOut) {
-                if constexpr (Platform::is_pair_v<TOut>) {
-                    auto &[ptr, len] = std::get<thisIdxOut>(outStore);
-
-                    // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
-                    ptr = (u8 *)malloc(len);
-
-                    std::get<thisIdx>(toBuild)       = ptr;
-                    std::get<(thisIdx + 1)>(toBuild) = len;
-
-                    BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
-                } else {
-                    std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
-
-                    BaseIfOut::Read(toBuild, realStorage, outStore);
-                }
-            }
-        }
-    };
-
-    template <u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename TOut, typename... TReals, typename... TOuts, int idxReal, int idxOut>
-    struct _SpliceRead<thisIdx, thisIdxReal, thisIdxOut, std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>> {
-
-        using BaseIfReal       = _SpliceRead<(thisIdx + 1), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
-        using BaseIfRealIfPair = _SpliceRead<(thisIdx + 2), (thisIdxReal + 1), thisIdxOut, std::tuple<TReals...>, std::tuple<RpcHelpers::IndexedParam<TOut, idxOut>, TOuts...>>;
-
-        using BaseIfOut       = _SpliceRead<(thisIdx + 1), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<TOuts...>>;
-        using BaseIfOutIfPair = _SpliceRead<(thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<TOuts...>>;
-
-        static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
-            if constexpr (thisIdx == idxReal) {
-                std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
-
-                if constexpr (Platform::is_pair_v<TReal>)
-                    BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
-                else
-                    BaseIfReal::Read(toBuild, realStorage, outStore);
-            } else if constexpr (thisIdx == idxOut) {
-                if constexpr (Platform::is_pair_v<TOut>) {
-                    auto &[ptr, len] = std::get<thisIdxOut>(outStore);
-
-                    // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
-                    ptr = (u8 *)malloc(len);
-
-                    std::get<thisIdx>(toBuild)       = ptr;
-                    std::get<(thisIdx + 1)>(toBuild) = len;
-
-                    BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
-                } else {
-                    std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
-
-                    BaseIfOut::Read(toBuild, realStorage, outStore);
-                }
-            }
-        }
-    };
 
     static void BuildArgs(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
         // TODO: we probably need some better detection of
         // empty realStorage / empty outStore
 
         if constexpr (!std::is_same_v<Args, std::tuple<>>)
-            _SpliceRead<0, 0, 0, RealArgs, OutParams>::Read(toBuild, realStorage, outStore);
+            _SpliceRead<Args, RealArgsStorage, OutParamsStorage, 0, 0, 0, RealArgs, OutParams>::Read(toBuild, realStorage, outStore);
     }
-
-    template <u32 idx, typename T>
-    struct _ReadBufferSize;
-
-    template <u32 idx, typename T>
-    struct _ReadBufferSize<idx, std::tuple<T>> {
-        static void Read(Buffer &b, Args &args) {}
-    };
-
-    template <u32 idx, typename T, typename T1>
-    struct _ReadBufferSize<idx, std::tuple<T, T1>> {
-        static void Read(Buffer &b, Args &args) {
-            if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
-                b.ReadInto(std::get<(idx + 1)>(args));
-        }
-    };
-
-    template <u32 idx, typename T, typename T1, typename... Ts>
-    struct _ReadBufferSize<idx, std::tuple<T, T1, Ts...>> {
-        using Base = _ReadBufferSize<(idx + 1), std::tuple<T1, Ts...>>;
-
-        static void Read(Buffer &b, Args &args) {
-            if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
-                b.ReadInto(std::get<(idx + 1)>(args));
-
-            Base::Read(b, args);
-        }
-    };
-
-    template <u32 idx, typename T>
-    struct _WriteBufferSizeToStorage;
-
-    template <u32 idx, typename T>
-    struct _WriteBufferSizeToStorage<idx, std::tuple<T>> {
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Write(Args &args, OutParamsStorage &storage) {
-            if constexpr (Platform::is_pair_v<ThisT>)
-                std::get<idx>(storage).second = std::get<(thisIdx + 1)>(args);
-        }
-    };
-
-    template <u32 idx, typename T, typename... Ts>
-    struct _WriteBufferSizeToStorage<idx, std::tuple<T, Ts...>> {
-        using Base                   = _WriteBufferSizeToStorage<(idx + 1), std::tuple<Ts...>>;
-        using ThisT                  = typename T::Type;
-        static constexpr int thisIdx = T::index;
-
-        static void Write(Args &args, OutParamsStorage &storage) {
-            if constexpr (Platform::is_pair_v<ThisT>)
-                std::get<idx>(storage).second = std::get<(thisIdx + 1)>(args);
-
-            return Base::Write(args, storage);
-        }
-    };
 
     static void ReadBufferSizes(Buffer &b, Args &args, OutParamsStorage &storage) {
         if constexpr (!std::is_same_v<Args, std::tuple<>>) {
-            _ReadBufferSize<0, Args>::Read(b, args);
+            _ReadBufferSize<Args, 0, Args>::Read(b, args);
 
             if constexpr (!std::is_same_v<OutParamsStorage, std::tuple<>>)
-                _WriteBufferSizeToStorage<0, OutParams>::Write(args, storage);
+                _WriteBufferSizeToStorage<Args, OutParamsStorage, 0, OutParams>::Write(args, storage);
         }
     }
 
-    template <u32 idx, typename T>
-    struct _WriteBufferSize;
-
-    template <u32 idx, typename T>
-    struct _WriteBufferSize<idx, std::tuple<T>> {
-        static void Write(Buffer &b, Args &args) {}
-    };
-
-    template <u32 idx, typename T, typename T1>
-    struct _WriteBufferSize<idx, std::tuple<T, T1>> {
-        static void Write(Buffer &b, Args &args) {
-            if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
-                b.Write(std::get<(idx + 1)>(args));
-        }
-    };
-
-    template <u32 idx, typename T, typename T1, typename... Ts>
-    struct _WriteBufferSize<idx, std::tuple<T, T1, Ts...>> {
-        using Base = _WriteBufferSize<(idx + 1), std::tuple<T1, Ts...>>;
-
-        static void Write(Buffer &b, Args &args) {
-            if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
-                b.Write(std::get<(idx + 1)>(args).second);
-
-            Base::Write(b, args);
-        }
-    };
-
     static void WriteBufferSizes(Buffer &b, Args &args) {
         if constexpr (!std::is_same_v<Args, std::tuple<>>)
-            _WriteBufferSize<0, Args>::Write(b, args);
+            _WriteBufferSize<Args, 0, Args>::Write(b, args);
     }
 };
 
