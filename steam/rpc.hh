@@ -113,7 +113,7 @@ public:
         } else if constexpr (!std::is_same_v<OutParams, std::tuple<>>) {
             MakeRpcCall(b, handle, p, dispatchPosition, false);
         } else {
-            MakeRpcCall(b, handle, p, dispatchPosition, true);
+            Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true);
 
             Detail::SetOutVariables(r, args);
         }
