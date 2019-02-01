@@ -48,11 +48,19 @@ public:
             return "GB";
         }
     }
-    virtual unknown_ret GetImageSize(int, unsigned int *, unsigned int *) override {
-        return unknown_ret();
+    virtual unknown_ret GetImageSize(int imgHandle, unsigned int *w, unsigned int *h) override {
+        RpcMakeCallIfClient(GetImageSize, utils, imgHandle, w, h) {
+            *w = 10;
+            *h = 15;
+            return unknown_ret();
+        }
     }
-    virtual unknown_ret GetImageRGBA(int, unsigned char *, int) override {
-        return unknown_ret();
+    virtual unknown_ret GetImageRGBA(int imgHandle, u8 *bufferOut, u32 maxOut) override {
+        RpcMakeCallIfClient(GetImageRGBA, utils, imgHandle, bufferOut, maxOut) {
+            memset(bufferOut, 0xBB, maxOut);
+
+            return unknown_ret();
+        }
     }
     virtual unknown_ret GetCSERIPPort(unsigned int *, unsigned short *) override {
         return unknown_ret();

@@ -12,12 +12,14 @@ class ISteamUtils009 {
 public:
     virtual uptr GetSecondsSinceAppActive() = 0;
 
-    virtual void pad0()  = 0;
-    virtual void pad1()  = 0;
-    virtual void pad2()  = 0;
-    virtual const char *GetIPCountry() = 0;
-    virtual void pad4()  = 0;
-    virtual void pad5()  = 0;
+    virtual void pad0() = 0;
+    virtual void pad1() = 0;
+    virtual void pad2() = 0;
+
+    virtual const char *GetIPCountry()                                                = 0;
+    virtual uptr        GetImageSize(int imgHandle, unsigned int *w, unsigned int *h) = 0;
+    virtual uptr        GetImageRGBA(int imgHandle, u8 *bufferOut, u32 maxOut)        = 0;
+
     virtual void pad6()  = 0;
     virtual void pad7()  = 0;
     virtual void pad8()  = 0;
@@ -152,6 +154,12 @@ int main(const int argCount, const char **argStrings) {
     printf("r is %llX\n", r);
     const char *country = utils->GetIPCountry();
     printf("country is %s\n", country);
+    u32 w, h;
+    utils->GetImageSize(0, &w, &h);
+    printf("w is %d, h is %d\n", w, h);
+
+    u8 buffer[10];
+    utils->GetImageRGBA(15, buffer, 10);
 
     Argonx::SteamClient sClient;
 
