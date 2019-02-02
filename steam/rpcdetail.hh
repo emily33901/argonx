@@ -118,14 +118,9 @@ struct GetRpcImpl<R (C::*)(A...)> {
 template <typename Args, typename T>
 struct _ReadHelper;
 
-template <typename Args, typename T>
-struct _ReadHelper<Args, std::tuple<T>> {
-    using ThisT                  = typename T::Type;
-    static constexpr int thisIdx = T::index;
-
-    static void Read(Buffer &data, Args &args) {
-        data.ReadInto(std::get<thisIdx>(args));
-    }
+template <typename Args>
+struct _ReadHelper<Args, std::tuple<>> {
+    static void Read(Buffer &data, Args &args) {}
 };
 
 template <typename Args, typename T, typename... Ts>
@@ -144,17 +139,9 @@ struct _ReadHelper<Args, std::tuple<T, Ts...>> {
 template <typename Args, typename T>
 struct _SetOutVariablesHelper;
 
-template <typename Args, typename T>
-struct _SetOutVariablesHelper<Args, std::tuple<T>> {
-    using ThisT                  = typename T::Type;
-    static constexpr int thisIdx = T::index;
-
-    static void Read(Buffer &data, Args &args) {
-        if constexpr (Platform::is_pair_v<ThisT>)
-            data.ReadInto(std::make_pair(std::get<thisIdx>(args), std::get<(thisIdx + 1)>(args)));
-        else
-            data.ReadInto(std::get<thisIdx>(args));
-    }
+template <typename Args>
+struct _SetOutVariablesHelper<Args, std::tuple<>> {
+    static void Read(Buffer &data, Args &args) {}
 };
 
 template <typename Args, typename T, typename... Ts>
@@ -176,19 +163,9 @@ struct _SetOutVariablesHelper<Args, std::tuple<T, Ts...>> {
 template <typename Args, typename T>
 struct _WriteRealHelper;
 
-template <typename Args, typename T>
-struct _WriteRealHelper<Args, std::tuple<T>> {
-    using ThisT                  = typename T::Type;
-    static constexpr int thisIdx = T::index;
-
-    static void Write(Buffer &data, Args &args) {
-        data.Write(std::get<thisIdx>(args));
-
-        // Special exception for if it is a pair
-        // We need to write the length afterwards
-        if constexpr (Platform::is_pair_v<ThisT>)
-            data.Write(std ::get<thisIdx>(args).second);
-    }
+template <typename Args>
+struct _WriteRealHelper<Args, std::tuple<>> {
+    static void Write(Buffer &data, Args &args) {}
 };
 
 template <typename Args, typename T, typename... Ts>
@@ -336,15 +313,10 @@ struct _ReadBufferSize<Args, idx, std::tuple<T, T1, Ts...>> {
 template <typename Args, typename OutParamsStorage, u32 idx, typename T>
 struct _WriteBufferSizeToStorage;
 
-template <typename Args, typename OutParamsStorage, u32 idx, typename T>
-struct _WriteBufferSizeToStorage<Args, OutParamsStorage, idx, std::tuple<T>> {
-    using ThisT                  = typename T::Type;
-    static constexpr int thisIdx = T::index;
+template <typename Args, typename OutParamsStorage, u32 idx>
+struct _WriteBufferSizeToStorage<Args, OutParamsStorage, idx, std::tuple<>> {
 
-    static void Write(Args &args, OutParamsStorage &storage) {
-        if constexpr (Platform::is_pair_v<ThisT>)
-            std::get<idx>(storage).second = std::get<(thisIdx + 1)>(args);
-    }
+    static void Write(Args &args, OutParamsStorage &storage) {}
 };
 
 template <typename Args, typename OutParamsStorage, u32 idx, typename T, typename... Ts>
