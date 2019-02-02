@@ -127,7 +127,7 @@ public:
 
         offset += length;
 
-        memcpy(temp[pos], ptr, sizeof(temp[pos]));
+        memcpy(temp[pos], ptr, std::min(sizeof(temp[pos]), length));
         return temp[pos];
     }
 
@@ -153,7 +153,7 @@ public:
     }
 
     template <typename T>
-    std::enable_if_t<ValidToWrite<T>, void> ReadInto(T *x) {
+    std::enable_if_t<ValidToWrite<T>, void> ReadInto(T *&x) {
         if constexpr (std::is_same_v<T, const char>)
             x = Read<const char *>();
         else
