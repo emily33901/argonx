@@ -6,6 +6,7 @@ enum class InterfaceTarget : u32 {
     appList,
     apps,
     client,
+    engine,
     controller,
     friends,
     gameserver,
@@ -17,17 +18,22 @@ enum class InterfaceTarget : u32 {
     max
 };
 
-inline const char *interfaceNames[] = {
-    "SteamUser",
-    "SteamAppList",
-    "SteamApps",
-    "SteamClient",
-    "SteamController",
-    "SteamFriends",
-    "SteamGameServer",
-    "SteamRemoteStorage",
-    "SteamUGC",
-    "SteamUserStats",
-    "SteamUtils",
-};
+inline const char *InterfaceName(InterfaceTarget t) {
+    const char *interfaceNames[] = {
+        "SteamUser",
+        "SteamAppList",
+        "SteamApps",
+        "SteamClient",
+        "ClientEngine",
+        "SteamController",
+        "SteamFriends",
+        "SteamGameServer",
+        "SteamRemoteStorage",
+        "SteamUGC",
+        "SteamUserStats",
+        "SteamUtils",
+    };
+
+    return interfaceNames[(u32)t];
+}
 } // namespace Steam

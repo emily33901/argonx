@@ -84,7 +84,7 @@ void CreateServerPipe() {
 
         b = fn(serverUtils, header.functionIndex, b);
 
-        printf("Target:%s index:%d\n", Steam::interfaceNames[(u32)header.targetInterface], header.functionIndex);
+        printf("Target:%s index:%d\n", Steam::InterfaceName(header.targetInterface), header.functionIndex);
 
         b.SetPos(0);
         b.Write(jobId);

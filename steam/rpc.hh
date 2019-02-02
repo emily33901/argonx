@@ -179,23 +179,4 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
 
 } // namespace Steam
 
-// struct Test {
-//     virtual int Test1(int *a, bool *b, float c, int d, const char *e, u8 *f, u32 g) {
-//         using namespace ::Steam;
-
-//         Rpc<decltype(&Test::Test1)> r{this, &Test::Test1, InterfaceTarget::user};
-//         r.SetArgs(a, b, c, d, e, f, g);
-//         r.Call(0, *ClientPipe());
-//     }
-
-//     using T  = Steam::RpcHelpers::GetRpcImpl<decltype(&Test::Test1)>;
-//     using T0 = T::OutParams;
-//     using T1 = T::OutParamsNonPointer;
-//     using T2 = T::Args;
-//     using T3 = T::RealArgs;
-
-//     using T4 = Steam::RpcHelpers::_OutParams<int *, bool *, float, int, const char *, u8 *, u32>::OutParams;
-//     using T5 = Steam::RpcHelpers::_OutParams<int *, bool *, float, int, const char *, u8 *, u32>::RealParams;
-// };
-
 #include "defer.hh"
