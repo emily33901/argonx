@@ -9,7 +9,7 @@ class TestTarget {
     int basis;
 
 public:
-    TestTarget() {
+    TestTarget(Steam::UserHandle h) {
         basis = 10;
     }
 
@@ -42,7 +42,7 @@ public:
 } // namespace
 
 bool TestTrampolines() {
-    auto t1 = (TestTarget *)__Create_Test001_interface();
+    auto t1 = (TestTarget *)__Create_Test001_interface(0);
 
     t1->AddToBasis(5);
     t1->SubFromBasis(4, 8);

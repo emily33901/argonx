@@ -244,9 +244,14 @@ public:
     }
 };
 
+AdaptExposeNoUserNoTarget(ClientEngineMap, "IClientEngine");
+
 template <bool isServer>
 class SteamClientMap {
 public:
+    SteamClientMap(Steam::UserHandle h) {}
+    SteamClientMap() {}
+
     virtual unknown_ret CreateSteamPipe() {
         return unknown_ret();
     }
@@ -533,6 +538,8 @@ AdaptDefine(ISteamClient006, ISteamClientMap, "SteamClient006") = {
     AdaptPassThrough(ISteamClientMap::RunFrame),
     AdaptPassThrough(ISteamClientMap::GetIPCCallCount),
 };
+AdaptExposeNoUser(ISteamClient006, ISteamClientMap, "SteamClient006");
+
 AdaptDeclare(ISteamClient007);
 AdaptDefine(ISteamClient007, ISteamClientMap, "SteamClient007") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -558,6 +565,8 @@ AdaptDefine(ISteamClient007, ISteamClientMap, "SteamClient007") = {
     AdaptPassThrough(ISteamClientMap::SetWarningMessageHook),
     AdaptPassThrough(ISteamClientMap::GetISteamRemoteStorage),
 };
+AdaptExposeNoUser(ISteamClient007, ISteamClientMap, "SteamClient007");
+
 AdaptDeclare(ISteamClient008);
 AdaptDefine(ISteamClient008, ISteamClientMap, "SteamClient008") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -582,6 +591,8 @@ AdaptDefine(ISteamClient008, ISteamClientMap, "SteamClient008") = {
     AdaptPassThrough(ISteamClientMap::GetIPCCallCount),
     AdaptPassThrough(ISteamClientMap::SetWarningMessageHook),
 };
+AdaptExposeNoUser(ISteamClient008, ISteamClientMap, "SteamClient008");
+
 AdaptDeclare(ISteamClient009);
 AdaptDefine(ISteamClient009, ISteamClientMap, "SteamClient009") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -607,6 +618,8 @@ AdaptDefine(ISteamClient009, ISteamClientMap, "SteamClient009") = {
     AdaptPassThrough(ISteamClientMap::GetIPCCallCount),
     AdaptPassThrough(ISteamClientMap::SetWarningMessageHook),
 };
+AdaptExposeNoUser(ISteamClient009, ISteamClientMap, "SteamClient009");
+
 AdaptDeclare(ISteamClient010);
 AdaptDefine(ISteamClient010, ISteamClientMap, "SteamClient010") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -634,6 +647,8 @@ AdaptDefine(ISteamClient010, ISteamClientMap, "SteamClient010") = {
     AdaptPassThrough(ISteamClientMap::BShutdownIfAllPipesClosed),
     AdaptPassThrough(ISteamClientMap::GetISteamHTTP),
 };
+AdaptExposeNoUser(ISteamClient010, ISteamClientMap, "SteamClient010");
+
 AdaptDeclare(ISteamClient011);
 AdaptDefine(ISteamClient011, ISteamClientMap, "SteamClient011") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -662,6 +677,8 @@ AdaptDefine(ISteamClient011, ISteamClientMap, "SteamClient011") = {
     AdaptPassThrough(ISteamClientMap::BShutdownIfAllPipesClosed),
     AdaptPassThrough(ISteamClientMap::GetISteamHTTP),
 };
+AdaptExposeNoUser(ISteamClient011, ISteamClientMap, "SteamClient011");
+
 AdaptDeclare(ISteamClient012);
 AdaptDefine(ISteamClient012, ISteamClientMap, "SteamClient012") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -692,6 +709,8 @@ AdaptDefine(ISteamClient012, ISteamClientMap, "SteamClient012") = {
     AdaptPassThrough(ISteamClientMap::GetISteamController),
     AdaptPassThrough(ISteamClientMap::GetISteamUGC),
 };
+AdaptExposeNoUser(ISteamClient012, ISteamClientMap, "SteamClient012");
+
 AdaptDeclare(ISteamClient013);
 AdaptDefine(ISteamClient013, ISteamClientMap, "SteamClient013") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -725,6 +744,8 @@ AdaptDefine(ISteamClient013, ISteamClientMap, "SteamClient013") = {
     AdaptPassThrough(ISteamClientMap::GetISteamVideo),
     AdaptPassThrough(ISteamClientMap::GetISteamAppList),
 };
+AdaptExposeNoUser(ISteamClient013, ISteamClientMap, "SteamClient013");
+
 AdaptDeclare(ISteamClient014);
 AdaptDefine(ISteamClient014, ISteamClientMap, "SteamClient014") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -757,6 +778,8 @@ AdaptDefine(ISteamClient014, ISteamClientMap, "SteamClient014") = {
     AdaptPassThrough(ISteamClientMap::GetISteamAppList),
     AdaptPassThrough(ISteamClientMap::GetISteamMusic),
 };
+AdaptExposeNoUser(ISteamClient014, ISteamClientMap, "SteamClient014");
+
 AdaptDeclare(ISteamClient015);
 AdaptDefine(ISteamClient015, ISteamClientMap, "SteamClient015") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -790,6 +813,8 @@ AdaptDefine(ISteamClient015, ISteamClientMap, "SteamClient015") = {
     AdaptPassThrough(ISteamClientMap::GetISteamMusic),
     AdaptPassThrough(ISteamClientMap::GetISteamMusicRemote),
 };
+AdaptExposeNoUser(ISteamClient015, ISteamClientMap, "SteamClient015");
+
 AdaptDeclare(ISteamClient016);
 AdaptDefine(ISteamClient016, ISteamClientMap, "SteamClient016") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -827,6 +852,8 @@ AdaptDefine(ISteamClient016, ISteamClientMap, "SteamClient016") = {
     AdaptEmpty(ISteamClientMap::DEPRECATED_Remove_SteamAPI_CPostAPIResultInProcess),
     AdaptPassThrough(ISteamClientMap::Set_SteamAPI_CCheckCallbackRegisteredInProcess),
 };
+AdaptExposeNoUser(ISteamClient016, ISteamClientMap, "SteamClient016");
+
 AdaptDeclare(ISteamClient017);
 AdaptDefine(ISteamClient017, ISteamClientMap, "SteamClient017") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -867,6 +894,8 @@ AdaptDefine(ISteamClient017, ISteamClientMap, "SteamClient017") = {
     AdaptPassThrough(ISteamClientMap::GetISteamVideo),
     AdaptPassThrough(ISteamClientMap::GetISteamParentalSettings),
 };
+AdaptExposeNoUser(ISteamClient017, ISteamClientMap, "SteamClient017");
+
 AdaptDeclare(ISteamClient018);
 AdaptDefine(ISteamClient018, ISteamClientMap, "SteamClient018") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -910,6 +939,8 @@ AdaptDefine(ISteamClient018, ISteamClientMap, "SteamClient018") = {
     AdaptPassThrough(ISteamClientMap::GetISteamInput),
     AdaptPassThrough(ISteamClientMap::GetISteamParties),
 };
+AdaptExposeNoUser(ISteamClient018, ISteamClientMap, "SteamClient018");
+
 AdaptDeclare(ISteamClient019);
 AdaptDefine(ISteamClient019, ISteamClientMap, "SteamClient019") = {
     AdaptPassThrough(ISteamClientMap::CreateSteamPipe),
@@ -953,3 +984,5 @@ AdaptDefine(ISteamClient019, ISteamClientMap, "SteamClient019") = {
     AdaptPassThrough(ISteamClientMap::GetISteamInput),
     AdaptPassThrough(ISteamClientMap::GetISteamParties),
 };
+
+AdaptExposeNoUser(ISteamClient019, ISteamClientMap, "SteamClient019");

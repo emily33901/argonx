@@ -11,7 +11,11 @@ namespace Reference {
 
 template<bool isServer>
 class ClientUserMap : public Reference::IClientUser {
+    UserHandle userHandle;
+
 public:
+    ClientUserMap(UserHandle h) : userHandle(h) {}
+
     // Inherited via IClientUser
     virtual unknown_ret GetHSteamUser() override {
         return unknown_ret();
@@ -19,7 +23,7 @@ public:
     virtual unknown_ret LogOn(CSteamID) override {
         return unknown_ret();
     }
-    virtual unknown_ret LogOnWithPassword(char const *, char const *) override {
+    virtual unknown_ret LogOnWithPassword(char const *username, char const *password) override {
         return unknown_ret();
     }
     virtual unknown_ret LogOnAndCreateNewSteamAccountIfNeeded() override {

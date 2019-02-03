@@ -14,6 +14,8 @@ namespace Reference {
 template<bool isServer>
 class ClientAppsMap : public Reference::IClientApps {
 public:
+    ClientAppsMap(UserHandle h) {}
+
     // Inherited via IClientApps
     virtual unknown_ret GetAppData(unsigned int, char const *, char *, int) override {
         return unknown_ret();

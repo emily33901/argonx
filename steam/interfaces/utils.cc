@@ -14,6 +14,8 @@ extern Pipe *clientPipe;
 template <bool isServer>
 class ClientUtilsMap : public Reference::IClientUtils {
 public:
+    ClientUtilsMap(UserHandle h) {}
+
     // Inherited via IClientUtils
     virtual unknown_ret GetInstallPath() override {
         return unknown_ret();
@@ -255,7 +257,7 @@ public:
 };
 
 void *CreateServerClientUtils() {
-    return new ClientUtilsMap<true>();
+    return new ClientUtilsMap<true>(0);
 }
 
 using IClientUtilsMap = ClientUtilsMap<false>;

@@ -1,6 +1,8 @@
 #pragma once
 
 namespace Steam {
+using UserHandle = u32;
+
 enum class InterfaceTarget : u32 {
     user,
     appList,
@@ -36,4 +38,6 @@ inline const char *InterfaceName(InterfaceTarget t) {
 
     return interfaceNames[(u32)t];
 }
+
+void *CreateInterfaceWithUser(const char *name, Steam::UserHandle h);
 } // namespace Steam

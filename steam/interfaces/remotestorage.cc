@@ -12,6 +12,8 @@ namespace Reference {
 template<bool isServer>
 class ClientRemoteStorageMap : public Reference::IClientRemoteStorage {
 public:
+    ClientRemoteStorageMap(UserHandle h) {}
+
     // Inherited via IClientRemoteStorage
     virtual unknown_ret FileWrite(unsigned int, ERemoteStorageFileRoot, char const *, void const *, int) override {
         return unknown_ret();

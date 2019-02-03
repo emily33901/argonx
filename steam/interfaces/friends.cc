@@ -12,6 +12,7 @@ namespace Reference {
 template<bool isServer>
 class ClientFriendsMap : public Reference::IClientFriends {
 public:
+    ClientFriendsMap(UserHandle h) {}
     // Inherited via IClientFriends
     virtual unknown_ret GetPersonaName() override {
         return unknown_ret();

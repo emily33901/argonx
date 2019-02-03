@@ -5,8 +5,11 @@
 #include "../rpc.hh"
 
 namespace Steam {
+using UserHandle           = u32;
+using PipeHandle           = u32;
+using InterfaceConstructor = void *(*)(UserHandle h);
 typedef void *(*InstantiateInterfaceFn)(void);
-}
+} // namespace Steam
 
 namespace Steam::InterfaceHelpers {
 // Arena allocator but for creating trampoline functions
@@ -60,9 +63,17 @@ struct GenericAdaptor {
         void *        thisptr;                        \
     }
 
-#define AdaptExpose(name, target, interfaceName)                                                                                              \
-    static void *                                  __Create_##name##_interface() { return reinterpret_cast<void *>(new name(new target())); } \
-    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name{&__Create_##name##_interface, interfaceName};
+#define AdaptExpose(name, target, interfaceName)                                                                                                                    \
+    static void *                                  __Create_##name##_interface(::Steam::UserHandle h) { return reinterpret_cast<void *>(new name(new target(h))); } \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name{(Steam::InterfaceConstructor)&__Create_##name##_interface, interfaceName};
+
+#define AdaptExposeNoUser(name, target, interfaceName)                                                                                               \
+    static void *                                  __Create_##name##_interface_NoUser() { return reinterpret_cast<void *>(new name(new target())); } \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoUser{(Steam::InstantiateInterfaceFn)&__Create_##name##_interface_NoUser, interfaceName};
+
+#define AdaptExposeNoUserNoTarget(name, interfaceName)                                                                                           \
+    static void *                                  __Create_##name##_interface_NoUserNoTarget() { return reinterpret_cast<void *>(new name()); } \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoUserNoTarget{(Steam::InstantiateInterfaceFn)&__Create_##name##_interface_NoUserNoTarget, interfaceName};
 
 #define AdaptDefine(name, target, interfaceName)             \
     AdaptExpose(name, target, interfaceName);                \
@@ -93,8 +104,11 @@ using MsvcFuck = T;
 class InterfaceReg {
 public:
     InterfaceReg(InstantiateInterfaceFn fn, const char *name);
+    InterfaceReg(InterfaceConstructor fn, const char *name);
 
+    bool                   requiresUser;
     InstantiateInterfaceFn create;
+    InterfaceConstructor   createWithUser;
     const char *           name;
 
     InterfaceReg *       next; // For the global list.

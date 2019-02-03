@@ -12,6 +12,8 @@ namespace Reference {
 template<bool isServer>
 class ClientGameServerMap : public Reference::IClientGameServer {
 public:
+    ClientGameServerMap(UserHandle h) {}
+
     // Inherited via IClientGameServer
     virtual unknown_ret GetHSteamUser() override {
         return unknown_ret();

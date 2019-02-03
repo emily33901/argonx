@@ -14,6 +14,8 @@ namespace Reference {
 template<bool isServer>
 class ClientControllerMap : public Reference::IClientController {
 public:
+    ClientControllerMap(UserHandle h) {}
+
     // Inherited via IClientController
     virtual unknown_ret __Destructor1() override {
         return unknown_ret();

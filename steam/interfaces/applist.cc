@@ -14,6 +14,8 @@ namespace Reference {
 template<bool isServer>
 class ClientAppManagerMap : public Reference::IClientAppManager {
 public:
+    ClientAppManagerMap(UserHandle h) {}
+
     // Inherited via IClientAppManager
     virtual unknown_ret InstallApp(unsigned int, int, bool) override {
         return unknown_ret();

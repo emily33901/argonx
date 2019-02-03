@@ -9,9 +9,11 @@ namespace Reference {
 #include "SteamStructs/IClientUGC.h"
 }
 
-template<bool isServer>
+template <bool isServer>
 class ClientUGCMap : public Reference::IClientUGC {
 public:
+    ClientUGCMap(UserHandle h) {}
+
     // Inherited via IClientUGC
     virtual unknown_ret CreateQueryUserUGCRequest(unsigned int, EUserUGCList, EUGCMatchingUGCType, EUserUGCListSortOrder, unsigned int, unsigned int, unsigned int) override {
         return unknown_ret();
@@ -256,7 +258,6 @@ public:
 };
 
 using IClientUGCMap = ClientUGCMap<false>;
-
 
 AdaptDeclare(ISteamUGC001);
 AdaptDefine(ISteamUGC001, IClientUGCMap, "STEAMUGC_INTERFACE_VERSION001") = {

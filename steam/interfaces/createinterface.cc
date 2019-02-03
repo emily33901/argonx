@@ -15,12 +15,28 @@ void *CreateInterfaceInternal(const char *name, int *err) {
 
     for (cur = InterfaceReg::head; cur != nullptr; cur = cur->next) {
         if (strcmp(cur->name, name) == 0) {
+            if (cur->requiresUser) continue;
+
             if (err) *err = 0;
             return cur->create();
         }
     }
 
     if (err) *err = 1;
+
+    return nullptr;
+}
+
+void *Steam::CreateInterfaceWithUser(const char *name, Steam::UserHandle h) {
+    InterfaceReg *cur;
+
+    for (cur = InterfaceReg::head; cur != nullptr; cur = cur->next) {
+        if (strcmp(cur->name, name) == 0) {
+            if (!cur->requiresUser) continue;
+
+            return cur->createWithUser(h);
+        }
+    }
 
     return nullptr;
 }
@@ -34,7 +50,16 @@ void *CreateInterface(const char *name, int *err) {
 }
 
 InterfaceReg::InterfaceReg(Steam::InstantiateInterfaceFn fn, const char *name) : name(name) {
-    create = fn;
+    requiresUser = false;
+    create       = fn;
+
+    next = head;
+    head = this;
+}
+
+InterfaceReg::InterfaceReg(Steam::InterfaceConstructor fn, const char *name) : name(name) {
+    requiresUser   = true;
+    createWithUser = fn;
 
     next = head;
     head = this;
