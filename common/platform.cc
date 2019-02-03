@@ -21,6 +21,8 @@ u32 Platform::GetMemberFunctionIndex(void *instance, void *f) {
     } else if (functionBytes[0] == 0x48) {
         // Release builds
         nextThunk = functionBytes;
+    } else if (functionBytes[0] == 0x8b) {
+        nextThunk = functionBytes;
     }
 #if defined(ARGONX_32)
     u16 callBytes = *(u16 *)(nextThunk += 2);

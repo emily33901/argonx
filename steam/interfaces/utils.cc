@@ -25,9 +25,7 @@ public:
         return unknown_ret();
     }
     virtual unknown_ret GetSecondsSinceAppActive() override {
-        printf(">>>>>>> GetSecondsSinceAppActive called! <<<<<<<<<<\n");
         RpcMakeCallIfClient(GetSecondsSinceAppActive, utils) {
-            printf(">>>>>>> SERVER WOOP! <<<<<<<<<<\n");
             return 11;
         }
     }
@@ -59,7 +57,7 @@ public:
         RpcMakeCallIfClient(GetImageRGBA, utils, imgHandle, bufferOut, maxOut) {
             memset(bufferOut, 0xBB, maxOut);
 
-            return unknown_ret();
+            return 14123;
         }
     }
     virtual unknown_ret GetCSERIPPort(unsigned int *, unsigned short *) override {
@@ -85,9 +83,7 @@ public:
     }
     virtual unknown_ret SetAPIDebuggingActive(bool a, bool b) override {
         RpcMakeCallIfClient(SetAPIDebuggingActive, utils, a, b) {
-            printf(">>>>> SetApiDebuggingActive SERVER\n");
-
-            return 0;
+            return 123;
         }
     }
     virtual unknown_ret AllocPendingAPICallHandle() override {
@@ -98,9 +94,8 @@ public:
     }
     virtual unknown_ret GetAPICallFailureReason(unsigned long long a) override {
         RpcMakeCallIfClient(GetAPICallFailureReason, utils, a) {
-            printf(">>>>> GetAPICallFailureReason SERVER a is %llx\n", a);
 
-            return 15;
+            return 2031023;
         }
     }
     virtual unknown_ret GetAPICallResult(unsigned long long, void *, int, int, bool *) override {

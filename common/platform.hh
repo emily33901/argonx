@@ -109,8 +109,10 @@ const char *DemangleName() {
 // On unix there is no "thiscall" - the thisptr is the first arg
 #define PlatformThisCall
 #define PlatformEdx
+#define PlatformEdxParam
 #elif defined(ARGONX_WIN)
 // On windows x86 passes thisptr in ecx
 #define PlatformThisCall __fastcall
 #define PlatformEdx void *__edx,
+#define PlatformEdxParam (nullptr),
 #endif

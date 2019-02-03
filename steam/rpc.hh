@@ -139,7 +139,7 @@ Buffer Rpc<F>::DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b)
 
     b = Buffer{};
 
-    b.Write(std::apply([instance, fptr](auto... x) { return fptr(instance, std::forward<decltype(x)>(x)...); }, temp));
+    b.Write(std::apply([instance, fptr](auto... x) { return fptr(instance, PlatformEdxParam std::forward<decltype(x)>(x)...); }, temp));
 
     std::apply([&b](auto &&... x) { (b.Write(x), ...); }, outTemp);
 
