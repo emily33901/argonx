@@ -40,11 +40,6 @@ template <u32 idx, typename... Ts, typename... TRes, typename... TReal>
 struct OutParamsHelper<idx, std::tuple<u8 *, u32, Ts...>, std::tuple<TRes...>, std::tuple<TReal...>>
     : OutParamsHelper<(idx + 1), std::tuple<Ts...>, std::tuple<TRes..., IndexedParam<std::pair<u8 *, u32>, idx>>, std::tuple<TReal...>> {};
 
-// Turn a `CONST u8*,u32` into a pair for outParams
-template <u32 idx, typename... Ts, typename... TRes, typename... TReal>
-struct OutParamsHelper<idx, std::tuple<const u8 *, u32, Ts...>, std::tuple<TRes...>, std::tuple<TReal...>>
-    : OutParamsHelper<(idx + 1), std::tuple<Ts...>, std::tuple<TRes...>, std::tuple<TReal..., IndexedParam<std::pair<const u8 *, u32>, idx>>> {};
-
 // Remove const char *
 template <u32 idx, typename... Ts, typename... TRes, typename... TReal>
 struct OutParamsHelper<idx, std::tuple<const char *, Ts...>, std::tuple<TRes...>, std::tuple<TReal...>>
@@ -177,11 +172,6 @@ struct _WriteRealHelper<Args, std::tuple<T, Ts...>> {
     static void Write(Buffer &data, Args &args) {
         data.Write(std::get<thisIdx>(args));
 
-        // Special exception for if it is a pair
-        // We need to write the length afterwards
-        if constexpr (Platform::is_pair_v<ThisT>)
-            data.Write(std ::get<thisIdx>(args).second);
-
         return Base::Write(data, args);
     }
 };
@@ -227,9 +217,6 @@ struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal
             if constexpr (Platform::is_pair_v<TOut>) {
                 auto &[ptr, len] = std::get<thisIdxOut>(outStore);
 
-                // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
-                ptr = (u8 *)malloc(len);
-
                 std::get<thisIdx>(toBuild)       = ptr;
                 std::get<(thisIdx + 1)>(toBuild) = len;
 
@@ -266,9 +253,6 @@ struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal
             if constexpr (Platform::is_pair_v<TOut>) {
                 auto &[ptr, len] = std::get<thisIdxOut>(outStore);
 
-                // TODO: WE NEED TO FREE THIS MEMORY SOMEWHERE!!!!
-                ptr = (u8 *)malloc(len);
-
                 std::get<thisIdx>(toBuild)       = ptr;
                 std::get<(thisIdx + 1)>(toBuild) = len;
 
@@ -283,28 +267,42 @@ struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal
 };
 
 template <typename Args, u32 idx, typename T>
-struct _ReadBufferSize;
+struct _ReadBuffers;
 
 template <typename Args, u32 idx, typename T>
-struct _ReadBufferSize<Args, idx, std::tuple<T>> {
+struct _ReadBuffers<Args, idx, std::tuple<T>> {
     static void Read(Buffer &b, Args &args) {}
 };
 
 template <typename Args, u32 idx, typename T, typename T1>
-struct _ReadBufferSize<Args, idx, std::tuple<T, T1>> {
+struct _ReadBuffers<Args, idx, std::tuple<T, T1>> {
     static void Read(Buffer &b, Args &args) {
-        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>) {
             b.ReadInto(std::get<(idx + 1)>(args));
+
+            auto &ptr  = std::get<idx>(args);
+            auto &size = std::get<(idx + 1)>(args);
+            ptr        = (u8 *)malloc(size);
+
+            b.ReadInto(std::make_pair(ptr, std::get<(idx + 1)>(args)));
+        }
     }
 };
 
 template <typename Args, u32 idx, typename T, typename T1, typename... Ts>
-struct _ReadBufferSize<Args, idx, std::tuple<T, T1, Ts...>> {
-    using Base = _ReadBufferSize<Args, (idx + 1), std::tuple<T1, Ts...>>;
+struct _ReadBuffers<Args, idx, std::tuple<T, T1, Ts...>> {
+    using Base = _ReadBuffers<Args, (idx + 1), std::tuple<T1, Ts...>>;
 
     static void Read(Buffer &b, Args &args) {
-        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>) {
             b.ReadInto(std::get<(idx + 1)>(args));
+
+            auto &ptr  = std::get<idx>(args);
+            auto &size = std::get<(idx + 1)>(args);
+            ptr        = malloc(size);
+
+            b.ReadInto(std::make_pair(ptr, std::get<(idx + 1)>(args)));
+        }
 
         Base::Read(b, args);
     }
@@ -315,7 +313,6 @@ struct _WriteBufferSizeToStorage;
 
 template <typename Args, typename OutParamsStorage, u32 idx>
 struct _WriteBufferSizeToStorage<Args, OutParamsStorage, idx, std::tuple<>> {
-
     static void Write(Args &args, OutParamsStorage &storage) {}
 };
 
@@ -326,38 +323,67 @@ struct _WriteBufferSizeToStorage<Args, OutParamsStorage, idx, std::tuple<T, Ts..
     static constexpr int thisIdx = T::index;
 
     static void Write(Args &args, OutParamsStorage &storage) {
-        if constexpr (Platform::is_pair_v<ThisT>)
-            std::get<idx>(storage).second = std::get<(thisIdx + 1)>(args);
+        if constexpr (Platform::is_pair_v<ThisT>) {
+            std::get<idx>(storage) = std::make_pair(std ::get<thisIdx>(args), std::get<(thisIdx + 1)>(args));
+        }
 
         return Base::Write(args, storage);
     }
 };
 
 template <typename Args, u32 idx, typename T>
-struct _WriteBufferSize;
+struct _WriteBuffers;
 
 template <typename Args, u32 idx, typename T>
-struct _WriteBufferSize<Args, idx, std::tuple<T>> {
+struct _WriteBuffers<Args, idx, std::tuple<T>> {
     static void Write(Buffer &b, Args &args) {}
 };
 
 template <typename Args, u32 idx, typename T, typename T1>
-struct _WriteBufferSize<Args, idx, std::tuple<T, T1>> {
+struct _WriteBuffers<Args, idx, std::tuple<T, T1>> {
     static void Write(Buffer &b, Args &args) {
-        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>) {
             b.Write(std::get<(idx + 1)>(args));
+
+            b.Write(std::make_pair(std::get<idx>(args), std::get<(idx + 1)>(args)));
+        }
     }
 };
 
 template <typename Args, u32 idx, typename T, typename T1, typename... Ts>
-struct _WriteBufferSize<Args, idx, std::tuple<T, T1, Ts...>> {
-    using Base = _WriteBufferSize<Args, (idx + 1), std::tuple<T1, Ts...>>;
+struct _WriteBuffers<Args, idx, std::tuple<T, T1, Ts...>> {
+    using Base = _WriteBuffers<Args, (idx + 1), std::tuple<T1, Ts...>>;
 
     static void Write(Buffer &b, Args &args) {
-        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>)
+        if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>) {
             b.Write(std::get<(idx + 1)>(args).second);
 
+            b.Write(std::make_pair(std::get<idx>(args), std::get<(idx + 1)>(args)));
+        }
+
         Base::Write(b, args);
+    }
+};
+
+template <typename Args, typename T>
+struct _FreeBuffers;
+
+template <typename Args>
+struct _FreeBuffers<Args, std::tuple<>> {
+    static void Free(Args &args) {}
+};
+
+template <typename Args, typename T, typename... Ts>
+struct _FreeBuffers<Args, std::tuple<T, Ts...>> {
+    using Base                   = _FreeBuffers<Args, std::tuple<Ts...>>;
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Free(Args &args) {
+        if constexpr (Platform::is_pair_v<ThisT>)
+            free(std::get<thisIdx>(args));
+
+        return Base::Free(args);
     }
 };
 
@@ -397,18 +423,22 @@ struct RpcInternalDetail {
             _SpliceRead<Args, RealArgsStorage, OutParamsStorage, 0, 0, 0, RealArgs, OutParams>::Read(toBuild, realStorage, outStore);
     }
 
-    static void ReadBufferSizes(Buffer &b, Args &args, OutParamsStorage &storage) {
+    static void ReadBuffers(Buffer &b, Args &args, OutParamsStorage &storage) {
         if constexpr (!std::is_same_v<Args, std::tuple<>>) {
-            _ReadBufferSize<Args, 0, Args>::Read(b, args);
+            _ReadBuffers<Args, 0, Args>::Read(b, args);
 
             if constexpr (!std::is_same_v<OutParamsStorage, std::tuple<>>)
                 _WriteBufferSizeToStorage<Args, OutParamsStorage, 0, OutParams>::Write(args, storage);
         }
     }
 
-    static void WriteBufferSizes(Buffer &b, Args &args) {
+    static void WriteBuffers(Buffer &b, Args &args) {
         if constexpr (!std::is_same_v<Args, std::tuple<>>)
-            _WriteBufferSize<Args, 0, Args>::Write(b, args);
+            _WriteBuffers<Args, 0, Args>::Write(b, args);
+    }
+
+    static void FreeBuffers(Args &args) {
+        _FreeBuffers<Args, OutParams>::Free(args);
     }
 };
 

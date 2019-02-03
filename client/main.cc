@@ -146,20 +146,31 @@ int main(const int argCount, const char **argStrings) {
         }
     }};
 
+    uptr r;
+
+#if 0
     auto r = utils->GetSecondsSinceAppActive();
     printf("r is %llX\n", r);
     r = utils->GetAPICallFailureReason(0xCCFFCCFFAABBAABB);
     printf("r is %llX\n", r);
+
     r = utils->CheckFileSignature("wow nice meme");
     printf("r is %llX\n", r);
+
     const char *country = utils->GetIPCountry();
     printf("country is %s\n", country);
     u32 w, h;
     utils->GetImageSize(0, &w, &h);
     printf("w is %d, h is %d\n", w, h);
+#endif
 
     u8 buffer[10];
+    memset(buffer, 0xDE, sizeof(buffer));
     utils->GetImageRGBA(15, buffer, 10);
+    buffer[9] = '\0';
+    printf("Buffer is \"%s\"\n", buffer);
+#if 0
+#endif
 
     Argonx::SteamClient sClient;
 

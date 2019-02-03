@@ -101,7 +101,7 @@ public:
     Return Call(Pipe::Target handle, Pipe &p) {
         Buffer b;
 
-        Detail::WriteBufferSizes(b, args);
+        Detail::WriteBuffers(b, args);
         Detail::WriteRealArgsToBuffer(b, args);
 
         if constexpr (!std::is_same_v<Return, void>) {
@@ -131,7 +131,7 @@ Buffer Rpc<F>::DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b)
     RealArgsStorage  realTemp;
     OutParamsStorage outTemp;
 
-    Detail::ReadBufferSizes(b, temp, outTemp);
+    Detail::ReadBuffers(b, temp, outTemp);
 
     std::apply([&b](auto &... x) { (b.ReadInto(x), ...); }, realTemp);
 
@@ -142,6 +142,8 @@ Buffer Rpc<F>::DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b)
     b.Write(std::apply([instance, fptr](auto... x) { return fptr(instance, std::forward<decltype(x)>(x)...); }, temp));
 
     std::apply([&b](auto &&... x) { (b.Write(x), ...); }, outTemp);
+
+    Detail::FreeBuffers(temp);
 
     return b;
 }
