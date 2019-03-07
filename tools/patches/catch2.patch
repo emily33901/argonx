@@ -1,0 +1,28 @@
+diff --git a/external/SteamStructs b/external/SteamStructs
+--- a/external/SteamStructs
++++ b/external/SteamStructs
+@@ -1 +1 @@
+-Subproject commit 9dca962d739f3dcf6f9d62f087af16c45679b952
++Subproject commit 9dca962d739f3dcf6f9d62f087af16c45679b952-dirty
+diff --git a/steam/interfaces/user.cc b/steam/interfaces/user.cc
+index 75bf776..8186585 100644
+--- a/steam/interfaces/user.cc
++++ b/steam/interfaces/user.cc
+@@ -11,6 +11,8 @@ namespace Reference {
+ 
+ template<bool isServer>
+ class ClientUserMap : public Reference::IClientUser {
++    HSteamUser userHandle;
++
+ public:
+     // Inherited via IClientUser
+     virtual unknown_ret GetHSteamUser() override {
+@@ -19,7 +21,7 @@ public:
+     virtual unknown_ret LogOn(CSteamID) override {
+         return unknown_ret();
+     }
+-    virtual unknown_ret LogOnWithPassword(char const *, char const *) override {
++    virtual unknown_ret LogOnWithPassword(char const *username, char const *password) override {
+         return unknown_ret();
+     }
+     virtual unknown_ret LogOnAndCreateNewSteamAccountIfNeeded() override {

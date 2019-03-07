@@ -139,6 +139,77 @@ workspace "workspace"
                 "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"
             }
 
+    project "server"
+        kind "ConsoleApp"
+        language "C++"
+        targetdir "bin/server/%{cfg.platform}/%{cfg.buildcfg}"
+        
+        -- Windows and linux use different precompiled header path locations
+        filter {"system:linux"}
+            pchheader "server/precompiled.hh"
+        filter {"system:windows"}
+            pchheader "precompiled.hh"
+        filter {}
+        pchsource "server/precompiled.cc"
+
+        filter {"files:**.pb.cc"}
+            flags { "NoPCH" }
+            warnings "off"
+        filter {}
+
+        filter {"system:windows", "platforms:x64"}
+            includedirs{vcpkg_root .. "installed\\x64-windows\\include"}
+        filter {"system:windows", "platforms:x32"}
+            includedirs{vcpkg_root .. "installed\\x86-windows\\include"}
+        filter {}
+
+        filter {"system:windows", "platforms:x64", "configurations:Debug"}
+            libdirs {vcpkg_root .. "installed\\x64-windows\\debug\\lib"}
+        filter {"system:windows", "platforms:x32", "configurations:Debug"}
+            libdirs {vcpkg_root .. "installed\\x86-windows\\debug\\lib"}
+        filter {}
+
+        filter {"system:windows", "platforms:x64", "configurations:Release"}
+            libdirs {vcpkg_root .. "installed\\x64-windows\\lib"}
+        filter {"system:windows", "platforms:x32", "configurations:Debug"}
+            libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
+        filter {}
+        
+        includedirs { "server", "protogen", "common", "external", "external/OpenSteamworks" }
+
+        files { "server/**.hh", "server/**.cc", 
+                "common/**.cc", "common/**.hh",
+                "protogen/**.pb.*",
+                "steam/**.hh", "steam/**.cc",
+                "external/SteamStructs/**.h",
+                "external/OpenSteamworks/Open Steamworks/**.h",
+            }
+
+        filter {"system:linux"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq"}
+        filter {"system:windows"}
+            links {"cryptopp-static"}
+        filter {}
+
+        -- For moving the compile commands into the root directory of the project
+        -- so that autocomplete tools can see them (cquery...)
+        
+        -- This is messy but was the only way to get it to work consistently
+        -- across multiple platforms (circleci, windows 10, vsts...)
+        filter "system:linux"
+            prebuildcommands  {
+                "{MKDIR} %{wks.location}/compile_commands/",
+                "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
+                "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json"
+            }
+        filter "system:windows"
+            prebuildcommands  {
+                "cmd.exe /c \"" .. "{MKDIR} %{wks.location}/compile_commands/",
+                "cmd.exe /c \""  .. "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
+                "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"
+            }
+
+
     project "tests"
         kind "ConsoleApp"
         language "C++"

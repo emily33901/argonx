@@ -125,7 +125,7 @@ public:
         RpcMakeCallIfClient(CheckFileSignature, utils, filename) {
             printf(">>>>> CheckFileSignature SERVER a is %s\n", filename);
 
-            return 15;
+            return strlen(filename);
         }
     }
     virtual unknown_ret GetBuildID() override {

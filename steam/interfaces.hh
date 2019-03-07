@@ -17,6 +17,8 @@ enum class InterfaceTarget : u32 {
     userstats,
     utils,
 
+    argon,
+
     max
 };
 
@@ -34,6 +36,7 @@ inline const char *InterfaceName(InterfaceTarget t) {
         "SteamUGC",
         "SteamUserStats",
         "SteamUtils",
+        "Argon",
     };
 
     return interfaceNames[(u32)t];
