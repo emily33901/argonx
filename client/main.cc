@@ -52,7 +52,6 @@ void CreateClientPipe() {
     };
 }
 
-
 int main(const int argCount, const char **argStrings) {
     printf("Waiting for server...\n");
     CreateClientPipe();
@@ -67,7 +66,7 @@ int main(const int argCount, const char **argStrings) {
     }};
 
     void *clientUtils = Steam::CreateInterfaceWithUser("SteamUtils009", 0);
-    auto utils             = (ISteamUtils009 *)clientUtils;
+    auto  utils       = (ISteamUtils009 *)clientUtils;
 
     uptr r;
 
