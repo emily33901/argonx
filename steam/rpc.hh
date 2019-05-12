@@ -103,6 +103,7 @@ public:
 
         Detail::WriteBuffers(b, args);
         Detail::WriteRealArgsToBuffer(b, args);
+        Detail::WriteOutParams(b, args);
 
         if constexpr (!std::is_same_v<Return, void>) {
             Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true, userHandle);
@@ -133,13 +134,21 @@ Buffer Rpc<F>::DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b)
 
     Detail::ReadBuffers(b, temp, outTemp);
 
+    // Real params
     std::apply([&b](auto &... x) { (b.ReadInto(x), ...); }, realTemp);
+
+    // Out params
+    std::apply([&b](auto &... x) { (b.ReadInto(x), ...); }, outTemp);
 
     Detail::BuildArgs(temp, realTemp, outTemp);
 
     b = Buffer{};
 
-    b.Write(std::apply([instance, fptr](auto... x) { return fptr(instance, PlatformEdxParam std::forward<decltype(x)>(x)...); }, temp));
+    if constexpr (!std::is_same_v<Return, void>) {
+        b.Write(std::apply([instance, fptr](auto... x) { return fptr(instance, PlatformEdxParam std::forward<decltype(x)>(x)...); }, temp));
+    } else {
+        std::apply([instance, fptr](auto... x) { return fptr(instance, PlatformEdxParam std::forward<decltype(x)>(x)...); }, temp);
+    }
 
     std::apply([&b](auto &&... x) { (b.Write(x), ...); }, outTemp);
 
@@ -194,6 +203,22 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
         return r.Call(0, *::Steam::ClientPipe(), ~0);                                                                                                      \
     }                                                                                                                                                      \
     else
+
+// Run the code block on both the server and the client
+// (Server code will be run first with rpc and then the client code will be run)
+#define RpcRunOnBoth(fname, tname, ...)                                                                                                                    \
+    RpcRunOnClient() {                                                                                                                                     \
+        Rpc<decltype(&std::remove_reference_t<decltype(*this)>::fname)> r{this, &std::remove_reference_t<decltype(*this)>::fname, InterfaceTarget::tname}; \
+        r.SetArgs(__VA_ARGS__);                                                                                                                            \
+        return r.Call(0, *::Steam::ClientPipe(), this->userHandle);                                                                                        \
+    }
+
+#define RpcRunOnBothNoUser(fname, tname, ...)                                                                                                              \
+    RpcRunOnClient() {                                                                                                                                     \
+        Rpc<decltype(&std::remove_reference_t<decltype(*this)>::fname)> r{this, &std::remove_reference_t<decltype(*this)>::fname, InterfaceTarget::tname}; \
+        r.SetArgs(__VA_ARGS__);                                                                                                                            \
+        return r.Call(0, *::Steam::ClientPipe(), ~0);                                                                                                      \
+    }
 
 } // namespace Steam
 

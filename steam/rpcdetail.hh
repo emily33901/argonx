@@ -176,6 +176,27 @@ struct _WriteRealHelper<Args, std::tuple<T, Ts...>> {
     }
 };
 
+template <typename Args, typename T>
+struct _WriteOutHelper;
+
+template <typename Args>
+struct _WriteOutHelper<Args, std::tuple<>> {
+    static void Write(Buffer &data, Args &args) {}
+};
+
+template <typename Args, typename T, typename... Ts>
+struct _WriteOutHelper<Args, std::tuple<T, Ts...>> {
+    using Base                   = _WriteOutHelper<Args, std::tuple<Ts...>>;
+    using ThisT                  = typename T::Type;
+    static constexpr int thisIdx = T::index;
+
+    static void Write(Buffer &data, Args &args) {
+        data.Write(*std::get<thisIdx>(args));
+
+        return Base::Write(data, args);
+    }
+};
+
 template <typename Args, typename RealArgsStorage, typename OutParamsStorage, u32 thisIdx, u32 thisIdxReal, u32 thisIdxOut, typename TReal, typename TOut>
 struct _SpliceRead;
 
@@ -413,6 +434,11 @@ struct RpcInternalDetail {
     static void WriteRealArgsToBuffer(Buffer &data, Args &args) {
         if constexpr (!std::is_same_v<RealArgs, std::tuple<>>)
             _WriteRealHelper<Args, RealArgs>::Write(data, args);
+    }
+
+    static void WriteOutParams(Buffer &data, Args &args) {
+        if constexpr (!std::is_same_v<OutParams, std::tuple<>>)
+            _WriteOutHelper<Args, OutParams>::Write(data, args);
     }
 
     static void BuildArgs(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {

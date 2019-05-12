@@ -10,14 +10,17 @@ namespace Reference {
 }
 
 const char *                                                baseAddress = "tcp://127.0.0.1:33901";
-std::unordered_map<Steam::PipeHandle, Pipe *>               pipeStorage;
 std::unordered_map<Steam::UserHandle, UserInterfaceStorage> userStorage;
 
 // Only used on the server
 Steam::UserHandle lastUserHandle = 0;
 
 UserInterfaceStorage Steam::CreateUserInterfaceStorage() {
-    return (UserInterfaceStorage) new void *[(u32)Steam::InterfaceTarget::max];
+    auto r = (UserInterfaceStorage) new void *[(u32)Steam::InterfaceTarget::max];
+
+    memset(r, 0, sizeof(void *) * (u32)Steam::InterfaceTarget::max);
+
+    return r;
 }
 
 void *Steam::GetUserInterface(Steam::UserHandle h, InterfaceTarget t) {
@@ -34,22 +37,13 @@ class ClientEngineMap : Reference::IClientEngine {
 public:
     // Inherited via IClientEngine
     virtual Steam::PipeHandle CreateSteamPipe() override {
-        auto pipe = new Pipe(false, baseAddress);
-
-        pipeStorage.insert({(Steam::PipeHandle)pipe->Id(), pipe});
-
-        return pipe->Id();
+        return 1;
     }
     virtual bool BReleaseSteamPipe(Steam::PipeHandle pipe) override {
-        Defer(pipeStorage.erase(pipe));
-        delete pipeStorage[pipe];
-
         return true;
     }
     virtual unknown_ret CreateGlobalUser(Steam::UserHandle *output) override {
-        // This is a no-op
-        // There is no "global user" for argonx right now
-        // TODO: Does this ever need to be implemented?
+        // TODO: This cannot be a no-op
         return 0;
     }
     virtual unknown_ret ConnectToGlobalUser(Steam::PipeHandle pipe) override {
@@ -59,7 +53,7 @@ public:
     virtual Steam::UserHandle CreateLocalUser(Steam::PipeHandle *pipe, EAccountType t) override {
         // TODO: this should probably hold onto the account type aswell...
 
-        auto handle = [this, pipe, t]() {
+        auto handle = [this, &pipe, &t]() {
             RpcMakeCallIfClientNoUser(CreateLocalUser, engine, pipe, t) {
                 lastUserHandle += 1;
                 userStorage.insert({lastUserHandle, CreateUserInterfaceStorage()});
@@ -74,16 +68,37 @@ public:
 
         return handle;
     }
-    virtual unknown_ret CreatePipeToLocalUser(Steam::UserHandle, Steam::PipeHandle *) override {
-        // TODO: implement
-        return unknown_ret();
+    virtual void CreatePipeToLocalUser(Steam::UserHandle h, Steam::PipeHandle *pipe) override {
+        // TODO: create user storage here
+        *pipe = 1;
     }
-    virtual unknown_ret ReleaseUser(Steam::PipeHandle, Steam::UserHandle) override {
-        // TODO: implement
-        return unknown_ret();
+    virtual void ReleaseUser(Steam::PipeHandle pipe, Steam::UserHandle h) override {
+        RpcRunOnBothNoUser(ReleaseUser, engine, pipe, h) {
+            if (userStorage.find(h) != userStorage.end()) {
+                Defer(userStorage.erase(h));
+
+                auto s = userStorage[h];
+
+                for (auto i = 0; i < (u32)InterfaceTarget::max; i++) {
+                    delete s[i];
+                }
+
+                delete s;
+            }
+        }
     }
-    virtual unknown_ret IsValidHSteamUserPipe(Steam::PipeHandle, Steam::UserHandle) override {
-        return unknown_ret();
+    virtual bool IsValidHSteamUserPipe(Steam::PipeHandle pipe, Steam::UserHandle h) override {
+        auto serverResult = [this, &pipe, &h]() {
+            RpcMakeCallIfClientNoUser(IsValidHSteamUserPipe, engine, pipe, h) {
+                return userStorage.find(h) != userStorage.end();
+            }
+        }();
+
+        RpcRunOnClient() {
+            return serverResult && userStorage.find(h) != userStorage.end();
+        }
+
+        return serverResult;
     }
     virtual unknown_ret GetIClientUser(int, int) override {
         return unknown_ret();

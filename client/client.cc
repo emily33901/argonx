@@ -47,6 +47,7 @@ int main(const int argCount, const char **argStrings) {
     auto pipeHandle = clientEngine->CreateSteamPipe();
     auto userHandle = clientEngine->CreateLocalUser(&pipeHandle, Steam::EAccountType::k_EAccountTypeIndividual);
 
+    clientEngine->ReleaseUser(pipeHandle, userHandle);
     clientEngine->BReleaseSteamPipe(pipeHandle);
 
 #if 0
