@@ -48,7 +48,7 @@ u32 GetMemberFunctionIndex(void *instance, void *function);
 template <typename F>
 inline u32 GetMemberFunctionIndex(void *instance, F function) {
     // On GCC some function pointers are wide
-    // becuase of the need to store the offset of the base of
+    // because of the need to store the offset of the base of
     // the class instance
 
     auto realTarget = reinterpret_cast<void **>(&function);
@@ -84,16 +84,16 @@ struct BasePointerType {
 template <typename T>
 using pointer_base_t = typename BasePointerType<T>::Type;
 
-template<typename T>
-struct IsPair : std::false_type { };
+template <typename T>
+struct IsPair : std::false_type {};
 
-template<typename First, typename Second>
+template <typename First, typename Second>
 struct IsPair<std::pair<First, Second>> : std::true_type {
     //using First = First;
     //using Second = Second;
 };
 
-template<typename T>
+template <typename T>
 inline constexpr bool is_pair_v = IsPair<T>::value;
 
 const char *DemangleName(const char *n);
