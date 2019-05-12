@@ -118,3 +118,7 @@ void Pipe::SendMessage(Pipe::Target h, void *data, u32 size) {
 u32 Pipe::PipeCount() {
     return pipeCount;
 }
+
+Pipe::Target Pipe::Id() {
+    return id;
+}

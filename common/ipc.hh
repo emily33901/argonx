@@ -42,4 +42,6 @@ public:
     void SendMessage(Pipe::Target h, void *data, u32 size);
 
     u32 PipeCount();
+
+    Target Id();
 };
