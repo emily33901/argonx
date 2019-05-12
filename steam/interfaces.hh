@@ -42,5 +42,11 @@ inline const char *InterfaceName(InterfaceTarget t) {
     return interfaceNames[(u32)t];
 }
 
+using UserInterfaceStorage = void **;
+
+UserInterfaceStorage CreateUserInterfaceStorage();
+void *               GetUserInterface(Steam::UserHandle h, InterfaceTarget t);
+
 void *CreateInterfaceWithUser(const char *name, Steam::UserHandle h);
+void *CreateInterface(const char *name, int *err);
 } // namespace Steam

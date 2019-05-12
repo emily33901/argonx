@@ -322,7 +322,7 @@ void SteamClient::WriteMessage(MsgBuilder &b) {
 
     if (encrypted) crypt.SymetricEncrypt(body, body);
 
-    printf("Final message size is %llu\n", body.Size() + 8);
+    // printf("Final message size is %llu\n", body.Size() + 8);
 
     // printf("\n");
     // for (auto v : body.Storage()) {

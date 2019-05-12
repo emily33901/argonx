@@ -41,6 +41,10 @@ void *Steam::CreateInterfaceWithUser(const char *name, Steam::UserHandle h) {
     return nullptr;
 }
 
+void *Steam::CreateInterface(const char *name, int *err) {
+    return CreateInterfaceInternal(name, err);
+}
+
 #if defined(ARGONX_WIN)
 __declspec(dllexport) void *CreateInterface(const char *name, int *err) {
 #else

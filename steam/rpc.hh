@@ -62,7 +62,7 @@ protected:
     u32 targetIndex;
 
 public:
-    Buffer MakeRpcCall(Buffer &serializedArgs, Pipe::Target handle, Pipe &p, u32 dispatchPosition, bool hasReturn);
+    Buffer MakeRpcCall(Buffer &serializedArgs, Pipe::Target handle, Pipe &p, u32 dispatchPosition, bool hasReturn, Steam::UserHandle userHandle);
 };
 
 template <typename F>
@@ -98,22 +98,22 @@ public:
 
     static Buffer DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b);
 
-    Return Call(Pipe::Target handle, Pipe &p) {
+    Return Call(Pipe::Target handle, Pipe &p, Steam::UserHandle userHandle) {
         Buffer b;
 
         Detail::WriteBuffers(b, args);
         Detail::WriteRealArgsToBuffer(b, args);
 
         if constexpr (!std::is_same_v<Return, void>) {
-            Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true);
+            Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true, userHandle);
 
             Defer(Detail::SetOutVariables(r, args));
 
             return r.template Read<Return>();
         } else if constexpr (!std::is_same_v<OutParams, std::tuple<>>) {
-            MakeRpcCall(b, handle, p, dispatchPosition, false);
+            MakeRpcCall(b, handle, p, dispatchPosition, false, userHandle);
         } else {
-            Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true);
+            Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true, userHandle);
 
             Detail::SetOutVariables(r, args);
         }
@@ -163,6 +163,13 @@ inline u32 MakeDispatch(void *f, const char *debugName) {
 template <typename F>
 u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer, typeid(Rpc<F>).name());
 
+// Helper macros to selectively run code on the server or the client
+#define RpcRunOnClient() \
+    if constexpr (!isServer)
+
+#define RpcRunOnServer() \
+    if constexpr (isServer)
+
 // Helper macro for making rpc dispatch calls
 // Use case:
 // virtual unknown_ret a() override {
@@ -173,11 +180,20 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
 //     }
 // }
 #define RpcMakeCallIfClient(fname, tname, ...)                                                                                                             \
-    if constexpr (!isServer) {                                                                                                                             \
+    RpcRunOnClient() {                                                                                                                                     \
         Rpc<decltype(&std::remove_reference_t<decltype(*this)>::fname)> r{this, &std::remove_reference_t<decltype(*this)>::fname, InterfaceTarget::tname}; \
         r.SetArgs(__VA_ARGS__);                                                                                                                            \
-        return r.Call(0, *::Steam::ClientPipe());                                                                                                          \
-    } else
+        return r.Call(0, *::Steam::ClientPipe(), this->userHandle);                                                                                        \
+    }                                                                                                                                                      \
+    else
+
+#define RpcMakeCallIfClientNoUser(fname, tname, ...)                                                                                                       \
+    RpcRunOnClient() {                                                                                                                                     \
+        Rpc<decltype(&std::remove_reference_t<decltype(*this)>::fname)> r{this, &std::remove_reference_t<decltype(*this)>::fname, InterfaceTarget::tname}; \
+        r.SetArgs(__VA_ARGS__);                                                                                                                            \
+        return r.Call(0, *::Steam::ClientPipe(), ~0);                                                                                                      \
+    }                                                                                                                                                      \
+    else
 
 } // namespace Steam
 

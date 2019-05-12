@@ -78,11 +78,11 @@ Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn) {
 }
 } // namespace JobManager
 
-Buffer RpcBase::MakeRpcCall(Buffer &serializedArgs, Pipe::Target handle, Pipe &p, u32 dispatchPosition, bool hasReturn) {
+Buffer RpcBase::MakeRpcCall(Buffer &serializedArgs, Pipe::Target handle, Pipe &p, u32 dispatchPosition, bool hasReturn, Steam::UserHandle userHandle) {
     serializedArgs.SetPos(0);
 
     // TODO: write userHandle
-    RpcCallHeader h{target, dispatchPosition, targetIndex, 0};
+    RpcCallHeader h{target, dispatchPosition, targetIndex, userHandle};
     serializedArgs.Write(h);
 
     serializedArgs.SetPos(0);

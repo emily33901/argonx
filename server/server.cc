@@ -6,9 +6,31 @@
 
 #include "../steam/interfaces/helpers.hh"
 
-extern void *   CreateServerClientUtils();
+extern void *CreateServerClientUtils();
 
 void *serverUtils = CreateServerClientUtils();
+
+void *noUserInterfaceStorage[(u32)Steam::InterfaceTarget::max];
+void  CreateNoUserInterfaceStorage() {
+    void *r[] = {
+        nullptr,                                               // user
+        nullptr,                                               // appList
+        nullptr,                                               // apps
+        nullptr,                                               // client
+        Steam::CreateInterface("ServerClientEngine", nullptr), // engine
+        nullptr,                                               // controller
+        nullptr,                                               // friends
+        nullptr,                                               // gameserver
+        nullptr,                                               // remotestorage
+        nullptr,                                               // ugc
+        nullptr,                                               // userstats
+        nullptr,                                               // utils
+
+        nullptr, // argon
+    };
+
+    memcpy(noUserInterfaceStorage, r, sizeof(r));
+}
 
 void CreateServerPipe() {
     Steam::SetServerPipe(new Pipe(true, "tcp://127.0.0.1:33901", 33901));
@@ -24,7 +46,16 @@ void CreateServerPipe() {
         Steam::RpcCallHeader header;
         b.ReadInto(header);
 
-        header.userHandle;
+        printf("userHandle:%d\n", header.userHandle);
+
+        void *instance = nullptr;
+
+        if (header.userHandle == ~0) {
+            // TODO: function for this
+            instance = noUserInterfaceStorage[(u32)header.targetInterface];
+        } else {
+            instance = Steam::GetUserInterface((Steam::UserHandle)header.userHandle, header.targetInterface);
+        }
 
         using DispatchFromBufferFn = Buffer (*)(void *instance, u32 functionIndex, Buffer &);
 
@@ -33,7 +64,7 @@ void CreateServerPipe() {
 
         b.SetBaseAtCurPos();
 
-        b = fn(serverUtils, header.functionIndex, b);
+        b = fn(instance, header.functionIndex, b);
 
         printf("Target:%s index:%d\n", Steam::InterfaceName(header.targetInterface), header.functionIndex);
 
@@ -43,9 +74,13 @@ void CreateServerPipe() {
 
         Steam::ServerPipe()->SendMessage(target, b.Read(0), b.Size());
     };
+
+    // TODO: Handle clientconnected / disconnected
 }
 
 int main(const int argCount, const char **argStrings) {
+    CreateNoUserInterfaceStorage();
+
     CreateServerPipe();
     std::thread serverThread{
         []() {
