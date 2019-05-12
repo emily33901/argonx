@@ -18,6 +18,7 @@ print("vcpkg root is \"" .. vcpkg_root .. "\"")
 workspace "workspace"
     configurations { "Debug", "Release" }
     platforms { "x64", "x32" }
+    targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}/%{prj.name}"
 
     location "premake"
     
@@ -72,7 +73,6 @@ workspace "workspace"
     project "client"
         kind "ConsoleApp"
         language "C++"
-        targetdir "bin/client/%{cfg.platform}/%{cfg.buildcfg}"
         
         -- Windows and linux use different precompiled header path locations
         filter {"system:linux"}
@@ -142,7 +142,6 @@ workspace "workspace"
     project "server"
         kind "ConsoleApp"
         language "C++"
-        targetdir "bin/server/%{cfg.platform}/%{cfg.buildcfg}"
         
         -- Windows and linux use different precompiled header path locations
         filter {"system:linux"}
@@ -213,7 +212,6 @@ workspace "workspace"
     project "tests"
         kind "ConsoleApp"
         language "C++"
-        targetdir "bin/tests/%{cfg.platform}/%{cfg.buildcfg}"
         
         -- Windows and linux use different precompiled header path locations
         filter {"system:linux"}
