@@ -166,7 +166,7 @@ std::vector<std::pair<void *, const char *>> &RpcDispatches();
 
 inline u32 MakeDispatch(void *f, const char *debugName) {
     RpcDispatches().push_back(std::make_pair(f, debugName));
-    return RpcDispatches().size() - 1;
+    return (u32)RpcDispatches().size() - 1;
 }
 
 // On msvc .name() returns an already mangled name

@@ -144,7 +144,7 @@ public:
         return nullptr;
     }
     virtual void *GetIClientGameServer(Steam::UserHandle, Steam::PipeHandle) override {
-        return unknown_ret();
+        return nullptr;
     }
     virtual unknown_ret SetLocalIPBinding(unsigned int, unsigned short) override {
         return unknown_ret();
