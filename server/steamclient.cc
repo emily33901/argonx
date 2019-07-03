@@ -322,14 +322,6 @@ void SteamClient::WriteMessage(MsgBuilder &b) {
 
     if (encrypted) crypt.SymetricEncrypt(body, body);
 
-    // printf("Final message size is %llu\n", body.Size() + 8);
-
-    // printf("\n");
-    // for (auto v : body.Storage()) {
-    //     printf("%d, ", v);
-    // }
-    // printf("\n");
-
     s.Write((u32)body.Storage().size());
     s.Write(0x31305456); // VT01 magic
 
