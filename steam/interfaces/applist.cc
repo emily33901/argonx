@@ -11,7 +11,7 @@ namespace Reference {
 #include "SteamStructs/IClientAppManager.h"
 }
 
-template<bool isServer>
+template <bool isServer>
 class ClientAppManagerMap : public Reference::IClientAppManager {
 public:
     ClientAppManagerMap(UserHandle h) {}
@@ -273,6 +273,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientAppManagerMap, "SteamAppList");
 
 using IClientAppManagerMap = ClientAppManagerMap<false>;
 

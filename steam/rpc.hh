@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "buffer.hh"
+#include "platform.hh"
 #include "defer.hh"
 #include "interfaces.hh"
 #include "ipc.hh"
@@ -170,7 +171,7 @@ inline u32 MakeDispatch(void *f, const char *debugName) {
 
 // On msvc .name() returns an already mangled name
 template <typename F>
-u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer, typeid(Rpc<F>).name());
+u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer, Platform::DemangleName(typeid(Rpc<F>).name()));
 
 // Helper macros to selectively run code on the server or the client
 #define RpcRunOnClient() \

@@ -9,7 +9,7 @@ namespace Reference {
 #include "SteamStructs/IClientRemoteStorage.h"
 }
 
-template<bool isServer>
+template <bool isServer>
 class ClientRemoteStorageMap : public Reference::IClientRemoteStorage {
 public:
     ClientRemoteStorageMap(UserHandle h) {}
@@ -268,6 +268,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientRemoteStorageMap, "SteamRemoteStorage");
 
 using IClientRemoteStorageMap = ClientRemoteStorageMap<false>;
 

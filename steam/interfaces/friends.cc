@@ -9,7 +9,7 @@ namespace Reference {
 #include "SteamStructs/IClientFriends.h"
 } // namespace Reference
 
-template<bool isServer>
+template <bool isServer>
 class ClientFriendsMap : public Reference::IClientFriends {
 public:
     ClientFriendsMap(UserHandle h) {}
@@ -744,6 +744,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientFriendsMap, "SteamFriends");
 
 using IClientFriendsMap = ClientFriendsMap<false>;
 

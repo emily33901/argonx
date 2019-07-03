@@ -9,7 +9,7 @@ namespace Reference {
 #include "SteamStructs/IClientUser.h"
 }
 
-template<bool isServer>
+template <bool isServer>
 class ClientUserMap : public Reference::IClientUser {
     UserHandle userHandle;
 
@@ -42,7 +42,9 @@ public:
         return unknown_ret();
     }
     virtual unknown_ret BConnected() override {
-        return unknown_ret();
+        RpcMakeCallIfClient(BConnected, user, ) {
+            return true;
+        }
     }
     virtual unknown_ret BTryingToLogin() override {
         return unknown_ret();
@@ -678,6 +680,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientUserMap, "SteamUser");
 
 using IClientUserMap = ClientUserMap<false>;
 

@@ -258,9 +258,7 @@ public:
     }
 };
 
-void *CreateServerClientUtils() {
-    return new ClientUtilsMap<true>(0);
-}
+AdaptExposeClientServer(ClientUtilsMap, "SteamUtils");
 
 using IClientUtilsMap = ClientUtilsMap<false>;
 

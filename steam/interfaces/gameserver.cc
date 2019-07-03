@@ -9,7 +9,7 @@ namespace Reference {
 #include "SteamStructs/IClientGameServer.h"
 }
 
-template<bool isServer>
+template <bool isServer>
 class ClientGameServerMap : public Reference::IClientGameServer {
 public:
     ClientGameServerMap(UserHandle h) {}
@@ -211,6 +211,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientGameServerMap, "SteamGameServer");
 
 using IClientGameServerMap = ClientGameServerMap<false>;
 

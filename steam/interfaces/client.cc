@@ -32,38 +32,75 @@ void *Steam::GetUserInterface(Steam::UserHandle h, InterfaceTarget t) {
     return nullptr;
 }
 
+// Wrapper for some old functionality
+// This returns the interface names that will be used for each
+// interface target.
+// Result should be used and not stored (unless copied)
+const char *InterfaceVersion(InterfaceTarget t, bool isServer) {
+    auto base = InterfaceName(t);
+    if (!isServer) {
+        return base;
+    }
+    static char buf[256] = "";
+    memset((void *)buf, 0, sizeof(buf));
+
+    snprintf(buf, 255, "%sServer", base);
+
+    return buf;
+}
+
 template <bool isServer>
 class ClientEngineMap : Reference::IClientEngine {
 public:
     // Inherited via IClientEngine
     virtual Steam::PipeHandle CreateSteamPipe() override {
+        // TODO: we probably shouldnt create a pipe until this function gets called!
         return 1;
     }
     virtual bool BReleaseSteamPipe(Steam::PipeHandle pipe) override {
+        // TODO: tell the server to release the port!
         return true;
     }
-    virtual unknown_ret CreateGlobalUser(Steam::UserHandle *output) override {
+    virtual Steam::UserHandle CreateGlobalUser(Steam::PipeHandle *pipe) override {
         // TODO: This cannot be a no-op
-        return 0;
+        return 1;
     }
-    virtual unknown_ret ConnectToGlobalUser(Steam::PipeHandle pipe) override {
+    virtual Steam::UserHandle ConnectToGlobalUser(Steam::PipeHandle pipe) override {
         // TODO: This cannot be a no-op!
-        return 0;
+        return 1;
     }
     virtual Steam::UserHandle CreateLocalUser(Steam::PipeHandle *pipe, EAccountType t) override {
         // TODO: this should probably hold onto the account type aswell...
 
-        auto handle = [this, &pipe, &t]() {
+        // Helper function to create a filled user interface storage
+        auto fillUserInterfaceStorage = [](Steam::UserHandle h) {
+            auto storage = CreateUserInterfaceStorage();
+            for (u32 i = 0; i < (u32)InterfaceTarget::max; i++) {
+                int err    = 0;
+                storage[i] = CreateInterfaceWithEither(InterfaceVersion((InterfaceTarget)i, isServer), h);
+
+                AssertAlways(err == 0 && storage[i] != nullptr, "CreateInterface for target %s failed! (err = %d)", InterfaceVersion((InterfaceTarget)i, isServer), err);
+            }
+
+            return storage;
+        };
+
+        auto handle = [this, &pipe, &t, &fillUserInterfaceStorage]() {
             RpcMakeCallIfClientNoUser(CreateLocalUser, engine, pipe, t) {
                 lastUserHandle += 1;
-                userStorage.insert({lastUserHandle, CreateUserInterfaceStorage()});
+
+                userStorage.insert({lastUserHandle, fillUserInterfaceStorage(lastUserHandle)});
 
                 return lastUserHandle;
             };
         }();
 
         RpcRunOnClient() {
-            userStorage.insert({handle, CreateUserInterfaceStorage()});
+            // TODO: we also need to actually instantiate all of these interfaces
+            // so that we can start recieving callbacks immediately.
+            // (and actually return them when users ask for them)
+
+            userStorage.insert({handle, fillUserInterfaceStorage(handle)});
         }
 
         return handle;
@@ -100,10 +137,13 @@ public:
 
         return serverResult;
     }
-    virtual unknown_ret GetIClientUser(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientUser(Steam::UserHandle h, Steam::PipeHandle p) override {
+        if (IsValidHSteamUserPipe(p, h)) {
+            return Steam::GetUserInterface(h, InterfaceTarget::user);
+        }
+        return nullptr;
     }
-    virtual unknown_ret GetIClientGameServer(int, int) override {
+    virtual void *GetIClientGameServer(Steam::UserHandle, Steam::PipeHandle) override {
         return unknown_ret();
     }
     virtual unknown_ret SetLocalIPBinding(unsigned int, unsigned short) override {
@@ -112,7 +152,7 @@ public:
     virtual unknown_ret GetUniverseName(EUniverse) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientFriends(int, int) override {
+    virtual void *GetIClientFriends(Steam::UserHandle, Steam::PipeHandle) override {
         return unknown_ret();
     }
     virtual unknown_ret GetIClientUtils(int) override {
@@ -308,11 +348,7 @@ public:
     }
 };
 
-using ClientClientEngineMap = ClientEngineMap<false>;
-using ServerClientEngineMap = ClientEngineMap<true>;
-
-AdaptExposeNoUserNoTarget(ClientClientEngineMap, "IClientEngine");
-AdaptExposeNoUserNoTarget(ServerClientEngineMap, "ServerClientEngine");
+AdaptExposeClientServerNoUser(ClientEngineMap, "ClientEngine");
 
 template <bool isServer>
 class SteamClientMap {
@@ -579,6 +615,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServerNoUser(SteamClientMap, "SteamClient");
 
 using ISteamClientMap = SteamClientMap<false>;
 

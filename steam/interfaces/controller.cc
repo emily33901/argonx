@@ -11,7 +11,7 @@ namespace Reference {
 #include "SteamStructs/IClientController.h"
 } // namespace Reference
 
-template<bool isServer>
+template <bool isServer>
 class ClientControllerMap : public Reference::IClientController {
 public:
     ClientControllerMap(UserHandle h) {}
@@ -515,6 +515,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientControllerMap, "SteamController");
 
 using IClientControllerMap = ClientControllerMap<false>;
 

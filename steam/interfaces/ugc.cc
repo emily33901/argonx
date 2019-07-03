@@ -257,6 +257,8 @@ public:
     }
 };
 
+AdaptExposeClientServer(ClientUGCMap, "SteamUGC");
+
 using IClientUGCMap = ClientUGCMap<false>;
 
 AdaptDeclare(ISteamUGC001);

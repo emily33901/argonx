@@ -11,7 +11,7 @@ namespace Reference {
 #include "SteamStructs/IClientApps.h"
 }
 
-template<bool isServer>
+template <bool isServer>
 class ClientAppsMap : public Reference::IClientApps {
 public:
     ClientAppsMap(UserHandle h) {}
@@ -48,6 +48,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientAppsMap, "SteamApps");
 
 using IClientAppsMap = ClientAppsMap<false>;
 

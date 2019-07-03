@@ -14,7 +14,6 @@ namespace Reference {
 template <bool isServer>
 class ClientUserStatsMap : public Reference::IClientUserStats {
 public:
-
     ClientUserStatsMap(UserHandle h) {}
 
     // Inherited via IClientUserStats
@@ -166,6 +165,8 @@ public:
         return unknown_ret();
     }
 };
+
+AdaptExposeClientServer(ClientUserStatsMap, "SteamUserStats");
 
 using IClientUserStatsMap = ClientUserStatsMap<false>;
 

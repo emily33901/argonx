@@ -48,5 +48,6 @@ UserInterfaceStorage CreateUserInterfaceStorage();
 void *               GetUserInterface(Steam::UserHandle h, InterfaceTarget t);
 
 void *CreateInterfaceWithUser(const char *name, Steam::UserHandle h);
+void *CreateInterfaceWithEither(const char *name, Steam::UserHandle h);
 void *CreateInterface(const char *name, int *err);
 } // namespace Steam
