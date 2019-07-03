@@ -6,9 +6,7 @@
 
 #include "../steam/interfaces/helpers.hh"
 
-extern void *CreateServerClientUtils();
-
-void *serverUtils = CreateServerClientUtils();
+#include "platform.hh"
 
 void *noUserInterfaceStorage[(u32)Steam::InterfaceTarget::max];
 void  CreateNoUserInterfaceStorage() {
@@ -17,7 +15,7 @@ void  CreateNoUserInterfaceStorage() {
         nullptr,                                               // appList
         nullptr,                                               // apps
         nullptr,                                               // client
-        Steam::CreateInterface("ServerClientEngine", nullptr), // engine
+        Steam::CreateInterface("ClientEngineServer", nullptr), // engine
         nullptr,                                               // controller
         nullptr,                                               // friends
         nullptr,                                               // gameserver
@@ -52,22 +50,34 @@ void CreateServerPipe() {
 
         if (header.userHandle == ~0) {
             // TODO: function for this
+            // TODO: also no user *could* just be a normal user
             instance = noUserInterfaceStorage[(u32)header.targetInterface];
         } else {
             instance = Steam::GetUserInterface((Steam::UserHandle)header.userHandle, header.targetInterface);
         }
 
+        // If the interface was not gettable as a no-user then this will error
+        AssertAlways(instance != nullptr, "Instance was 0 when userHandle was %d", header.userHandle);
+
         using DispatchFromBufferFn = Buffer (*)(void *instance, u32 functionIndex, Buffer &);
+
+        // TODO: find a better way to make this magic happen
+        // At the moment we HOPE (and pray) that the dispatches are in the same order on the client
+        // and the server but that might not be the case (different os / compiler / whatever)
 
         auto dispatch = Steam::RpcDispatches()[header.dispatchIndex];
         auto fn       = (DispatchFromBufferFn)dispatch.first;
 
+        // Set the base of the buffer to where the dispatcher wants it
         b.SetBaseAtCurPos();
 
+        // Call the dispatch function for this function
+        // which will deserialise the args call the function and then serialise the results
         b = fn(instance, header.functionIndex, b);
 
         printf("Target:%s index:%d\n", Steam::InterfaceName(header.targetInterface), header.functionIndex);
 
+        // Paste the jobid back onto the front of the buffer and send it back
         b.SetPos(0);
         b.Write(jobId);
         b.SetPos(0);
@@ -92,21 +102,18 @@ int main(const int argCount, const char **argStrings) {
             }
         }};
 
-#if 0
 
     printf("%d trampolines allocated (%d bytes)...\n",
            Steam::InterfaceHelpers::TAllocator()->NumAllocated(),
            Steam::InterfaceHelpers::TAllocator()->BytesAllocated());
 
-    utils = (ISteamUtils009 *)Steam::CreateInterfaceWithUser("SteamUtils009", 0);
-    Assert(utils != nullptr, "CreateInterface test failed");
-
     {
         u32 counter = 0;
         for (auto &p : Steam::RpcDispatches()) {
-            printf("%d: %s\n", counter++, Platform::DemangleName(p.second));
+            printf("%d: %s\n", counter++, p.second);
         }
     }
+#if 0
 
     {
         extern Steam::InterfaceHelpers::InterfaceReg *GetInterfaceList();

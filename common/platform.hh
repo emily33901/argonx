@@ -18,7 +18,7 @@ using iptr = std::intptr_t;
 
 #if defined(ARGONX_WIN)
 #define AssertImpl(exp, message, ...)                                      \
-    if (!!!(exp)) {                                                        \
+    if (!(exp)) {                                                          \
         printf(__FILE__ ":%d: " #message "\n", __LINE__ - 1, __VA_ARGS__); \
         assert(0);                                                         \
         abort();                                                           \

@@ -26,8 +26,25 @@ void CreateClientPipe() {
 #include "../steam/interfaces/steamplatform.hh"
 
 namespace Reference {
+using CSteamID                    = Steam::CSteamID;
+using CGameID                     = Steam::CGameID;
+using CAmount                    = Steam::CAmount;
+using CUtlBuffer                  = Steam::CUtlBuffer;
+using CNatTraversalStat           = Steam::CNatTraversalStat;
+using COffline_OfflineLogonTicket = Steam::COffline_OfflineLogonTicket;
+using EConfigSubTree              = Steam::EConfigSubTree;
+using EParentalFeature            = Steam::EParentalFeature;
+using ESteamUsageEvent            = Steam::ESteamUsageEvent;
+using EMarketingMessageFlags      = Steam::EMarketingMessageFlags;
+using EConnectionPriorityReason   = Steam::EConnectionPriorityReason;
+using EMicroTxnAuthResponse       = Steam::EMicroTxnAuthResponse;
+using ECommunityPreference        = Steam::ECommunityPreference;
+using EConnectionPriority   = Steam::EConnectionPriority;
+using EUserNotification           = Steam::EUserNotification;
+using EClientStat                 = Steam::EClientStat;
 #include "SteamStructs/IClientEngine.h"
-}
+#include "SteamStructs/IClientUser.h"
+} // namespace Reference
 
 int main(const int argCount, const char **argStrings) {
     printf("Waiting for server...\n");
@@ -42,10 +59,18 @@ int main(const int argCount, const char **argStrings) {
         }
     }};
 
-    Reference::IClientEngine *clientEngine = (Reference::IClientEngine *)Steam::CreateInterface("IClientEngine", nullptr);
+    auto *clientEngine = (Reference::IClientEngine *)Steam::CreateInterface("ClientEngine", nullptr);
 
     auto pipeHandle = clientEngine->CreateSteamPipe();
     auto userHandle = clientEngine->CreateLocalUser(&pipeHandle, Steam::EAccountType::k_EAccountTypeIndividual);
+
+    bool isValid = clientEngine->IsValidHSteamUserPipe(pipeHandle, userHandle);
+
+    printf("Are pipe and user valid: %s\n", isValid ? "Yes" : "No");
+
+    auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
+    printf("clientUser is null? %s\n", !clientUser ? "True" : "False");
+    clientUser->BConnected();
 
     clientEngine->ReleaseUser(pipeHandle, userHandle);
     clientEngine->BReleaseSteamPipe(pipeHandle);
