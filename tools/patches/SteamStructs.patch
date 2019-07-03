@@ -35,10 +35,10 @@ index 3038cdc..f34cc28 100644
      virtual unknown_ret GetControllerTypeForHandle(unsigned long long) = 0;
      virtual unknown_ret GetGamepadIndexForHandle(unsigned long long) = 0;
 diff --git a/IClientEngine.h b/IClientEngine.h
-index ca421a2..fb6933c 100644
+index ca421a2..9b1565b 100644
 --- a/IClientEngine.h
 +++ b/IClientEngine.h
-@@ -1,18 +1,18 @@
+@@ -1,19 +1,19 @@
  class IClientEngine
  {
  public:
@@ -50,22 +50,26 @@ index ca421a2..fb6933c 100644
 -    virtual unknown_ret CreatePipeToLocalUser(int, int*) = 0;
 -    virtual unknown_ret ReleaseUser(int, int) = 0;
 -    virtual unknown_ret IsValidHSteamUserPipe(int, int) = 0;
+-    virtual unknown_ret GetIClientUser(int, int) = 0;
+-    virtual unknown_ret GetIClientGameServer(int, int) = 0;
 +    virtual Steam::PipeHandle CreateSteamPipe() = 0;
 +    virtual bool BReleaseSteamPipe(Steam::PipeHandle) = 0;
-+    virtual unknown_ret CreateGlobalUser(Steam::UserHandle *) = 0;
-+    virtual unknown_ret ConnectToGlobalUser(Steam::PipeHandle) = 0;
++    virtual Steam::UserHandle CreateGlobalUser(Steam::PipeHandle *) = 0;
++    virtual Steam::UserHandle ConnectToGlobalUser(Steam::PipeHandle) = 0;
 +    virtual Steam::UserHandle CreateLocalUser(Steam::PipeHandle*, Steam::EAccountType) = 0;
 +    virtual void CreatePipeToLocalUser(Steam::UserHandle, Steam::PipeHandle*) = 0;
 +    virtual void ReleaseUser(Steam::PipeHandle, Steam::UserHandle) = 0;
 +    virtual bool IsValidHSteamUserPipe(Steam::PipeHandle, Steam::UserHandle) = 0;
-     virtual unknown_ret GetIClientUser(int, int) = 0;
-     virtual unknown_ret GetIClientGameServer(int, int) = 0;
++    virtual void *GetIClientUser(Steam::UserHandle, Steam::PipeHandle) = 0;
++    virtual void *GetIClientGameServer(Steam::UserHandle, Steam::PipeHandle) = 0;
      virtual unknown_ret SetLocalIPBinding(unsigned int, unsigned short) = 0;
 -    virtual unknown_ret GetUniverseName(EUniverse) = 0;
+-    virtual unknown_ret GetIClientFriends(int, int) = 0;
 +    virtual unknown_ret GetUniverseName(Steam::EUniverse) = 0;
-     virtual unknown_ret GetIClientFriends(int, int) = 0;
++    virtual void *GetIClientFriends(Steam::UserHandle, Steam::PipeHandle) = 0;
      virtual unknown_ret GetIClientUtils(int) = 0;
      virtual unknown_ret GetIClientBilling(int, int) = 0;
+     virtual unknown_ret GetIClientMatchmaking(int, int) = 0;
 @@ -29,7 +29,7 @@ public:
      virtual unknown_ret GetIClientScreenshots(int, int) = 0;
      virtual unknown_ret SetWarningMessageHook(void (*)(int, char const*)) = 0;
