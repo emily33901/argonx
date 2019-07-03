@@ -37,7 +37,7 @@ workspace "workspace"
     -- Linux uses a buildoption to allow for more
     -- up to date standards (2a)
     filter {"system:windows"}
-        toolset "msc-v141"
+        toolset "msc-v142"
         characterset "MBCS"
 
         flags {"MultiProcessorCompile"}
@@ -65,7 +65,7 @@ workspace "workspace"
     filter {"configurations:Release"}
         defines { "NDEBUG" }
         optimize "Full"
-        symbols "Off"
+        symbols "Full"
         flags {"LinkTimeOptimization"}
         
     filter {}
