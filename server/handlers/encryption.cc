@@ -28,7 +28,7 @@ void HandleEncryptionRequest(SteamClient *s, size_t msgSize, Buffer &request_bod
     s->WriteMessage(w);
 }
 
-void HandleEncrpytionResult(SteamClient *s, size_t msgSize, Buffer &b) {
+void HandleEncryptionResult(SteamClient *s, size_t msgSize, Buffer &b) {
     MsgChannelEncryptResult r;
     r.FromBuffer(b);
 
@@ -46,4 +46,4 @@ void HandleEncrpytionResult(SteamClient *s, size_t msgSize, Buffer &b) {
 }
 
 RegisterHelperUnique(EMsg::ChannelEncryptRequest, HandleEncryptionRequest);
-RegisterHelperUnique(EMsg::ChannelEncryptResult, HandleEncrpytionResult);
+RegisterHelperUnique(EMsg::ChannelEncryptResult, HandleEncryptionResult);
