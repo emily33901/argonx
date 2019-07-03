@@ -152,8 +152,11 @@ public:
     virtual unknown_ret GetUniverseName(EUniverse) override {
         return unknown_ret();
     }
-    virtual void *GetIClientFriends(Steam::UserHandle, Steam::PipeHandle) override {
-        return unknown_ret();
+    virtual void *GetIClientFriends(Steam::UserHandle h, Steam::PipeHandle p) override {
+        if (IsValidHSteamUserPipe(p, h)) {
+            return Steam::GetUserInterface(h, InterfaceTarget::friends);
+        }
+        return nullptr;
     }
     virtual unknown_ret GetIClientUtils(int) override {
         return unknown_ret();
