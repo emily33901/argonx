@@ -42,6 +42,7 @@ inline const char *InterfaceName(InterfaceTarget t) {
     return interfaceNames[(u32)t];
 }
 
+// TODO: We should probably use a more robust type here.
 using UserInterfaceStorage = void **;
 
 UserInterfaceStorage CreateUserInterfaceStorage();
@@ -50,4 +51,5 @@ void *               GetUserInterface(Steam::UserHandle h, InterfaceTarget t);
 void *CreateInterfaceWithUser(const char *name, Steam::UserHandle h);
 void *CreateInterfaceWithEither(const char *name, Steam::UserHandle h);
 void *CreateInterface(const char *name, int *err);
+void  DestroyInterface(const char *name, void *v);
 } // namespace Steam

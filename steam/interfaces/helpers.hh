@@ -8,6 +8,7 @@ namespace Steam {
 using UserHandle           = u32;
 using PipeHandle           = u32;
 using InterfaceConstructor = void *(*)(UserHandle h);
+using InterfaceDestructor  = void (*)(void *);
 typedef void *(*InstantiateInterfaceFn)(void);
 } // namespace Steam
 
@@ -66,20 +67,28 @@ struct GenericAdaptor {
 #define AdaptExpose(name, target, interfaceName)                                                                                                                    \
     static void *                                  __Create_##name##_interface(::Steam::UserHandle h) { return reinterpret_cast<void *>(new name(new target(h))); } \
     static void *                                  __Create_##name##_interfaceWithTarget(target *t) { return reinterpret_cast<void *>(new name(t)); }               \
-    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name{(Steam::InterfaceConstructor)&__Create_##name##_interface, interfaceName};
+    static void                                    __Destroy_##name##_interface(void *v) { delete reinterpret_cast<name *>(v); }                                    \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name{(Steam::InterfaceConstructor)&__Create_##name##_interface,                                     \
+                                                                     interfaceName, (Steam::InterfaceDestructor)&__Destroy_##name##_interface};
 
 #define AdaptExposeNoUser(name, target, interfaceName)                                                                                                       \
     static void *                                  __Create_##name##_interface_NoUser() { return reinterpret_cast<void *>(new name(new target())); }         \
     static void *                                  __Create_##name##_interface_NoUserWithTarget(target *t) { return reinterpret_cast<void *>(new name(t)); } \
-    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoUser{(Steam::InstantiateInterfaceFn)&__Create_##name##_interface_NoUser, interfaceName};
+    static void                                    __Destroy_##name##_interface_NoUser(void *v) { delete reinterpret_cast<name *>(v); }                      \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoUser{(Steam::InstantiateInterfaceFn)&__Create_##name##_interface_NoUser,            \
+                                                                              interfaceName, (Steam::InterfaceDestructor)&__Destroy_##name##_interface_NoUser};
 
-#define AdaptExposeNoUserNoTarget(name, interfaceName)                                                                                           \
-    static void *                                  __Create_##name##_interface_NoUserNoTarget() { return reinterpret_cast<void *>(new name()); } \
-    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoUserNoTarget{(Steam::InstantiateInterfaceFn)&__Create_##name##_interface_NoUserNoTarget, interfaceName};
+#define AdaptExposeNoUserNoTarget(name, interfaceName)                                                                                                            \
+    static void *                                  __Create_##name##_interface_NoUserNoTarget() { return reinterpret_cast<void *>(new name()); }                  \
+    static void                                    __Destroy_##name##_interface_NoUserNoTarget(void *v) { delete reinterpret_cast<name *>(v); }                   \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoUserNoTarget{(Steam::InstantiateInterfaceFn)&__Create_##name##_interface_NoUserNoTarget, \
+                                                                                      interfaceName, (Steam::InterfaceDestructor)&__Destroy_##name##_interface_NoUserNoTarget};
 
 #define AdaptExposeNoTarget(name, interfaceName)                                                                                                                 \
     static void *                                  __Create_##name##_interface_NoTarget(::Steam::UserHandle h) { return reinterpret_cast<void *>(new name(h)); } \
-    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoUser{(Steam::InterfaceConstructor)&__Create_##name##_interface_NoTarget, interfaceName};
+    static void                                    __Destroy_##name##_interface_NoTarget(void *v) { delete reinterpret_cast<name *>(v); }                        \
+    static ::Steam::InterfaceHelpers::InterfaceReg __Register_##name##_NoTarget{(Steam::InterfaceConstructor)&__Create_##name##_interface_NoTarget,              \
+                                                                                interfaceName, (Steam::InterfaceDestructor)&__Destroy_##name##_interface_NoTarget};
 
 #define AdaptExposeClientServer(name, interfaceName)           \
     namespace {                                                \
@@ -125,12 +134,13 @@ using MsvcFuck = T;
 
 class InterfaceReg {
 public:
-    InterfaceReg(InstantiateInterfaceFn fn, const char *name);
-    InterfaceReg(InterfaceConstructor fn, const char *name);
+    InterfaceReg(InstantiateInterfaceFn fn, const char *name, InterfaceDestructor d);
+    InterfaceReg(InterfaceConstructor fn, const char *name, InterfaceDestructor d);
 
     bool                   requiresUser;
     InstantiateInterfaceFn create;
     InterfaceConstructor   createWithUser;
+    InterfaceDestructor    destroy;
     const char *           name;
 
     InterfaceReg *       next; // For the global list.

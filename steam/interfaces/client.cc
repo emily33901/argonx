@@ -36,7 +36,7 @@ void *Steam::GetUserInterface(Steam::UserHandle h, InterfaceTarget t) {
 // This returns the interface names that will be used for each
 // interface target.
 // Result should be used and not stored (unless copied)
-const char *InterfaceVersion(InterfaceTarget t, bool isServer) {
+static const char *InterfaceVersion(InterfaceTarget t, bool isServer) {
     auto base = InterfaceName(t);
     if (!isServer) {
         return base;
@@ -47,6 +47,19 @@ const char *InterfaceVersion(InterfaceTarget t, bool isServer) {
     snprintf(buf, 255, "%sServer", base);
 
     return buf;
+}
+
+// Helper function to create a filled user interface storage
+UserInterfaceStorage FillUserInterfaceStorage(UserHandle h, bool isServer) {
+    auto storage = CreateUserInterfaceStorage();
+    for (u32 i = 0; i < (u32)InterfaceTarget::max; i++) {
+        int err    = 0;
+        storage[i] = CreateInterfaceWithEither(InterfaceVersion((InterfaceTarget)i, isServer), h);
+
+        AssertAlways(err == 0 && storage[i] != nullptr, "CreateInterface for target %s failed! (err = %d)", InterfaceVersion((InterfaceTarget)i, isServer), err);
+    }
+
+    return storage;
 }
 
 template <bool isServer>
@@ -72,42 +85,45 @@ public:
     virtual Steam::UserHandle CreateLocalUser(Steam::PipeHandle *pipe, EAccountType t) override {
         // TODO: this should probably hold onto the account type aswell...
 
-        // Helper function to create a filled user interface storage
-        auto fillUserInterfaceStorage = [](Steam::UserHandle h) {
-            auto storage = CreateUserInterfaceStorage();
-            for (u32 i = 0; i < (u32)InterfaceTarget::max; i++) {
-                int err    = 0;
-                storage[i] = CreateInterfaceWithEither(InterfaceVersion((InterfaceTarget)i, isServer), h);
-
-                AssertAlways(err == 0 && storage[i] != nullptr, "CreateInterface for target %s failed! (err = %d)", InterfaceVersion((InterfaceTarget)i, isServer), err);
-            }
-
-            return storage;
-        };
-
-        auto handle = [this, &pipe, &t, &fillUserInterfaceStorage]() {
+        auto handle = [this, &pipe, &t]() {
             RpcMakeCallIfClientNoUser(CreateLocalUser, engine, pipe, t) {
                 lastUserHandle += 1;
 
-                userStorage.insert({lastUserHandle, fillUserInterfaceStorage(lastUserHandle)});
+                userStorage.insert({lastUserHandle, FillUserInterfaceStorage(lastUserHandle, isServer)});
 
                 return lastUserHandle;
             };
         }();
 
         RpcRunOnClient() {
-            // TODO: we also need to actually instantiate all of these interfaces
-            // so that we can start recieving callbacks immediately.
-            // (and actually return them when users ask for them)
-
-            userStorage.insert({handle, fillUserInterfaceStorage(handle)});
+            // Create the user storage and store it
+            userStorage.insert({handle, FillUserInterfaceStorage(handle, isServer)});
         }
 
         return handle;
     }
     virtual void CreatePipeToLocalUser(Steam::UserHandle h, Steam::PipeHandle *pipe) override {
         // TODO: create user storage here
-        *pipe = 1;
+        *pipe = 0;
+
+        auto serverResult = [this, &pipe, &h]() {
+            // No code inside here as we call IsValidHSteamUserPipe to check if this use handle is correct
+            // not our own function.
+            RpcMakeCallIfClientNoUser(IsValidHSteamUserPipe, engine, *pipe, h) {
+                return false;
+            }
+        }();
+
+        RpcRunOnClient() {
+            if (serverResult) {
+                // This user handle was valid so make the pipe handle valid
+                *pipe = 1;
+
+                // Create a local user storage if it does not already exist
+                if (userStorage.find(h) == userStorage.end())
+                    userStorage.insert({h, FillUserInterfaceStorage(h, isServer)});
+            }
+        }
     }
     virtual void ReleaseUser(Steam::PipeHandle pipe, Steam::UserHandle h) override {
         RpcRunOnBothNoUser(ReleaseUser, engine, pipe, h) {
@@ -117,7 +133,12 @@ public:
                 auto s = userStorage[h];
 
                 for (auto i = 0; i < (u32)InterfaceTarget::max; i++) {
-                    delete s[i];
+                    // Call the interfaces destructor
+                    DestroyInterface(InterfaceVersion((InterfaceTarget)i, isServer), s[i]);
+
+                    // Make it obvious if there is a use after free
+                    // This will also trigger the assert in the server rpc handler
+                    s[i] = nullptr;
                 }
 
                 delete s;

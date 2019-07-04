@@ -23,7 +23,7 @@ template <typename R, typename C, typename... A>
 struct MakeHandlerHelper<R (C::*)(A...)> {
     using F = R (C::*)(A...);
     inline Handler &&operator()(C *instance, F f) {
-        return [instance](CMClient *s, size_t msgSize, Buffer &b) {
+        return [instance, f](CMClient *s, size_t msgSize, Buffer &b) {
             return (instance->*f)(s, msgSize, b);
         };
     }

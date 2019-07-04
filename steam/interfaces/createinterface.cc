@@ -45,7 +45,7 @@ void *Steam::CreateInterface(const char *name, int *err) {
     return CreateInterfaceInternal(name, err);
 }
 
-void* Steam::CreateInterfaceWithEither(const char* name, Steam::UserHandle h) {
+void *Steam::CreateInterfaceWithEither(const char *name, Steam::UserHandle h) {
     if (auto with = CreateInterfaceWithUser(name, h)) {
         return with;
     }
@@ -61,15 +61,33 @@ void *CreateInterface(const char *name, int *err) {
     return CreateInterfaceInternal(name, err);
 }
 
-InterfaceReg::InterfaceReg(Steam::InstantiateInterfaceFn fn, const char *name) : name(name), requiresUser(false) {
-    create = fn;
+void Steam::DestroyInterface(const char* name, void* v) {
+    InterfaceReg *cur;
+
+    for (cur = InterfaceReg::head; cur != nullptr; cur = cur->next) {
+        if (strcmp(cur->name, name) == 0) {
+            return cur->destroy(v);
+        }
+    }
+
+    Assert(0, "Invalid interface name passed to DestroyInterface");
+}
+
+InterfaceReg::InterfaceReg(Steam::InstantiateInterfaceFn fn, const char *name, Steam::InterfaceDestructor d) : name(name), requiresUser(false) {
+    create         = fn;
+    destroy        = d;
+
+    createWithUser = nullptr;
 
     next = head;
     head = this;
 }
 
-InterfaceReg::InterfaceReg(Steam::InterfaceConstructor fn, const char *name) : name(name), requiresUser(true) {
+InterfaceReg::InterfaceReg(Steam::InterfaceConstructor fn, const char *name, Steam::InterfaceDestructor d) : name(name), requiresUser(true) {
     createWithUser = fn;
+    destroy        = d;
+
+    create         = nullptr;
 
     next = head;
     head = this;
