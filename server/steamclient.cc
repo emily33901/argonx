@@ -236,7 +236,7 @@ static std::array hardCodedCMList = {
     "180.101.192.200:27018",
 };
 
-std::pair<const std::string, const std::string> SteamClient::FindServer() {
+std::pair<const std::string, const std::string> CMClient::FindServer() {
     auto addr = std::string(hardCodedCMList[rand() % hardCodedCMList.size()]);
 
     auto colonPos = std::find(addr.begin(), addr.end(), ':');
@@ -245,7 +245,7 @@ std::pair<const std::string, const std::string> SteamClient::FindServer() {
     return std::make_pair(std::string(addr), std::string(++colonPos, addr.end()));
 }
 
-std::optional<TcpPacket> SteamClient::ReadPacket() {
+std::optional<TcpPacket> CMClient::ReadPacket() {
     TcpPacket p;
     s.ReadStructure(p.header);
 
@@ -264,7 +264,7 @@ std::optional<TcpPacket> SteamClient::ReadPacket() {
     return p;
 }
 
-bool SteamClient::ProcessPacket(TcpPacket &p) {
+bool CMClient::ProcessPacket(TcpPacket &p) {
     p.body.SetPos(0);
     auto rawMessage = p.body.Read<u32>();
     p.body.SetPos(0);
@@ -309,7 +309,13 @@ bool SteamClient::ProcessPacket(TcpPacket &p) {
     return false;
 }
 
-void Argonx::SteamClient::Run() {
+void CMClient::TryAnotherCM() {
+    printf("Trying another CM...\n");
+    encrypted = false;
+    s = Socket(FindServer());
+}
+
+void CMClient::Run() {
     while (true) {
         auto p = ReadPacket();
 
@@ -317,7 +323,7 @@ void Argonx::SteamClient::Run() {
     }
 }
 
-void SteamClient::WriteMessage(MsgBuilder &b) {
+void CMClient::WriteMessage(MsgBuilder &b) {
     auto &body = b.GetBody();
 
     if (encrypted) crypt.SymetricEncrypt(body, body);

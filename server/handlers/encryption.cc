@@ -11,9 +11,9 @@ using namespace Argonx;
 using namespace SteamMessageHandler;
 
 // TODO:
-// These should probably be members of SteamClient
+// These should probably be members of CMClient
 
-void HandleEncryptionRequest(SteamClient *s, size_t msgSize, Buffer &request_body) {
+void HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &request_body) {
     MsgChannelEncryptRequest r;
     r.FromBuffer(request_body);
     printf("proto: %d, universe: %d\n", r.protocolVersion, r.universe);
@@ -28,7 +28,7 @@ void HandleEncryptionRequest(SteamClient *s, size_t msgSize, Buffer &request_bod
     s->WriteMessage(w);
 }
 
-void HandleEncryptionResult(SteamClient *s, size_t msgSize, Buffer &b) {
+void HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b) {
     MsgChannelEncryptResult r;
     r.FromBuffer(b);
 

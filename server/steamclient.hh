@@ -48,7 +48,7 @@ public:
     Buffer &GetBody() { return body; }
 };
 
-class SteamClient {
+class CMClient {
 
     bool   encrypted = false;
     Socket s;
@@ -63,7 +63,7 @@ public:
     SteamCrypt crypt;
 
 public:
-    SteamClient() : s(SteamClient::FindServer()) {
+    CMClient() : s(CMClient::FindServer()) {
         steamId.instance = 1;
         steamId.universe = static_cast<unsigned>(EUniverse::Public);
         steamId.type     = static_cast<unsigned>(EAccountType::Individual);
@@ -77,5 +77,6 @@ public:
     void SetEncrypted(bool t) { encrypted = t; }
 
     void WriteMessage(MsgBuilder &b);
+    void TryAnotherCM();
 };
 } // namespace Argonx

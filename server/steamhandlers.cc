@@ -2,8 +2,8 @@
 
 #include <array>
 
-#include "steamhandlers.hh"
 #include "buffer.hh"
+#include "steamhandlers.hh"
 
 using namespace Argonx;
 using namespace SteamMessageHandler;
@@ -20,7 +20,7 @@ void SteamMessageHandler::UnregisterHandler(EMsg msg) {
     msgHandlers[msg] = nullptr;
 }
 
-void SteamMessageHandler::ProcessMessage(SteamClient *s, EMsg msg, size_t msgSize, Buffer &b) {
+void SteamMessageHandler::ProcessMessage(CMClient *s, EMsg msg, size_t msgSize, Buffer &b) {
     auto handler = msgHandlers[msg];
 
     if (handler != nullptr) {

@@ -10,9 +10,9 @@
 
 using namespace Argonx;
 
-// TODO: should be a member of SteamClient!
+// TODO: should be a member of CMClient!
 
-void HandleMultiMessage(SteamClient *s, size_t msgSize, Buffer &b) {
+void HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b) {
     CMsgMulti multi;
     multi.ParseFromArray(b.Read(0), msgSize);
 

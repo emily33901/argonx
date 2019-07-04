@@ -8,11 +8,15 @@
 
 using namespace Argonx;
 
-void ClientLogonResponseHandler(SteamClient *s, size_t msgSize, Buffer &b) {
+void ClientLogonResponseHandler(CMClient *c, size_t msgSize, Buffer &b) {
     CMsgClientLogonResponse logonResp;
     logonResp.ParseFromArray(b.Read(0), msgSize);
 
     auto eresult = static_cast<EResult>(logonResp.eresult());
+
+    if (eresult == EResult::Fail) {
+        c->TryAnotherCM();
+    }
 
     printf("Logon result: %d\n", eresult);
 }

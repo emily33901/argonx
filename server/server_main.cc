@@ -140,7 +140,7 @@ int main(const int argCount, const char **argStrings) {
     }};
 #endif
 
-    Argonx::SteamClient sClient;
+    Argonx::CMClient sClient;
 
     printf("Pumping...\n");
 
