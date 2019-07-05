@@ -16,9 +16,17 @@ void CreateClientPipe() {
         b.Write(std::make_pair(data, size));
         b.SetPos(0);
 
-        auto jobId = b.Read<u64>();
-        b.SetBaseAtCurPos();
-        Steam::JobManager::PostResult(jobId, b);
+        auto jobId = b.Read<i64>();
+
+        if (jobId < 0) {
+            auto header = b.Read<Steam::RpcNonCallHeader>();
+
+            switch (header.t) {
+            }
+        } else {
+            b.SetBaseAtCurPos();
+            Steam::JobManager::PostResult(jobId, b);
+        }
     };
 }
 
@@ -36,11 +44,23 @@ int main(const int argCount, const char **argStrings) {
     CreateClientPipe();
     bool        running = true;
     std::thread pipeThread{[&running]() {
+        std::chrono::time_point<std::chrono::system_clock> t{};
         while (running) {
             Steam::ClientPipe()->ProcessMessages();
 
             using namespace std::chrono_literals;
             std::this_thread::sleep_for(1ms);
+
+            if ((std::chrono::system_clock::now() - t) > 20s) {
+                auto b = Buffer{
+                    Steam::JobManager::GetNextNonCallJobId(),
+                    Steam::RpcNonCallHeader{Steam::RpcType::heartbeat},
+                };
+                b.SetPos(0);
+                Steam::ClientPipe()->SendMessage(0, b.Read(0), b.Size());
+
+                t = std::chrono::system_clock::now();
+            }
         }
     }};
 

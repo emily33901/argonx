@@ -50,18 +50,30 @@ public:
 };
 
 namespace JobManager {
-std::atomic<u64> jobCount = 0;
+std::atomic<i64> jobCount = 0;
+std::atomic<i64> nonCallJobCount = 0;
 
-std::unordered_map<u64, Semaphore> waitMap;
-std::unordered_map<u64, Buffer>    resultMap;
+std::unordered_map<i64, Semaphore> waitMap;
+std::unordered_map<i64, Buffer>    resultMap;
 
-void PostResult(u64 jobId, Buffer &result) {
+// TODO: should these job ids just be the same
+// And then we send the job type header every time?
+
+i64 GetNextNonCallJobId() {
+    return --nonCallJobCount;
+}
+
+i64 GetNextJobId() {
+    return ++jobCount;
+}
+
+void PostResult(i64 jobId, Buffer &result) {
     resultMap[jobId] = result;
     waitMap[jobId].notify();
 }
 
 Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn) {
-    u64 thisJob = ++jobCount;
+    i64 thisJob = GetNextJobId();
 
     data.Write(thisJob);
     data.SetPos(0);

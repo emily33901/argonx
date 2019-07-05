@@ -13,7 +13,7 @@
 
 namespace Steam {
 // Rpc conventions
-// All "messages" begin with the jobId <u64>
+// All "messages" begin with the jobId <i64>
 struct RpcCallHeader {
     InterfaceTarget targetInterface;
     u32             dispatchIndex;
@@ -24,16 +24,17 @@ struct RpcCallHeader {
 // Results that are returned will have a matching jobId to one that
 // already exists
 
-// Other packets will have a jobId of -1 (CallResults etc...)
+// Other packets will have a jobId of < 0 ()
 enum class RpcType : u32 {
-
+    heartbeat
 };
 
-struct RpcNonJob {
+struct RpcNonCallHeader {
     RpcType t;
 };
 
 // Pipes that are used for clients
+// TODO: we really dont need 2 of these!
 Pipe *ClientPipe();
 void  SetClientPipe(Pipe *newPipe);
 Pipe *ServerPipe();
@@ -49,7 +50,9 @@ inline u32 GetVirtualFunctionIndex(void *instance, F function) {
 
 // Manages jobs that exist between the client and server.
 namespace JobManager {
-void   PostResult(u64 jobId, Buffer &result);
+i64    GetNextJobId();
+i64    GetNextNonCallJobId();
+void   PostResult(i64 jobId, Buffer &result);
 Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn);
 } // namespace JobManager
 

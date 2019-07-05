@@ -17,8 +17,8 @@ public:
     ClientUserMap(UserHandle h) : userHandle(h) {}
 
     // Inherited via IClientUser
-    virtual unknown_ret GetHSteamUser() override {
-        return unknown_ret();
+    virtual UserHandle GetHSteamUser() override {
+        return userHandle;
     }
     virtual unknown_ret LogOn(CSteamID) override {
         return unknown_ret();

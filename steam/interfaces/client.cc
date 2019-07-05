@@ -72,6 +72,8 @@ public:
     }
     virtual bool BReleaseSteamPipe(Steam::PipeHandle pipe) override {
         // TODO: tell the server to release the port!
+        // this is done automatically as the result of heartbeats but we should still do it!
+
         return true;
     }
     virtual Steam::UserHandle CreateGlobalUser(Steam::PipeHandle *pipe) override {

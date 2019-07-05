@@ -115,6 +115,15 @@ void Pipe::SendMessage(Pipe::Target h, void *data, u32 size) {
         sock->send(data, size);
 }
 
+void Pipe::ClientDisconnected(Pipe::Target h) {
+    if (isServer) {
+        auto &s = childSockets[h - 1];
+        
+        delete childSockets[h -1];
+        childSockets[h -1] = nullptr;
+    }
+}
+
 u32 Pipe::PipeCount() {
     return pipeCount;
 }

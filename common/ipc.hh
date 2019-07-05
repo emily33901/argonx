@@ -41,6 +41,8 @@ public:
 
     void SendMessage(Pipe::Target h, void *data, u32 size);
 
+    void ClientDisconnected(Pipe::Target who);
+
     u32 PipeCount();
 
     Target Id();

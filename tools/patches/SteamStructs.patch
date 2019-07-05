@@ -101,6 +101,19 @@ index ca421a2..9b1565b 100644
      virtual unknown_ret GetIPCServerMap() = 0;
      virtual unknown_ret OnDebugTextArrived(char const*) = 0;
      virtual unknown_ret OnThreadLocalRegistration() = 0;
+diff --git a/IClientUser.h b/IClientUser.h
+index c5f387b..e91b6ff 100644
+--- a/IClientUser.h
++++ b/IClientUser.h
+@@ -1,7 +1,7 @@
+ class IClientUser
+ {
+ public:
+-    virtual unknown_ret GetHSteamUser() = 0;
++    virtual UserHandle GetHSteamUser() = 0;
+     virtual unknown_ret LogOn(CSteamID) = 0;
+     virtual unknown_ret LogOnWithPassword(char const*, char const*) = 0;
+     virtual unknown_ret LogOnAndCreateNewSteamAccountIfNeeded() = 0;
 diff --git a/IClientUtils.h b/IClientUtils.h
 index d8cb3b6..e2e375c 100644
 --- a/IClientUtils.h
