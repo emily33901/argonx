@@ -26,22 +26,7 @@ void CreateClientPipe() {
 #include "../steam/interfaces/steamplatform.hh"
 
 namespace Reference {
-using CSteamID                    = Steam::CSteamID;
-using CGameID                     = Steam::CGameID;
-using CAmount                    = Steam::CAmount;
-using CUtlBuffer                  = Steam::CUtlBuffer;
-using CNatTraversalStat           = Steam::CNatTraversalStat;
-using COffline_OfflineLogonTicket = Steam::COffline_OfflineLogonTicket;
-using EConfigSubTree              = Steam::EConfigSubTree;
-using EParentalFeature            = Steam::EParentalFeature;
-using ESteamUsageEvent            = Steam::ESteamUsageEvent;
-using EMarketingMessageFlags      = Steam::EMarketingMessageFlags;
-using EConnectionPriorityReason   = Steam::EConnectionPriorityReason;
-using EMicroTxnAuthResponse       = Steam::EMicroTxnAuthResponse;
-using ECommunityPreference        = Steam::ECommunityPreference;
-using EConnectionPriority   = Steam::EConnectionPriority;
-using EUserNotification           = Steam::EUserNotification;
-using EClientStat                 = Steam::EClientStat;
+using namespace Steam;
 #include "SteamStructs/IClientEngine.h"
 #include "SteamStructs/IClientUser.h"
 } // namespace Reference
@@ -70,6 +55,7 @@ int main(const int argCount, const char **argStrings) {
 
     auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
     printf("clientUser is null? %s\n", !clientUser ? "True" : "False");
+
     clientUser->BConnected();
 
     clientEngine->ReleaseUser(pipeHandle, userHandle);
