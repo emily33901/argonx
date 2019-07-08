@@ -82,7 +82,7 @@ workspace "workspace"
         filter {}
         pchsource "client/precompiled.cc"
 
-        filter {"files:**.pb.cc"}
+        filter {"files:**.pb.cc or files:**.pb.h"}
             flags { "NoPCH" }
             warnings "off"
         filter {}
@@ -151,7 +151,7 @@ workspace "workspace"
         filter {}
         pchsource "server/precompiled.cc"
 
-        filter {"files:**.pb.cc"}
+        filter {"files:**.pb.cc or files:**.pb.h"}
             flags { "NoPCH" }
             warnings "off"
         filter {}
