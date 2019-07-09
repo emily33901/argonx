@@ -23,7 +23,7 @@ class ClientUserMap : public Reference::IClientUser {
 
     static void backgroundThread(Argonx::CMClient *c, bool &shouldRun) {
         // Make sure this is only called from server code!
-        AlwaysAssert(isServer);
+        AssertAlways(isServer, "backgroundThread should only be created on the server");
         c->Run(shouldRun);
     }
 
