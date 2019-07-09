@@ -2,7 +2,7 @@
 #include <array>
 #include <precompiled.hh>
 
-#include "steamclient.hh"
+#include "cmclient.hh"
 
 #include "emsg.hh"
 #include "language_internal.hh"
@@ -311,12 +311,14 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
 
 void CMClient::TryAnotherCM() {
     printf("Trying another CM...\n");
-    encrypted = false;
+    SetEncrypted(false);
     s = Socket(FindServer());
 }
 
-void CMClient::Run() {
-    while (true) {
+void CMClient::Run(const bool &run) {
+    // TODO: We REALLY need some non-blocking io functions
+    // So that we can just do runframe here and not block!
+    while (run) {
         auto p = ReadPacket();
 
         if (p.has_value()) ProcessPacket(p.value());

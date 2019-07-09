@@ -1,7 +1,7 @@
 #include <precompiled.hh>
 
-#include "steamclient.hh"
-#include "steamhandlers.hh"
+#include "../cmclient.hh"
+#include "../steamhandlers.hh"
 
 #include "language_internal.hh"
 
@@ -10,10 +10,7 @@
 using namespace Argonx;
 using namespace SteamMessageHandler;
 
-// TODO:
-// These should probably be members of CMClient
-
-void HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &request_body) {
+void CMClient::HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &request_body) {
     MsgChannelEncryptRequest r;
     r.FromBuffer(request_body);
     printf("proto: %d, universe: %d\n", r.protocolVersion, r.universe);
@@ -28,7 +25,7 @@ void HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &request_body) 
     s->WriteMessage(w);
 }
 
-void HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b) {
+void CMClient::HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b) {
     MsgChannelEncryptResult r;
     r.FromBuffer(b);
 
@@ -45,5 +42,5 @@ void HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b) {
     }
 }
 
-RegisterHelperUnique(EMsg::ChannelEncryptRequest, HandleEncryptionRequest);
-RegisterHelperUnique(EMsg::ChannelEncryptResult, HandleEncryptionResult);
+RegisterHelperUnique(EMsg::ChannelEncryptRequest, CMClient::HandleEncryptionRequest);
+RegisterHelperUnique(EMsg::ChannelEncryptResult, CMClient::HandleEncryptionResult);

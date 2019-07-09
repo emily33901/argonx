@@ -42,7 +42,7 @@ public:
 
 } // namespace Argonx
 
-#define RegisterHelperUnique(msg, handler)                                         \
-    namespace {                                                                    \
-    static ::Argonx::SteamMessageHandler::RegisterHelper h##handler{msg, handler}; \
+#define RegisterHelperUnique(msg, handler)                                                                    \
+    namespace {                                                                                               \
+    static ::Argonx::SteamMessageHandler::RegisterHelper Macro_Concatenate(Handler_, __LINE__){msg, handler}; \
     }

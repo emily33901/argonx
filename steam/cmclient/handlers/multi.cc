@@ -1,7 +1,7 @@
 #include <precompiled.hh>
 
-#include "steamclient.hh"
-#include "steamhandlers.hh"
+#include "../cmclient.hh"
+#include "../steamhandlers.hh"
 
 #include "language_internal.hh"
 #include "steammessages_base.pb.h"
@@ -12,7 +12,7 @@ using namespace Argonx;
 
 // TODO: should be a member of CMClient!
 
-void HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b) {
+void CMClient::HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b) {
     CMsgMulti multi;
     multi.ParseFromArray(b.Read(0), msgSize);
 
@@ -48,4 +48,4 @@ void HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b) {
     }
 }
 
-RegisterHelperUnique(EMsg::Multi, HandleMultiMessage);
+RegisterHelperUnique(EMsg::Multi, CMClient::HandleMultiMessage);

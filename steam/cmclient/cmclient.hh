@@ -58,6 +58,13 @@ class CMClient {
     void HandleEncryptionHandshake(struct MsgHdr &h, TcpPacket &p);
 
 public:
+    // Handlers
+    static void HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b);
+    static void ClientLogonResponseHandler(CMClient *c, size_t msgSize, Buffer &b);
+    static void HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &b);
+    static void HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b);
+
+public:
     SteamId    steamId;
     u32        sessionId = 0;
     SteamCrypt crypt;
@@ -72,7 +79,7 @@ public:
     std::optional<TcpPacket> ReadPacket();
     bool                     ProcessPacket(TcpPacket &p);
 
-    void Run();
+    void Run(const bool &run = true);
 
     void SetEncrypted(bool t) { encrypted = t; }
 
