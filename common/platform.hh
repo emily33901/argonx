@@ -43,6 +43,9 @@ using iptr = std::intptr_t;
 #define AssertAlways AssertImpl
 #endif
 
+#define Macro_ConcatenateDetail(x, y) x##y
+#define Macro_Concatenate(x, y) Macro_ConcatenateDetail(x, y)
+
 namespace Platform {
 u32 GetMemberFunctionIndex(void *instance, void *function);
 template <typename F>

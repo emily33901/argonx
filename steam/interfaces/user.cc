@@ -3,6 +3,9 @@
 #include "helpers.hh"
 #include "steamplatform.hh"
 
+#include "../cmclient/cmclient.hh"
+#include "../cmclient/steamhandlers.hh"
+
 using namespace Steam;
 
 namespace Reference {
@@ -13,8 +16,34 @@ template <bool isServer>
 class ClientUserMap : public Reference::IClientUser {
     UserHandle userHandle;
 
+    // This should only be used on the server
+    Argonx::CMClient *cmClient;
+    bool              threadRunning = true;
+    std::thread       bThread;
+
+    static void backgroundThread(Argonx::CMClient *c, bool &shouldRun) {
+        // Make sure this is only called from server code!
+        AlwaysAssert(isServer);
+        c->Run(shouldRun);
+    }
+
 public:
-    ClientUserMap(UserHandle h) : userHandle(h) {}
+    ClientUserMap(UserHandle h) : userHandle(h) {
+        RpcRunOnServer() {
+            printf("-- constructing cmclient\n");
+            cmClient = new Argonx::CMClient();
+            bThread  = std::thread{backgroundThread, cmClient, std::ref(threadRunning)};
+        }
+    }
+
+    ~ClientUserMap() {
+        RpcRunOnServer() {
+            printf("-- destructing cmclient\n");
+            threadRunning = false;
+            bThread.join();
+            delete cmClient;
+        }
+    }
 
     // Inherited via IClientUser
     virtual UserHandle GetHSteamUser() override {

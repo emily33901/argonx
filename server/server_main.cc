@@ -2,8 +2,7 @@
 
 #include <thread>
 
-#include "steamclient.hh"
-
+#include "../steam/cmclient/cmclient.hh"
 #include "../steam/interfaces/helpers.hh"
 
 #include "platform.hh"
@@ -22,7 +21,7 @@ void  CreateNoUserInterfaceStorage() {
         nullptr,                                               // remotestorage
         nullptr,                                               // ugc
         nullptr,                                               // userstats
-        nullptr,                                               // utils
+        Steam::CreateInterface("ClientUtilsServer", nullptr),  // utils
 
         nullptr, // argon
     };
@@ -64,7 +63,7 @@ void CreateServerPipe() {
 
             if (header.userHandle == ~0) {
                 // TODO: function for this
-                // TODO: also no user *could* just be a normal user
+                // TODO: also no user *could* just be a normal user (-1)
                 instance = noUserInterfaceStorage[(u32)header.targetInterface];
             } else {
                 instance = Steam::GetUserInterface((Steam::UserHandle)header.userHandle, header.targetInterface);
@@ -133,6 +132,7 @@ int main(const int argCount, const char **argStrings) {
             }
         }};
 
+#if 0
     printf("%d trampolines allocated (%d bytes)...\n",
            Steam::InterfaceHelpers::TAllocator()->NumAllocated(),
            Steam::InterfaceHelpers::TAllocator()->BytesAllocated());
@@ -143,8 +143,6 @@ int main(const int argCount, const char **argStrings) {
             printf("%d: %s\n", counter++, p.second);
         }
     }
-#if 0
-
     {
         extern Steam::InterfaceHelpers::InterfaceReg *GetInterfaceList();
 
@@ -153,7 +151,7 @@ int main(const int argCount, const char **argStrings) {
 
         for (auto cur = head; cur != nullptr; cur = cur->next) {
             total += 1;
-            printf("[I] %s\n", cur->name);
+            printf("[I%s] %s\n", cur->requiresUser ? "u" : " ", cur->name);
         }
 
         printf("[I] %d total interfaces\n", total);
@@ -170,11 +168,8 @@ int main(const int argCount, const char **argStrings) {
     }};
 #endif
 
-    Argonx::CMClient sClient;
-
-    printf("Pumping...\n");
-
-    sClient.Run();
+    // Dont try and exit
+    serverThread.join();
 
     return 0;
 }
