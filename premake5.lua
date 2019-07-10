@@ -42,6 +42,8 @@ workspace "workspace"
 
         flags {"MultiProcessorCompile"}
 
+        buildoptions {"-experimental:external -external:W0 -external:anglebrackets -external:templates-"}
+
         defines {"ARGONX_WIN"}
 
     filter {"system:linux"}
