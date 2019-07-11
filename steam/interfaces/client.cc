@@ -143,7 +143,7 @@ public:
                     s[i] = nullptr;
                 }
 
-                delete s;
+                delete[] s;
             }
         }
     }

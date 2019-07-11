@@ -61,6 +61,7 @@ inline u32 GetMemberFunctionIndex(void *instance, F function) {
         // For the purposes of what we are doing this check can
         // probably be removed to speed up init time.
         // static_assert(0, "Unknown platform");
+        // TODO: figure out why this is commented out...
         // Assert(0, "Unknown platform");
     }
 

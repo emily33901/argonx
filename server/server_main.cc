@@ -2,8 +2,8 @@
 
 #include <thread>
 
-#include "../steam/cmclient/cmclient.hh"
-#include "../steam/interfaces/helpers.hh"
+#include "argonx/cmclient/cmclient.hh"
+#include "steam/interfaces/helpers.hh"
 
 #include "platform.hh"
 
@@ -167,6 +167,8 @@ int main(const int argCount, const char **argStrings) {
         }
     }};
 #endif
+
+    printf("Server started...\n");
 
     // Dont try and exit
     serverThread.join();

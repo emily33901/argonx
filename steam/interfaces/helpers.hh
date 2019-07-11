@@ -12,8 +12,11 @@ using InterfaceDestructor  = void (*)(void *);
 typedef void *(*InstantiateInterfaceFn)(void);
 } // namespace Steam
 
+namespace Argonx {
+class CMClient;
+}
+
 namespace Steam::InterfaceHelpers {
-// Arena allocator but for creating trampoline functions
 class TrampolineAllocator {
     u8 * allocatedMemory;
     uptr offset;
@@ -148,3 +151,13 @@ public:
 };
 
 } // namespace Steam::InterfaceHelpers
+
+namespace Steam {
+// Helpers for Argonx:: -> Steam:: lookups
+UserHandle LookupHandle(Argonx::CMClient *c);
+void *     LookupInterfaceInternal(Argonx::CMClient *c, InterfaceTarget t);
+template <typename T>
+T *LookupInterface(Argonx::CMClient *c, InterfaceTarget t) {
+    return reinterpret_cast<T *>(LookupInterfaceInternal(c, t));
+}
+}

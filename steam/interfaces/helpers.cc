@@ -136,11 +136,11 @@ void *TrampolineAllocator::CreateTrampoline(void *target) {
 }
 
 u32 TrampolineAllocator::NumAllocated() {
-    return offset / trampolineSize;
+    return u32(offset / trampolineSize);
 }
 
 u32 TrampolineAllocator::BytesAllocated() {
-    return offset;
+    return (u32)offset;
 }
 
 } // namespace Steam::InterfaceHelpers

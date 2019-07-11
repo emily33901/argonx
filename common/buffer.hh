@@ -170,4 +170,16 @@ public:
     std::enable_if_t<(sizeof...(Args) > 1)> Read(Args &... args) {
         (ReadInto(std::forward<Args &>(args)), ...);
     }
+
+public:
+    // Helper functions
+
+    // This will consume the rest of the buffer!
+    template <typename Proto>
+    Proto ReadAsProto(size_t msgSize) {
+        SetBaseAtCurPos();
+        Proto p;
+        p.ParseFromArray(Read(msgSize), msgSize);
+        return p;
+    }
 };

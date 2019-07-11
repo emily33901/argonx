@@ -76,13 +76,16 @@ int main(const int argCount, const char **argStrings) {
     auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
     printf("clientUser is null? %s\n", !clientUser ? "True" : "False");
 
+#if 1
+    std::this_thread::sleep_for(std::chrono::seconds(30));
+#endif
+
     clientUser->BConnected();
 
     clientEngine->ReleaseUser(pipeHandle, userHandle);
     clientEngine->BReleaseSteamPipe(pipeHandle);
 
 #if 0
-    // TODO: we need to be able to ask the server for a userhandle and a pipe first
     // Using the steamclient interface
     void *clientUtils = Steam::CreateInterfaceWithUser("SteamUtils009", 15);
     auto  utils       = (ISteamUtils009 *)clientUtils;
@@ -107,6 +110,7 @@ int main(const int argCount, const char **argStrings) {
     utils->GetImageRGBA(15, buffer, 10);
     buffer[9] = '\0';
     printf("Buffer is \"%s\"\n", buffer);
+
 #endif
 
     running = false;

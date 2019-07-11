@@ -24,6 +24,8 @@
 
 #include "socket.hh"
 
+// TODO: we need a queued socket with a background thread type thing
+
 Socket::Socket(const std::string &address, const std::string &port) {
 
 #ifdef ARGONX_WIN
@@ -59,11 +61,9 @@ Socket::Socket(const std::string &address, const std::string &port) {
     {
         socket = INVALID_SOCKET;
 
-        // Create a SOCKET for connecting to server
         socket = ::socket(addr->ai_family, addr->ai_socktype,
                           addr->ai_protocol);
 
-        // Connect to server.
         auto result = connect(socket, addr->ai_addr, (int)addr->ai_addrlen);
         if (result == INVALID_SOCKET) {
             // closesocket(socket);
@@ -72,8 +72,6 @@ Socket::Socket(const std::string &address, const std::string &port) {
 
         // Should really try the next address returned by getaddrinfo
         // if the connect call failed
-        // But for this simple example we just free the resources
-        // returned by getaddrinfo and print an error message
 
         freeaddrinfo(addr);
 

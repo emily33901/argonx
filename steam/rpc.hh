@@ -4,10 +4,10 @@
 #include <utility>
 
 #include "buffer.hh"
-#include "platform.hh"
 #include "defer.hh"
 #include "interfaces.hh"
 #include "ipc.hh"
+#include "platform.hh"
 
 #include "rpcdetail.hh"
 
@@ -137,6 +137,9 @@ Buffer Rpc<F>::DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b)
     OutParamsStorage outTemp;
 
     Detail::ReadBuffers(b, temp, outTemp);
+
+    // If you get an assert from either of these `std::apply`s then your dispatches
+    // are probably out of order
 
     // Real params
     std::apply([&b](auto &... x) { (b.ReadInto(x), ...); }, realTemp);

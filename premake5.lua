@@ -107,7 +107,7 @@ workspace "workspace"
             libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
         filter {}
         
-        includedirs { "client", "protogen", "common", "external", "external/OpenSteamworks" }
+        includedirs { "client", "protogen", "common", "external", "external/OpenSteamworks", "." }
 
         files { "client/**.hh", "client/**.cc", 
                 "common/**.cc", "common/**.hh",
@@ -115,6 +115,7 @@ workspace "workspace"
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
+                "argonx/**.cc", "argonx/**.hh"
             }
 
         filter {"system:linux"}
@@ -176,7 +177,7 @@ workspace "workspace"
             libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
         filter {}
         
-        includedirs { "server", "protogen", "common", "external", "external/OpenSteamworks" }
+        includedirs { "server", "protogen", "common", "external", "external/OpenSteamworks", "." }
 
         files { "server/**.hh", "server/**.cc", 
                 "common/**.cc", "common/**.hh",
@@ -184,6 +185,7 @@ workspace "workspace"
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
+                "argonx/**.cc", "argonx/**.hh"
             }
 
         filter {"system:linux"}
@@ -233,7 +235,7 @@ workspace "workspace"
             flags {"NoPCH"}
         filter {}
 
-        includedirs {"external", "steam", "tests", "common"}
+        includedirs {"external", "steam", "tests", "common", "."}
         files {"common/**.cc", "tests/**.cc", "tests/**.hh", "steam/interfaces/helpers.cc", "steam/interfaces/createinterface.cc"}
 
         filter {"system:linux"}

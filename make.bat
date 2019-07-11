@@ -10,7 +10,7 @@ for /F "tokens=*" %%a in ('find_my_visual_studio.exe msbuild_exe') do set msbuil
 
 echo msbuild is located at %msbuild_folder%
 
-"%msbuild_folder%\\msbuild" /property:GenerateFullPaths=true /t:build premake\workspace.sln /p:Configuration=Debug /verbosity:minimal
+"%msbuild_folder%\\msbuild" /property:GenerateFullPaths=true /t:build premake\workspace.sln /p:Configuration=Debug /p:Platform=x64 /verbosity:minimal 
 
 echo done.
 

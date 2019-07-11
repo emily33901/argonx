@@ -3,8 +3,13 @@
 #include "helpers.hh"
 #include "steamplatform.hh"
 
-#include "../cmclient/cmclient.hh"
-#include "../cmclient/steamhandlers.hh"
+#include "argonx/cmclient/cmclient.hh"
+#include "argonx/cmclient/steamcrypt.hh"
+#include "argonx/cmclient/steamhandlers.hh"
+
+#include "steammessages_clientserver.pb.h"
+#include "steammessages_clientserver_2.pb.h"
+#include "steammessages_clientserver_login.pb.h"
 
 using namespace Steam;
 
@@ -12,10 +17,40 @@ namespace Reference {
 #include "SteamStructs/IClientUser.h"
 }
 
+#define AssertServer() AssertAlways(isServer, "This function should only be called on the server!")
+
+enum class LogonNeeds {
+    none,
+    steamGuard,
+    twoFactor,
+};
+
+enum class LogonState {
+    loggedOff,
+    loggingOn,
+    loggingOff,
+    loggedOn,
+};
+
+namespace Steam {
+// Little hacky but Argonx:: shouldnt know about implementation details that are used in Steam::
+std::unordered_map<Argonx::CMClient *, UserHandle> userHandleLookup;
+
+UserHandle LookupHandle(Argonx::CMClient *c) {
+    return userHandleLookup[c];
+}
+
+void *LookupInterfaceInternal(Argonx::CMClient *c, InterfaceTarget t) {
+    auto h = LookupHandle(c);
+    return GetUserInterface(h, t);
+}
+} // namespace Steam
+
 template <bool isServer>
 class ClientUserMap : public Reference::IClientUser {
     UserHandle userHandle;
 
+public:
     // This should only be used on the server
     Argonx::CMClient *cmClient;
     bool              threadRunning = true;
@@ -23,21 +58,79 @@ class ClientUserMap : public Reference::IClientUser {
 
     static void backgroundThread(Argonx::CMClient *c, bool &shouldRun) {
         // Make sure this is only called from server code!
-        AssertAlways(isServer, "backgroundThread should only be created on the server");
+        AssertServer();
         c->Run(shouldRun);
+    }
+
+public:
+    // Logon information and handling
+
+    LogonState logonState;
+
+    // TODO: use a secure string thing
+    std::string username;
+    std::string password;
+
+    // Additional security codes that we might need
+    std::string twoFactorCode;
+    std::string steamGuardCode;
+
+    // Should match the cmclients steamid!
+    CSteamID steamId;
+
+    static void OnMachineAuth(Argonx::CMClient *c, size_t msgSize, Buffer &b, u64 jobId) {
+        auto  userHandle = LookupHandle(c);
+        auto  msg        = b.ReadAsProto<CMsgClientUpdateMachineAuth>(msgSize);
+        auto &bytes      = msg.bytes();
+
+        auto sha = Argonx::SteamCrypt::SHA1MachineAuth(bytes);
+
+        CMsgClientUpdateMachineAuthResponse r;
+        r.set_sha_file(sha.Read(0), sha.Size());
+        c->WriteMessage(Argonx::EMsg::ClientUpdateMachineAuthResponse, r, jobId);
+
+        // TODO: write sha file to disk
+
+        printf("[%d] OnMachineAuth\n", userHandle);
+    }
+
+    static void OnClientLogon(Argonx::CMClient *c, size_t msgSize, Buffer &b, u64 jobId) {
+        auto logonResp = b.ReadAsProto<CMsgClientLogonResponse>(msgSize);
+        auto eresult   = static_cast<Argonx::EResult>(logonResp.eresult());
+
+        printf("Logon result: %d\n", eresult);
+
+        if (eresult == Argonx::EResult::OK) {
+            c->ResetClientHeartbeat(
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::seconds(logonResp.out_of_game_heartbeat_seconds())));
+
+            auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+            user->logonState = LogonState::loggedOn;
+        } else if (eresult == Argonx::EResult::Fail) {
+            c->TryAnotherCM();
+        } else if (eresult == Argonx::EResult::AccountLoginDeniedNeedTwoFactor) {
+            // needed = LogonNeeds::twoFactor;
+        } else if (eresult == Argonx::EResult::AccountLogonDenied) {
+            // needed = LogonNeeds::steamGuard;
+        }
     }
 
 public:
     ClientUserMap(UserHandle h) : userHandle(h) {
         RpcRunOnServer() {
+            logonState = LogonState::loggedOff;
             printf("-- constructing cmclient\n");
-            cmClient = new Argonx::CMClient();
-            bThread  = std::thread{backgroundThread, cmClient, std::ref(threadRunning)};
+            cmClient                   = new Argonx::CMClient();
+            userHandleLookup[cmClient] = h;
+            bThread                    = std::thread{backgroundThread, cmClient, std::ref(threadRunning)};
         }
     }
 
     ~ClientUserMap() {
         RpcRunOnServer() {
+            Defer(userHandleLookup.erase(cmClient));
             printf("-- destructing cmclient\n");
             threadRunning = false;
             bThread.join();
@@ -45,15 +138,37 @@ public:
         }
     }
 
+    void LogonInternal() {
+        AssertServer();
+
+        logonState = LogonState::loggingOn;
+
+        CMsgClientLogon c;
+        c.set_account_name(username);
+        c.set_password(password);
+        c.set_protocol_version(65580);
+        c.set_two_factor_code(steamGuardCode.c_str());
+        c.set_auth_code(twoFactorCode.c_str());
+
+        // TODO: sha hash file
+
+        cmClient->WriteMessage(Argonx::EMsg::ClientLogon, c);
+    }
+
     // Inherited via IClientUser
     virtual UserHandle GetHSteamUser() override {
         return userHandle;
     }
-    virtual unknown_ret LogOn(CSteamID) override {
-        return unknown_ret();
+    virtual void LogOn(CSteamID) override {
+        LogonInternal();
     }
-    virtual unknown_ret LogOnWithPassword(char const *username, char const *password) override {
-        return unknown_ret();
+    virtual void LogOnWithPassword(char const *username, char const *password) override {
+        RpcMakeCallIfClient(LogOnWithPassword, user, username, password) {
+            this->username = username;
+            this->password = password;
+
+            LogonInternal();
+        }
     }
     virtual unknown_ret LogOnAndCreateNewSteamAccountIfNeeded() override {
         return unknown_ret();
@@ -64,19 +179,25 @@ public:
     virtual unknown_ret LogOff() override {
         return unknown_ret();
     }
-    virtual unknown_ret BLoggedOn() override {
-        return unknown_ret();
+    virtual bool BLoggedOn() override {
+        RpcMakeCallIfClient(BLoggedOn, user, ) {
+            return logonState == LogonState::loggedOn;
+        }
     }
-    virtual unknown_ret GetLogonState() override {
-        return unknown_ret();
+    virtual u32 GetLogonState() override {
+        RpcMakeCallIfClient(GetLogonState, user) {
+            return (u32)logonState;
+        }
     }
-    virtual unknown_ret BConnected() override {
+    virtual bool BConnected() override {
         RpcMakeCallIfClient(BConnected, user, ) {
             return true;
         }
     }
-    virtual unknown_ret BTryingToLogin() override {
-        return unknown_ret();
+    virtual bool BTryingToLogin() override {
+        RpcMakeCallIfClient(BTryingToLogin, user) {
+            return logonState == LogonState::loggingOn;
+        }
     }
     virtual unknown_ret GetSteamID() override {
         return unknown_ret();
@@ -711,6 +832,10 @@ public:
 };
 
 AdaptExposeClientServer(ClientUserMap, "SteamUser");
+
+// Handler registering
+RegisterHelperUnique(Argonx::EMsg::ClientLogOnResponse, ClientUserMap<true>::OnClientLogon);
+RegisterHelperUnique(Argonx::EMsg::ClientLogOnResponse, ClientUserMap<true>::OnMachineAuth);
 
 using IClientUserMap = ClientUserMap<false>;
 

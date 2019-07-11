@@ -10,8 +10,6 @@
 
 using namespace Argonx;
 
-// TODO: should be a member of CMClient!
-
 void CMClient::HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b, u64 jobId) {
     auto multi = b.ReadAsProto<CMsgMulti>(msgSize);
 
