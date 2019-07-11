@@ -1,6 +1,6 @@
 #include "precompiled.hh"
 
-#include "catch2/catch.hpp"
+#include <catch2/catch.hpp>
 
 #include "buffer.hh"
 #include "platform.hh"
