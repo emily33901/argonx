@@ -10,7 +10,7 @@
 using namespace Argonx;
 using namespace SteamMessageHandler;
 
-void CMClient::HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &request_body) {
+void CMClient::HandleEncryptionRequest(CMClient *c, size_t msgSize, Buffer &request_body, u64 jobId) {
     MsgChannelEncryptRequest r;
     r.FromBuffer(request_body);
     printf("proto: %d, universe: %d\n", r.protocolVersion, r.universe);
@@ -20,25 +20,22 @@ void CMClient::HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &requ
     auto &b = w.GetBody();
     b.Write(MsgChannelEncryptResponse{}.ToBuffer());
 
-    s->crypt.GenerateSessionKey(b);
+    c->crypt.GenerateSessionKey(b);
 
-    s->WriteMessage(w);
+    c->WriteMessage(w);
 }
 
-void CMClient::HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b) {
+void CMClient::HandleEncryptionResult(CMClient *c, size_t msgSize, Buffer &b, u64 jobId) {
     MsgChannelEncryptResult r;
     r.FromBuffer(b);
 
     if ((EResult)r.result == EResult::OK) {
         printf("Encryption handshake successful\n");
 
-        s->SetEncrypted(true);
-
-        // TODO: add on handshake function
+        c->SetEncrypted(true);
 
     } else {
-        printf("Encryption handshake failed!\n");
-        assert(0); // This should never happen
+        AssertAlways(0, "Encryption handshake failed");
     }
 }
 

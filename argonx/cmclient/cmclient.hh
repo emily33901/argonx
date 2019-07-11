@@ -6,6 +6,8 @@
 #include "buffer.hh"
 #include "socket.hh"
 
+#include "scheduledfunction.hh"
+
 #include "emsg.hh"
 #include "steamid.hh"
 
@@ -16,6 +18,8 @@ class Message;
 }
 
 namespace Argonx {
+class CMClient;
+
 class TcpHeader {
 public:
     u32 packetSize;
@@ -45,6 +49,8 @@ public:
 
     MsgBuilder(EMsg t);
     MsgBuilder(EMsg t, const google::protobuf::Message &message, u32 sessionId, SteamId steamId, u64 jobId = 0);
+    MsgBuilder(EMsg t, const google::protobuf::Message &message, CMClient *c, u64 jobId = 0);
+
     Buffer &GetBody() { return body; }
 };
 
@@ -57,20 +63,22 @@ class CMClient {
 
     void HandleEncryptionHandshake(struct MsgHdr &h, TcpPacket &p);
 
+    void SendClientHeartbeat();
+
 public:
     // Handlers
-    static void HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b);
-    static void ClientLogonResponseHandler(CMClient *c, size_t msgSize, Buffer &b);
-    static void HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &b);
-    static void HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b);
+    static void HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b, u64 jobId);
+    static void HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &b, u64 jobId);
+    static void HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b, u64 jobId);
 
 public:
-    SteamId    steamId;
-    u32        sessionId = 0;
-    SteamCrypt crypt;
+    SteamId           steamId;
+    u32               sessionId = 0;
+    SteamCrypt        crypt;
+    ScheduledFunction clientHeartbeatFunction;
 
 public:
-    CMClient() : s(CMClient::FindServer()) {
+    CMClient() : s(CMClient::FindServer()), clientHeartbeatFunction([this]() { SendClientHeartbeat(); }) {
         steamId.instance = 1;
         steamId.universe = static_cast<unsigned>(EUniverse::Public);
         steamId.type     = static_cast<unsigned>(EAccountType::Individual);
@@ -84,6 +92,8 @@ public:
     void SetEncrypted(bool t) { encrypted = t; }
 
     void WriteMessage(MsgBuilder &b);
+    void WriteMessage(EMsg t, const ::google::protobuf::Message &message, u64 jobId = 0);
     void TryAnotherCM();
+    void ResetClientHeartbeat(std::chrono::milliseconds delay);
 };
 } // namespace Argonx

@@ -12,9 +12,8 @@ using namespace Argonx;
 
 // TODO: should be a member of CMClient!
 
-void CMClient::HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b) {
-    CMsgMulti multi;
-    multi.ParseFromArray(b.Read(0), msgSize);
+void CMClient::HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b, u64 jobId) {
+    auto multi = b.ReadAsProto<CMsgMulti>(msgSize);
 
     auto &payload = multi.message_body();
     auto  data    = (u8 *)payload.data();

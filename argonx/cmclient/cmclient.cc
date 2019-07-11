@@ -2,6 +2,8 @@
 #include <array>
 #include <precompiled.hh>
 
+#include "platform.hh"
+
 #include "cmclient.hh"
 
 #include "emsg.hh"
@@ -33,7 +35,7 @@ Argonx::MsgBuilder::MsgBuilder(EMsg t) {
         body.SetPos(0);
         body.SeekBase<MsgHdr>();
     } else {
-        assert(0);
+        Assert(0, "MsgBuilder(EMsg) should never get called for anything that isnt ChannelEncryptResponse");
     }
 }
 
@@ -42,9 +44,7 @@ Argonx::MsgBuilder::MsgBuilder(EMsg t, const google::protobuf::Message &message,
     proto.set_steamid(steamId);
     proto.set_client_sessionid(sessionId);
 
-    if (jobId) {
-        proto.set_jobid_target(jobId);
-    }
+    if (jobId) proto.set_jobid_target(jobId);
 
     auto protoSize   = proto.ByteSize();
     auto messageSize = message.ByteSize();
@@ -60,6 +60,9 @@ Argonx::MsgBuilder::MsgBuilder(EMsg t, const google::protobuf::Message &message,
 
     proto.SerializeToArray(pos, protoSize);
     message.SerializeToArray(pos + protoSize, messageSize);
+}
+
+Argonx::MsgBuilder::MsgBuilder(EMsg t, const google::protobuf::Message &message, CMClient *c, u64 jobId) : MsgBuilder(t, message, c->sessionId, c->steamId, jobId) {
 }
 
 static std::array hardCodedCMList = {
@@ -275,6 +278,10 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
     printf("[Packet] msg:%s%d size:%d bsize:%lu\n", isProto ? "p" : "", message, p.header.packetSize, p.body.Size());
 
     // TODO: WE NEED A JOB HANDLER!
+    // We should really pass the jobid along to the handlers so that they know what job theyre dealing with and can
+    // respond accordingly
+
+    u64 jobId;
 
     if (!isProto) {
         // Header processing
@@ -282,13 +289,15 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
             MsgHdr h;
             h.FromBuffer(p.body);
             p.body.SetBaseAtCurPos();
+            jobId = h.sourceJobID;
         } else {
             ExtendedClientMsgHdr h;
             h.FromBuffer(p.body);
             p.body.SetBaseAtCurPos();
+            jobId = h.sourceJobID;
         }
 
-        SteamMessageHandler::ProcessMessage(this, message, p.body.Size(), p.body);
+        SteamMessageHandler::ProcessMessage(this, message, p.body.Size(), p.body, jobId);
     } else {
         MsgHdrProtoBuf msgHeader;
         msgHeader.FromBuffer(p.body);
@@ -301,9 +310,11 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
             steamId   = protoHeader.steamid();
         }
 
-        u32 msgSize = p.body.SizeNoBase() - sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
+        jobId = protoHeader.jobid_source();
 
-        SteamMessageHandler::ProcessMessage(this, message, msgSize, p.body);
+        u32 msgSize = (u32)p.body.SizeNoBase() - (u32)sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
+
+        SteamMessageHandler::ProcessMessage(this, message, msgSize, p.body, jobId);
     }
 
     return false;
@@ -334,4 +345,22 @@ void CMClient::WriteMessage(MsgBuilder &b) {
     s.Write(0x31305456); // VT01 magic
 
     s.Write(body.Storage());
+}
+
+void CMClient::WriteMessage(EMsg t, const ::google::protobuf::Message &message, u64 jobId) {
+    MsgBuilder b{t, message, this, jobId};
+    WriteMessage(b);
+}
+
+void CMClient::SendClientHeartbeat() {
+    printf("Sending heartbeat!\n");
+    MsgBuilder b{EMsg::ClientHeartBeat, CMsgClientHeartBeat{}, sessionId, steamId};
+    WriteMessage(b);
+}
+
+void CMClient::ResetClientHeartbeat(std::chrono::milliseconds d) {
+    printf("Out of game heartbeat is %llu seconds\n", d.count());
+    clientHeartbeatFunction.Stop();
+    clientHeartbeatFunction.Delay(d);
+    clientHeartbeatFunction.Start();
 }

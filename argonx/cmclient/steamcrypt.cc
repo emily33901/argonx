@@ -105,3 +105,10 @@ void SteamCrypt::SymetricDecrypt(Buffer &in, Buffer &out) {
 
     out.Write(std::make_pair(output.data(), output.size()));
 }
+
+Buffer SteamCrypt::SHA1MachineAuth(const std::string &bytes) {
+    Buffer b;
+    b.Fill(0, 20);
+    SHA1().CalculateDigest(b.Read(0), reinterpret_cast<const byte *>(bytes.data()), bytes.length());
+    return b;
+}

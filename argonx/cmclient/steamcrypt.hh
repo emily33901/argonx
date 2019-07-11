@@ -21,5 +21,7 @@ public:
     // These in / outs can probably be combined
     void SymetricEncrypt(Buffer &in, Buffer &out);
     void SymetricDecrypt(Buffer &in, Buffer &out);
+
+    static Buffer SHA1MachineAuth(const std::string &bytes);
 };
 } // namespace Argonx

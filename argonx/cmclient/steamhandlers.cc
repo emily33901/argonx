@@ -20,11 +20,11 @@ void SteamMessageHandler::UnregisterHandler(EMsg msg) {
     msgHandlers[msg] = nullptr;
 }
 
-void SteamMessageHandler::ProcessMessage(CMClient *s, EMsg msg, size_t msgSize, Buffer &b) {
+void SteamMessageHandler::ProcessMessage(CMClient *c, EMsg msg, u32 msgSize, Buffer &b, u64 jobId) {
     auto handler = msgHandlers[msg];
 
     if (handler != nullptr) {
-        return (*handler)(s, msgSize, b);
+        return (*handler)(c, msgSize, b, jobId);
     }
 
     printf("No handler for emsg: %d\n", msg);
