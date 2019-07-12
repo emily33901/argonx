@@ -13,3 +13,9 @@
 [submodule "external/cppzmq"]
 	path = external/cppzmq
 	url = https://github.com/zeromq/cppzmq.git
+[submodule "external/cpptoml"]
+	path = external/cpptoml
+	url = https://github.com/skystrife/cpptoml.git
+[submodule "external/VDF"]
+	path = external/VDF
+	url = https://github.com/TinyTinni/ValveFileVDF.git
