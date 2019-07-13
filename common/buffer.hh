@@ -125,7 +125,7 @@ public:
         auto ptr    = Read(0);
         auto length = strlen((const char *)ptr);
 
-        offset += length;
+        offset += length + 1;
 
         memcpy(temp[pos], ptr, std::min(sizeof(temp[pos]), length));
         return temp[pos];
