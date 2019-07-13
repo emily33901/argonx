@@ -1,0 +1,11 @@
+# Put this next to the client.exe app
+
+[login]
+username="test"
+password="password"
+twofactor=""
+steamguard=""
+
+[rpc]
+# Response timeout in seconds
+responseTimeout = 5

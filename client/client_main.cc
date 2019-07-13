@@ -10,7 +10,8 @@
 
 std::chrono::time_point<std::chrono::system_clock> lastHeartbeatResponse;
 
-void CreateClientPipe() {
+void CreateClientPipe(int rpcTimeout) {
+    Steam::JobManager::SetResponseTimeout(rpcTimeout);
     Steam::SetClientPipe(new Pipe(false, "tcp://127.0.0.1:33901"));
     Steam::ClientPipe()->processMessage = [](Pipe::Target, u8 *data, u32 size) {
         printf("[clientpipe] size:%d\n", size);
@@ -49,7 +50,13 @@ using namespace Steam;
 
 int main(const int argCount, const char **argStrings) {
     printf("Waiting for server...\n");
-    CreateClientPipe();
+
+    const auto cfg = cpptoml::parse_file("argonx_client.toml");
+    const auto       timeout = cfg->get_qualified_as<int>("rpc.timeout");
+
+    Assert(timeout, "Client config invalid!");
+
+    CreateClientPipe(*timeout);
     bool        running = true;
     std::thread pipeThread{[&running]() {
         std::chrono::time_point<std::chrono::system_clock> lastHeartbeatSent{};
@@ -77,6 +84,7 @@ int main(const int argCount, const char **argStrings) {
                 // In this senario steam client sends and IpcFailure_t and the client is expected
                 // to reset their steam data and attempt to reconnect
                 // so there is nothing more that we need to do after that.
+                // ... Although it is more likely that the Rpc will figure that out first!
 
                 printf("Server is probably dead!\n");
             }
@@ -95,7 +103,6 @@ int main(const int argCount, const char **argStrings) {
     auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
     printf("clientUser is null? %s\n", !clientUser ? "True" : "False");
 
-    const auto cfg        = cpptoml::parse_file("argonx_client.toml");
     const auto username   = cfg->get_qualified_as<std::string>("login.username");
     const auto password   = cfg->get_qualified_as<std::string>("login.password");
     const auto twofactor  = cfg->get_qualified_as<std::string>("login.twofactor");
