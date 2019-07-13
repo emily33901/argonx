@@ -108,13 +108,30 @@ public:
             auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
             user->logonState = LogonState::loggedOn;
-        } else if (eresult == Argonx::EResult::Fail) {
+        } else if (eresult == Argonx::EResult::Fail ||
+                   eresult == Argonx::EResult::AccountLoginDeniedNeedTwoFactor ||
+                   eresult == Argonx::EResult::AccountLogonDenied) {
+            // After you fail a login you need to get a new cm
             c->TryAnotherCM();
-        } else if (eresult == Argonx::EResult::AccountLoginDeniedNeedTwoFactor) {
-            // needed = LogonNeeds::twoFactor;
-        } else if (eresult == Argonx::EResult::AccountLogonDenied) {
-            // needed = LogonNeeds::steamGuard;
         }
+    }
+
+    void LogonInternal() {
+        AssertServer();
+
+        logonState = LogonState::loggingOn;
+
+        CMsgClientLogon c;
+        c.set_account_name(username);
+        c.set_password(password);
+        c.set_protocol_version(65575);
+
+        if (steamGuardCode != "") c.set_two_factor_code(twoFactorCode.c_str());
+        if (twoFactorCode != "") c.set_auth_code(steamGuardCode.c_str());
+
+        // TODO: sha hash file
+
+        cmClient->WriteMessage(Argonx::EMsg::ClientLogon, c);
     }
 
 public:
@@ -136,23 +153,6 @@ public:
             bThread.join();
             delete cmClient;
         }
-    }
-
-    void LogonInternal() {
-        AssertServer();
-
-        logonState = LogonState::loggingOn;
-
-        CMsgClientLogon c;
-        c.set_account_name(username);
-        c.set_password(password);
-        c.set_protocol_version(65580);
-        c.set_two_factor_code(steamGuardCode.c_str());
-        c.set_auth_code(twoFactorCode.c_str());
-
-        // TODO: sha hash file
-
-        cmClient->WriteMessage(Argonx::EMsg::ClientLogon, c);
     }
 
     // Inherited via IClientUser
@@ -322,14 +322,26 @@ public:
     virtual unknown_ret RequestWebAuthToken() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetLoginInformation(char const *, char const *, bool) override {
-        return unknown_ret();
+    virtual void SetLoginInformation(char const *username, char const *password, bool rememberPassword) override {
+        RpcMakeCallIfClient(SetLoginInformation, user, username, password, rememberPassword) {
+            this->username = username;
+            this->password = password;
+
+            // TODO: rememberPassword?
+        }
     }
-    virtual unknown_ret SetTwoFactorCode(char const *) override {
-        return unknown_ret();
+    virtual void SetTwoFactorCode(char const *code) override {
+        RpcMakeCallIfClient(SetTwoFactorCode, user, code) {
+            twoFactorCode = code;
+        }
     }
-    virtual unknown_ret ClearAllLoginInformation() override {
-        return unknown_ret();
+    virtual void ClearAllLoginInformation() override {
+        RpcMakeCallIfClient(ClearAllLoginInformation, user, ) {
+            username       = "";
+            password       = "";
+            twoFactorCode  = "";
+            steamGuardCode = "";
+        }
     }
     virtual unknown_ret GetLanguage(char *, int) override {
         return unknown_ret();
@@ -658,8 +670,11 @@ public:
     virtual unknown_ret ChangeTwoFactorAuthOptions(int) override {
         return unknown_ret();
     }
-    virtual unknown_ret Set2ndFactorAuthCode(char const *, bool) override {
-        return unknown_ret();
+    virtual unknown_ret Set2ndFactorAuthCode(char const *code, bool a) override {
+        RpcMakeCallIfClient(Set2ndFactorAuthCode, user, code, a) {
+            steamGuardCode = code;
+            return unknown_ret();
+        }
     }
     virtual unknown_ret SetUserMachineName(char const *) override {
         return unknown_ret();
@@ -835,7 +850,7 @@ AdaptExposeClientServer(ClientUserMap, "SteamUser");
 
 // Handler registering
 RegisterHelperUnique(Argonx::EMsg::ClientLogOnResponse, ClientUserMap<true>::OnClientLogon);
-RegisterHelperUnique(Argonx::EMsg::ClientLogOnResponse, ClientUserMap<true>::OnMachineAuth);
+RegisterHelperUnique(Argonx::EMsg::ClientUpdateMachineAuth, ClientUserMap<true>::OnMachineAuth);
 
 using IClientUserMap = ClientUserMap<false>;
 
