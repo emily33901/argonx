@@ -34,6 +34,8 @@ void CMClient::HandleEncryptionResult(CMClient *c, size_t msgSize, Buffer &b, u6
 
         c->SetEncrypted(true);
 
+        c->SendQueuedMessages();
+
     } else {
         AssertAlways(0, "Encryption handshake failed");
     }

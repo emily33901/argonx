@@ -250,12 +250,17 @@ std::pair<const std::string, const std::string> CMClient::FindServer() {
 
 std::optional<TcpPacket> CMClient::ReadPacket() {
     TcpPacket p;
-    s.ReadStructure(p.header);
+    if (!nextPacketHeader.Valid()) {
+        if (!s.ReadStructure(p.header)) return std::nullopt;
+        if (!p.header.Valid()) return std::nullopt;
 
-    if (!p.header.Valid()) return std::nullopt;
+        nextPacketHeader = p.header;
+    } else {
+        p.header = nextPacketHeader;
+    }
 
     std::vector<u8> temp;
-    s.Read(temp, p.header.packetSize);
+    if (!s.Read(temp, p.header.packetSize)) return std::nullopt;
 
     if (encrypted) {
         Buffer t{temp};
@@ -263,6 +268,9 @@ std::optional<TcpPacket> CMClient::ReadPacket() {
     } else {
         p.body.Write(temp);
     }
+
+    // Make it invalid to force a new read
+    nextPacketHeader.magic = 0;
 
     return p;
 }
@@ -323,23 +331,33 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
 void CMClient::TryAnotherCM() {
     printf("Trying another CM...\n");
     SetEncrypted(false);
-    s = Socket(FindServer());
+    auto newSocket = Socket(FindServer());
+    s              = std::move(newSocket);
 }
 
 void CMClient::Run(const bool &run) {
-    // TODO: We REALLY need some non-blocking io functions
-    // So that we can just do runframe here and not block!
+    // TODO: some I/O functions are now non-blocking!
+    // So we should be able to change this behaviour!
     while (run) {
         auto p = ReadPacket();
 
         if (p.has_value()) ProcessPacket(p.value());
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+
+    printf("====> Run exited\n");
 }
 
 void CMClient::WriteMessage(MsgBuilder &b) {
     auto &body = b.GetBody();
 
-    if (encrypted) crypt.SymetricEncrypt(body, body);
+    if (encrypted) {
+        crypt.SymetricEncrypt(body, body);
+    } else if (IsProto(b.msg)) {
+        msgQueue.push_back(b);
+        return;
+    }
 
     s.Write((u32)body.Storage().size());
     s.Write(0x31305456); // VT01 magic
@@ -363,4 +381,10 @@ void CMClient::ResetClientHeartbeat(std::chrono::milliseconds d) {
     clientHeartbeatFunction.Stop();
     clientHeartbeatFunction.Delay(d);
     clientHeartbeatFunction.Start();
+}
+void CMClient::SendQueuedMessages() {
+    for (auto &m : msgQueue) {
+        WriteMessage(m);
+    }
+    msgQueue.clear();
 }

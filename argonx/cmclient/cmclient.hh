@@ -55,9 +55,12 @@ public:
 };
 
 class CMClient {
+    bool      encrypted = false;
+    Socket    s;
+    TcpHeader nextPacketHeader;
 
-    bool   encrypted = false;
-    Socket s;
+    // Queue of messages until we are encrypted
+    std::vector<MsgBuilder> msgQueue;
 
     static std::pair<const std::string, const std::string> FindServer();
 
@@ -89,11 +92,14 @@ public:
 
     void Run(const bool &run = true);
 
-    void SetEncrypted(bool t) { encrypted = t; }
-
     void WriteMessage(MsgBuilder &b);
     void WriteMessage(EMsg t, const ::google::protobuf::Message &message, u64 jobId = 0);
-    void TryAnotherCM();
+
     void ResetClientHeartbeat(std::chrono::milliseconds delay);
+    void TryAnotherCM();
+
+private:
+    void SetEncrypted(bool t) { encrypted = t; }
+    void SendQueuedMessages();
 };
 } // namespace Argonx
