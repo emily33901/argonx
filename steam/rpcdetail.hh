@@ -305,7 +305,7 @@ struct _ReadBuffers<Args, idx, std::tuple<T, T1>> {
             auto &size = std::get<(idx + 1)>(args);
             ptr        = (u8 *)malloc(size);
 
-            b.ReadInto(std::make_pair(ptr, std::get<(idx + 1)>(args)));
+            b.ReadInto(std::make_pair(ptr, size));
         }
     }
 };
@@ -322,7 +322,7 @@ struct _ReadBuffers<Args, idx, std::tuple<T, T1, Ts...>> {
             auto &size = std::get<(idx + 1)>(args);
             ptr        = malloc(size);
 
-            b.ReadInto(std::make_pair(ptr, std::get<(idx + 1)>(args)));
+            b.ReadInto(std::make_pair(ptr, size));
         }
 
         Base::Read(b, args);

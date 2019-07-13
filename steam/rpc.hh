@@ -54,6 +54,7 @@ i64    GetNextJobId();
 i64    GetNextNonCallJobId();
 void   PostResult(i64 jobId, Buffer &result);
 Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn);
+void   SetResponseTimeout(int seconds);
 } // namespace JobManager
 
 // Non-templated base for making rpc calls.
@@ -105,22 +106,30 @@ public:
     Return Call(Pipe::Target handle, Pipe &p, Steam::UserHandle userHandle) {
         Buffer b;
 
+        // Write all of the stuff that we need to send down the rpc
         Detail::WriteBuffers(b, args);
         Detail::WriteRealArgsToBuffer(b, args);
         Detail::WriteOutParams(b, args);
 
-        if constexpr (!std::is_same_v<Return, void>) {
-            Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true, userHandle);
-
-            Defer(Detail::SetOutVariables(r, args));
-
-            return r.template Read<Return>();
-        } else if constexpr (!std::is_same_v<OutParams, std::tuple<>>) {
+        if constexpr (std::is_same_v<Return, void> && std::is_same_v<OutParams, std::tuple<>>) {
             MakeRpcCall(b, handle, p, dispatchPosition, false, userHandle);
         } else {
             Buffer r = MakeRpcCall(b, handle, p, dispatchPosition, true, userHandle);
 
-            Detail::SetOutVariables(r, args);
+            if (r.Size() == 0) {
+                // Rpc pipe broke
+                if constexpr (std::is_same_v<Return, const char *>)
+                    return "";
+                else
+                    return Return{};
+            }
+
+            Defer(Detail::SetOutVariables(r, args));
+
+            if constexpr (std::is_same_v<Return, void>)
+                return;
+            else
+                return r.template Read<Return>();
         }
     }
 };
