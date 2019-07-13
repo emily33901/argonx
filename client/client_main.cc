@@ -2,9 +2,13 @@
 
 #include <thread>
 
+#include <cpptoml/include/cpptoml.h>
+
 #include "../steam/interfaces/helpers.hh"
 
 #include "ipc.hh"
+
+std::chrono::time_point<std::chrono::system_clock> lastHeartbeatResponse;
 
 void CreateClientPipe() {
     Steam::SetClientPipe(new Pipe(false, "tcp://127.0.0.1:33901"));
@@ -19,9 +23,13 @@ void CreateClientPipe() {
         auto jobId = b.Read<i64>();
 
         if (jobId < 0) {
+            printf("Recieved heartbeat response from server\n");
             auto header = b.Read<Steam::RpcNonCallHeader>();
 
             switch (header.t) {
+            case Steam::RpcType::heartbeat: {
+                lastHeartbeatResponse = std::chrono::system_clock::now();
+            } break;
             }
         } else {
             b.SetBaseAtCurPos();
@@ -44,14 +52,14 @@ int main(const int argCount, const char **argStrings) {
     CreateClientPipe();
     bool        running = true;
     std::thread pipeThread{[&running]() {
-        std::chrono::time_point<std::chrono::system_clock> t{};
+        std::chrono::time_point<std::chrono::system_clock> lastHeartbeatSent{};
         while (running) {
             Steam::ClientPipe()->ProcessMessages();
 
             using namespace std::chrono_literals;
             std::this_thread::sleep_for(1ms);
 
-            if ((std::chrono::system_clock::now() - t) > 20s) {
+            if ((std::chrono::system_clock::now() - lastHeartbeatSent) > 20s) {
                 auto b = Buffer{
                     Steam::JobManager::GetNextNonCallJobId(),
                     Steam::RpcNonCallHeader{Steam::RpcType::heartbeat},
@@ -59,7 +67,18 @@ int main(const int argCount, const char **argStrings) {
                 b.SetPos(0);
                 Steam::ClientPipe()->SendMessage(0, b.Read(0), b.Size());
 
-                t = std::chrono::system_clock::now();
+                // Update the timepoints
+                lastHeartbeatSent     = std::chrono::system_clock::now();
+                lastHeartbeatResponse = lastHeartbeatSent;
+            } else if (lastHeartbeatSent == lastHeartbeatResponse &&
+                       std::chrono::system_clock::now() - lastHeartbeatResponse > 15s) {
+                // Server died?
+
+                // In this senario steam client sends and IpcFailure_t and the client is expected
+                // to reset their steam data and attempt to reconnect
+                // so there is nothing more that we need to do after that.
+
+                printf("Server is probably dead!\n");
             }
         }
     }};
@@ -76,8 +95,21 @@ int main(const int argCount, const char **argStrings) {
     auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
     printf("clientUser is null? %s\n", !clientUser ? "True" : "False");
 
+    const auto cfg        = cpptoml::parse_file("argonx_client.toml");
+    const auto username   = cfg->get_qualified_as<std::string>("login.username");
+    const auto password   = cfg->get_qualified_as<std::string>("login.password");
+    const auto twofactor  = cfg->get_qualified_as<std::string>("login.twofactor");
+    const auto steamguard = cfg->get_qualified_as<std::string>("login.steamguard");
+
+    Assert(username && password && twofactor && steamguard, "client config is invalid");
+
+    clientUser->SetTwoFactorCode(twofactor->c_str());
+    clientUser->Set2ndFactorAuthCode(steamguard->c_str(), false);
+
+    clientUser->LogOnWithPassword(username->c_str(), password->c_str());
+
 #if 1
-    std::this_thread::sleep_for(std::chrono::seconds(30));
+    std::this_thread::sleep_for(std::chrono::seconds(60));
 #endif
 
     clientUser->BConnected();

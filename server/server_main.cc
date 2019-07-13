@@ -51,6 +51,9 @@ void CreateServerPipe() {
             case Steam::RpcType::heartbeat: {
                 printf("Recieved Heartbeat from %d\n", target);
                 heartbeats[target] = std::chrono::system_clock::now();
+
+                // Send it straight back
+                Steam::ServerPipe()->SendMessage(target, data, size);
             } break;
             }
         } else {
