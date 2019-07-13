@@ -8,13 +8,13 @@
 
 #include "ipc.hh"
 
-std::chrono::time_point<std::chrono::system_clock> lastHeartbeatResponse;
-
 void CreateClientPipe(int rpcTimeout) {
     Steam::JobManager::SetResponseTimeout(rpcTimeout);
     Steam::SetClientPipe(new Pipe(false, "tcp://127.0.0.1:33901"));
     Steam::ClientPipe()->processMessage = [](Pipe::Target, u8 *data, u32 size) {
-        printf("[clientpipe] size:%d\n", size);
+        LOG_SCOPE_F(INFO, "Client message");
+
+        LOG_F(INFO, "size:%d", size);
 
         // Assume rpc job
         Buffer b;
@@ -24,12 +24,11 @@ void CreateClientPipe(int rpcTimeout) {
         auto jobId = b.Read<i64>();
 
         if (jobId < 0) {
-            printf("Recieved heartbeat response from server\n");
+            LOG_F(INFO, "Recieved heartbeat response from server");
             auto header = b.Read<Steam::RpcNonCallHeader>();
 
             switch (header.t) {
             case Steam::RpcType::heartbeat: {
-                lastHeartbeatResponse = std::chrono::system_clock::now();
             } break;
             }
         } else {
@@ -48,18 +47,26 @@ using namespace Steam;
 #include "SteamStructs/IClientUser.h"
 } // namespace Reference
 
-int main(const int argCount, const char **argStrings) {
-    printf("Waiting for server...\n");
+int main(int argCount, char **argStrings) {
+    loguru::init(argCount, argStrings);
 
-    const auto cfg = cpptoml::parse_file("argonx_client.toml");
-    const auto       timeout = cfg->get_qualified_as<int>("rpc.timeout");
+    loguru::add_file("everything.log", loguru::Append, loguru::Verbosity_MAX);
+    loguru::add_file("latest_readable.log", loguru::Truncate, loguru::Verbosity_INFO);
+
+    // Only show most relevant things on stderr:
+    loguru::g_stderr_verbosity = 1;
+
+    LOG_F(INFO, "Waiting for server...");
+
+    const auto cfg     = cpptoml::parse_file("argonx_client.toml");
+    const auto timeout = cfg->get_qualified_as<int>("rpc.timeout");
 
     Assert(timeout, "Client config invalid!");
 
     CreateClientPipe(*timeout);
     bool        running = true;
     std::thread pipeThread{[&running]() {
-        std::chrono::time_point<std::chrono::system_clock> lastHeartbeatSent{};
+        std::chrono::time_point<std::chrono::system_clock> lastHeartbeatSent;
         while (running) {
             Steam::ClientPipe()->ProcessMessages();
 
@@ -76,17 +83,6 @@ int main(const int argCount, const char **argStrings) {
 
                 // Update the timepoints
                 lastHeartbeatSent     = std::chrono::system_clock::now();
-                lastHeartbeatResponse = lastHeartbeatSent;
-            } else if (lastHeartbeatSent == lastHeartbeatResponse &&
-                       std::chrono::system_clock::now() - lastHeartbeatResponse > 15s) {
-                // Server died?
-
-                // In this senario steam client sends and IpcFailure_t and the client is expected
-                // to reset their steam data and attempt to reconnect
-                // so there is nothing more that we need to do after that.
-                // ... Although it is more likely that the Rpc will figure that out first!
-
-                printf("Server is probably dead!\n");
             }
         }
     }};
@@ -98,10 +94,10 @@ int main(const int argCount, const char **argStrings) {
 
     bool isValid = clientEngine->IsValidHSteamUserPipe(pipeHandle, userHandle);
 
-    printf("Are pipe and user valid: %s\n", isValid ? "Yes" : "No");
+    LOG_F(INFO, "Are pipe and user valid: %s", isValid ? "Yes" : "No");
 
     auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
-    printf("clientUser is null? %s\n", !clientUser ? "True" : "False");
+    LOG_F(INFO, "clientUser is null? %s", !clientUser ? "True" : "False");
 
     const auto username   = cfg->get_qualified_as<std::string>("login.username");
     const auto password   = cfg->get_qualified_as<std::string>("login.password");
@@ -123,34 +119,6 @@ int main(const int argCount, const char **argStrings) {
 
     clientEngine->ReleaseUser(pipeHandle, userHandle);
     clientEngine->BReleaseSteamPipe(pipeHandle);
-
-#if 0
-    // Using the steamclient interface
-    void *clientUtils = Steam::CreateInterfaceWithUser("SteamUtils009", 15);
-    auto  utils       = (ISteamUtils009 *)clientUtils;
-
-    uptr r;
-    r = utils->GetSecondsSinceAppActive();
-    printf("r is %ld\n", r);
-    r = utils->GetAPICallFailureReason(0xCCFFCCFFAABBAABB);
-    printf("r is %ld\n", r);
-
-    r = utils->CheckFileSignature("wow nice meme");
-    printf("r is %ld\n", r);
-
-    const char *country = utils->GetIPCountry();
-    printf("country is %s\n", country);
-    u32 w, h;
-    utils->GetImageSize(0, &w, &h);
-    printf("w is %d, h is %d\n", w, h);
-
-    u8 buffer[10];
-    memset(buffer, 0xDE, sizeof(buffer));
-    utils->GetImageRGBA(15, buffer, 10);
-    buffer[9] = '\0';
-    printf("Buffer is \"%s\"\n", buffer);
-
-#endif
 
     running = false;
     pipeThread.join();

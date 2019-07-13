@@ -110,7 +110,7 @@ Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn) {
     // disapointment - but we have to bear with and get back to them with a result
 
     // TODO: raise IpcFailure_t
-    printf("!! Rpc pipe is broken\n");
+    LOG_F(ERROR, "!! Rpc pipe is broken\n");
 
     // Return an empty buffer that signals that we didnt get a result from the pipe
     return {};

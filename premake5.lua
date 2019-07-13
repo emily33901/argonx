@@ -84,7 +84,7 @@ workspace "workspace"
         filter {}
         pchsource "client/precompiled.cc"
 
-        filter {"files:**.pb.cc"}
+        filter {"files:**.pb.cc or files:**.cpp"}
             flags { "NoPCH" }
             warnings "off"
         filter {}
@@ -115,11 +115,12 @@ workspace "workspace"
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
-                "argonx/**.cc", "argonx/**.hh"
+                "argonx/**.cc", "argonx/**.hh",
+                "external/loguru/loguru.cpp"
             }
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread", "protobuf", "archive", "zmq"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl"}
         filter {"system:windows"}
             links {"cryptopp-static"}
         filter {}
@@ -154,7 +155,7 @@ workspace "workspace"
         filter {}
         pchsource "server/precompiled.cc"
 
-        filter {"files:**.pb.cc"}
+        filter {"files:**.pb.cc or files:**.cpp"}
             flags { "NoPCH" }
             warnings "off"
         filter {}
@@ -185,11 +186,12 @@ workspace "workspace"
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
-                "argonx/**.cc", "argonx/**.hh"
+                "argonx/**.cc", "argonx/**.hh",
+                "external/loguru/loguru.cpp"
             }
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread", "protobuf", "archive", "zmq"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl"}
         filter {"system:windows"}
             links {"cryptopp-static"}
         filter {}
@@ -212,7 +214,6 @@ workspace "workspace"
                 "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"
             }
 
-
     project "tests"
         kind "ConsoleApp"
         language "C++"
@@ -226,7 +227,7 @@ workspace "workspace"
 
         pchsource "tests/precompiled.cc"
 
-        filter {"files:**.pb.cc"}
+        filter {"files:**.pb.cc or files:**.cpp"}
             flags { "NoPCH" }
             warnings "off"
         filter {}
@@ -236,8 +237,13 @@ workspace "workspace"
         filter {}
 
         includedirs {"external", "steam", "tests", "common", "."}
-        files {"common/**.cc", "tests/**.cc", "tests/**.hh", "steam/interfaces/helpers.cc", "steam/interfaces/createinterface.cc"}
+        files { "common/**.cc", "common/**.hh",
+                "tests/**.cc", "tests/**.hh", 
+                "steam/interfaces/helpers.cc", 
+                "steam/interfaces/createinterface.cc", 
+                "external/loguru/loguru.cpp"
+              }
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread", "protobuf", "archive", "zmq"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl"}
         filter {}

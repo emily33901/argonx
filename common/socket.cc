@@ -38,7 +38,7 @@ Socket::Socket(const std::string &address, const std::string &port) {
         WSADATA wsaData;
         auto    result = WSAStartup(MAKEWORD(2, 2), &wsaData);
         if (result != 0) {
-            printf("WSAStartup failed: %d\n", result);
+            LOG_F(ERROR, "WSAStartup failed: %d", result);
             valid = false;
             return;
         }
@@ -56,7 +56,7 @@ Socket::Socket(const std::string &address, const std::string &port) {
     { // Resolve the server address and port
         auto result = getaddrinfo(address.c_str(), port.c_str(), &hints, &addr);
         if (result != 0) {
-            printf("getaddrinfo failed: %d\n", result);
+            LOG_F(ERROR, "getaddrinfo failed: %d", result);
 
             valid = false;
             return;
@@ -81,7 +81,7 @@ Socket::Socket(const std::string &address, const std::string &port) {
         freeaddrinfo(addr);
 
         if (socket == INVALID_SOCKET) {
-            printf("Unable to connect to server!\n");
+            LOG_F(ERROR, "Unable to connect to server!");
             return;
         }
 
@@ -169,7 +169,7 @@ void Socket::WriteUnsafe(const u8 *buffer, unsigned length) {
 
     if (length == 0) return;
 
-    Assert(0, "Failed to correctly send all data");
+    Assert(false, "Failed to correctly send all data");
 }
 
 void Socket::Write(const std::vector<u8> &bytes) {

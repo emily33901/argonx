@@ -276,6 +276,8 @@ std::optional<TcpPacket> CMClient::ReadPacket() {
 }
 
 bool CMClient::ProcessPacket(TcpPacket &p) {
+    LOG_SCOPE_F(INFO, "Process Packet");
+
     p.body.SetPos(0);
     auto rawMessage = p.body.Read<u32>();
     p.body.SetPos(0);
@@ -283,7 +285,7 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
     auto isProto = IsProto(rawMessage);
     auto message = RawMsg(rawMessage);
 
-    printf("[Packet] msg:%s%d size:%d bsize:%lu\n", isProto ? "p" : "", message, p.header.packetSize, p.body.Size());
+    LOG_F(INFO, "msg:%s%d size:%d bsize:%lu", isProto ? "p" : "", message, p.header.packetSize, p.body.Size());
 
     // TODO: WE NEED A JOB HANDLER!
     // We should really pass the jobid along to the handlers so that they know what job theyre dealing with and can
@@ -309,7 +311,7 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
     } else {
         MsgHdrProtoBuf msgHeader;
         msgHeader.FromBuffer(p.body);
-        // printf("Header length: %d\n", msgHeader.headerLength);
+        // LOG_F(INFO, "Header length: %d", msgHeader.headerLength);
 
         CMsgProtoBufHeader protoHeader;
         protoHeader.ParseFromArray(p.body.Read(msgHeader.headerLength), msgHeader.headerLength);
@@ -329,7 +331,7 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
 }
 
 void CMClient::TryAnotherCM() {
-    printf("Trying another CM...\n");
+    LOG_F(INFO, "Trying another CM...");
     SetEncrypted(false);
     auto newSocket = Socket(FindServer());
     s              = std::move(newSocket);
@@ -346,7 +348,7 @@ void CMClient::Run(const bool &run) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    printf("====> Run exited\n");
+    LOG_F(INFO, "====> Run exited");
 }
 
 void CMClient::WriteMessage(MsgBuilder &b) {
@@ -371,13 +373,13 @@ void CMClient::WriteMessage(EMsg t, const ::google::protobuf::Message &message, 
 }
 
 void CMClient::SendClientHeartbeat() {
-    printf("Sending heartbeat!\n");
+    LOG_F(INFO, "Sending heartbeat!");
     MsgBuilder b{EMsg::ClientHeartBeat, CMsgClientHeartBeat{}, sessionId, steamId};
     WriteMessage(b);
 }
 
 void CMClient::ResetClientHeartbeat(std::chrono::milliseconds d) {
-    printf("Out of game heartbeat is %llu seconds\n", d.count());
+    LOG_F(INFO, "Out of game heartbeat is %llu seconds", d.count());
     clientHeartbeatFunction.Stop();
     clientHeartbeatFunction.Delay(d);
     clientHeartbeatFunction.Start();

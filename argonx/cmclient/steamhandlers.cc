@@ -27,7 +27,7 @@ void SteamMessageHandler::ProcessMessage(CMClient *c, EMsg msg, u32 msgSize, Buf
         return (*handler)(c, msgSize, b, jobId);
     }
 
-    printf("No handler for emsg: %d\n", msg);
+    LOG_F(WARNING, "No handler for emsg: %d", msg);
 }
 
 RegisterHelper::RegisterHelper(EMsg msg, const Handler &&h) {

@@ -91,14 +91,14 @@ public:
 
         // TODO: write sha file to disk
 
-        printf("[%d] OnMachineAuth\n", userHandle);
+        // printf("[%d] OnMachineAuth", userHandle);
     }
 
     static void OnClientLogon(Argonx::CMClient *c, size_t msgSize, Buffer &b, u64 jobId) {
         auto logonResp = b.ReadAsProto<CMsgClientLogonResponse>(msgSize);
         auto eresult   = static_cast<Argonx::EResult>(logonResp.eresult());
 
-        printf("Logon result: %d\n", eresult);
+        LOG_F(INFO, "Logon result: %d", eresult);
 
         if (eresult == Argonx::EResult::OK) {
             c->ResetClientHeartbeat(
@@ -137,8 +137,7 @@ public:
 public:
     ClientUserMap(UserHandle h) : userHandle(h) {
         RpcRunOnServer() {
-            logonState = LogonState::loggedOff;
-            printf("-- constructing cmclient\n");
+            logonState                 = LogonState::loggedOff;
             cmClient                   = new Argonx::CMClient();
             userHandleLookup[cmClient] = h;
             bThread                    = std::thread{backgroundThread, cmClient, std::ref(threadRunning)};
@@ -148,7 +147,6 @@ public:
     ~ClientUserMap() {
         RpcRunOnServer() {
             Defer(userHandleLookup.erase(cmClient));
-            printf("-- destructing cmclient\n");
             threadRunning = false;
             bThread.join();
             delete cmClient;

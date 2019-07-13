@@ -13,7 +13,7 @@ using namespace SteamMessageHandler;
 void CMClient::HandleEncryptionRequest(CMClient *c, size_t msgSize, Buffer &request_body, u64 jobId) {
     MsgChannelEncryptRequest r;
     r.FromBuffer(request_body);
-    printf("proto: %d, universe: %d\n", r.protocolVersion, r.universe);
+    LOG_F(INFO, "proto: %d, universe: %d", r.protocolVersion, r.universe);
 
     MsgBuilder w{EMsg::ChannelEncryptResponse};
 
@@ -30,7 +30,7 @@ void CMClient::HandleEncryptionResult(CMClient *c, size_t msgSize, Buffer &b, u6
     r.FromBuffer(b);
 
     if ((EResult)r.result == EResult::OK) {
-        printf("Encryption handshake successful\n");
+        LOG_F(INFO, "Encryption handshake successful");
 
         c->SetEncrypted(true);
 

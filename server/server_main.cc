@@ -34,7 +34,8 @@ static std::unordered_map<Pipe::Target, std::chrono::time_point<std::chrono::sys
 void CreateServerPipe() {
     Steam::SetServerPipe(new Pipe(true, "tcp://127.0.0.1:33901", 33901));
     Steam::ServerPipe()->processMessage = [](Pipe::Target target, u8 *data, u32 size) {
-        printf("[serverpipe] size:%d\n", size);
+        LOG_SCOPE_F(INFO, "Server Message");
+        LOG_F(INFO, "size:%d", size);
 
         Buffer b;
         b.Write(std::make_pair(data, size));
@@ -43,13 +44,13 @@ void CreateServerPipe() {
         i64 jobId = b.Read<i64>();
 
         if (jobId < 0) {
-            printf("Recieved non-call job %lld\n", jobId);
+            LOG_F(INFO, "Recieved non-call job %lld", jobId);
             // Non-call job
             auto header = b.Read<Steam::RpcNonCallHeader>();
 
             switch (header.t) {
             case Steam::RpcType::heartbeat: {
-                printf("Recieved Heartbeat from %d\n", target);
+                LOG_F(INFO, "Recieved Heartbeat from %d", target);
                 heartbeats[target] = std::chrono::system_clock::now();
 
                 // Send it straight back
@@ -60,7 +61,7 @@ void CreateServerPipe() {
             Steam::RpcCallHeader header;
             b.ReadInto(header);
 
-            printf("userHandle:%d\n", header.userHandle);
+            LOG_F(INFO, "userHandle:%d", header.userHandle);
 
             void *instance = nullptr;
 
@@ -91,7 +92,7 @@ void CreateServerPipe() {
             // which will deserialise the args call the function and then serialise the results
             b = fn(instance, header.functionIndex, b);
 
-            printf("Target:%s index:%d\n", Steam::InterfaceName(header.targetInterface), header.functionIndex);
+            LOG_F(INFO, "Target:%s index:%d", Steam::InterfaceName(header.targetInterface), header.functionIndex);
 
             // Paste the jobid back onto the front of the buffer and send it back
             b.SetPos(0);
@@ -103,7 +104,18 @@ void CreateServerPipe() {
     };
 }
 
-int main(const int argCount, const char **argStrings) {
+int main(int argCount, char **argStrings) {
+    loguru::init(argCount, argStrings);
+
+    // Put every log message in "everything.log":
+    loguru::add_file("everything.log", loguru::Append, loguru::Verbosity_MAX);
+
+    // Only log INFO, WARNING, ERROR and FATAL to "latest_readable.log":
+    loguru::add_file("latest_readable.log", loguru::Truncate, loguru::Verbosity_INFO);
+
+    // Only show most relevant things on stderr:
+    loguru::g_stderr_verbosity = 1;
+
     CreateNoUserInterfaceStorage();
 
     CreateServerPipe();
@@ -123,7 +135,7 @@ int main(const int argCount, const char **argStrings) {
 
                 for (auto &[k, v] : heartbeats) {
                     if ((now - v) > 2min) {
-                        printf("Dropping client %d\n", k);
+                        LOG_F(INFO, "Dropping client %d", k);
                         Steam::ServerPipe()->ClientDisconnected(k);
                         keysToErase.push_back(k);
                     }
@@ -136,14 +148,14 @@ int main(const int argCount, const char **argStrings) {
         }};
 
 #if 0
-    printf("%d trampolines allocated (%d bytes)...\n",
+    LOG_F(INFO, "%d trampolines allocated (%d bytes)...",
            Steam::InterfaceHelpers::TAllocator()->NumAllocated(),
            Steam::InterfaceHelpers::TAllocator()->BytesAllocated());
 
     {
         u32 counter = 0;
         for (auto &p : Steam::RpcDispatches()) {
-            printf("%d: %s\n", counter++, p.second);
+            LOG_F(INFO, "%d: %s", counter++, p.second);
         }
     }
     {
@@ -154,10 +166,10 @@ int main(const int argCount, const char **argStrings) {
 
         for (auto cur = head; cur != nullptr; cur = cur->next) {
             total += 1;
-            printf("[I%s] %s\n", cur->requiresUser ? "u" : " ", cur->name);
+            LOG_F(INFO, "[I%s] %s", cur->requiresUser ? "u" : " ", cur->name);
         }
 
-        printf("[I] %d total interfaces\n", total);
+        LOG_F(INFO, "[I] %d total interfaces", total);
     }
 
     CreateClientPipe();
@@ -171,7 +183,7 @@ int main(const int argCount, const char **argStrings) {
     }};
 #endif
 
-    printf("Server started...\n");
+    LOG_F(INFO, "Server started...");
 
     // Dont try and exit
     serverThread.join();

@@ -22,7 +22,7 @@ Pipe::Pipe(bool isServer, const char *serverAddr, u16 basePort) : isServer(isSer
         try {
             sock->bind(serverAddr);
         } catch (zmq::error_t &e) {
-            Assert(0, "ZMQ Error: %s\n", e.what());
+            Assert(false, "ZMQ Error: %s\n", e.what());
         }
     } else {
         // Request a new socket from server
@@ -31,7 +31,7 @@ Pipe::Pipe(bool isServer, const char *serverAddr, u16 basePort) : isServer(isSer
         try {
             sock->connect(serverAddr);
         } catch (zmq::error_t &e) {
-            Assert(0, "ZMQ Error: %s\n", e.what());
+            Assert(false, "ZMQ Error: %s\n", e.what());
         }
 
         sock->send(&magic, sizeof(magic));
@@ -50,7 +50,7 @@ Pipe::Pipe(bool isServer, const char *serverAddr, u16 basePort) : isServer(isSer
         try {
             sock->connect(p.address);
         } catch (zmq::error_t &e) {
-            Assert(0, "ZMQ Error: %s\n", e.what());
+            Assert(false, "ZMQ Error: %s\n", e.what());
         }
 
         id = p.id;
@@ -89,7 +89,7 @@ void Pipe::ProcessMessages() {
             try {
                 s->bind(newAddr.c_str());
             } catch (zmq::error_t &e) {
-                Assert(0, "ZMQ Error: %s\n", e.what());
+                Assert(false, "ZMQ Error: %s\n", e.what());
             }
 
             childSockets.push_back(s);

@@ -19,3 +19,6 @@
 [submodule "external/VDF"]
 	path = external/VDF
 	url = https://github.com/TinyTinni/ValveFileVDF.git
+[submodule "external/loguru"]
+	path = external/loguru
+	url = https://github.com/emilk/loguru.git

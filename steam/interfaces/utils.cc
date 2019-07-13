@@ -125,7 +125,6 @@ public:
     }
     virtual unknown_ret CheckFileSignature(char const *filename) override {
         RpcMakeCallIfClient(CheckFileSignature, utils, filename) {
-            printf(">>>>> CheckFileSignature SERVER a is %s\n", filename);
 
             return strlen(filename);
         }

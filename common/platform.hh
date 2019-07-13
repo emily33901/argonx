@@ -16,6 +16,14 @@ using i32  = std::int32_t;
 using i64  = std::int64_t;
 using iptr = std::intptr_t;
 
+// These assertion macros require loguru
+#include <external/loguru/loguru.hpp>
+
+#if 1
+#define AssertImpl(f, exp, ...) \
+    f(!!(exp), __VA_ARGS__)
+#else
+// Old assert impl (Wont work with new Assert() and AssertAlways())
 #if defined(ARGONX_WIN)
 #define AssertImpl(exp, message, ...)                                      \
     if (!(exp)) {                                                          \
@@ -25,7 +33,7 @@ using iptr = std::intptr_t;
     }
 #elif defined(ARGONX_UNIX)
 #define AssertImpl(exp, message, ...)                                        \
-    if (!!!(exp)) {                                                          \
+    if (!(exp)) {                                                            \
         _Pragma("GCC diagnostic push");                                      \
         _Pragma("GCC diagnostic ignored \"-Wformat\"");                      \
         printf(__FILE__ ":%d: " #message "\n", __LINE__ - 1, ##__VA_ARGS__); \
@@ -34,13 +42,14 @@ using iptr = std::intptr_t;
         _Pragma("GCC diagnostic pop");                                       \
     }
 #endif
+#endif
 
 #if defined(_DEBUG)
-#define Assert AssertImpl
-#define AssertAlways AssertImpl
+#define Assert(exp, ...) AssertImpl(DCHECK_F, exp, __VA_ARGS__)
+#define AssertAlways(exp, ...) AssertImpl(CHECK_F, exp, __VA_ARGS__)
 #else
 #define Assert(exp, message, ...) assert(exp)
-#define AssertAlways AssertImpl
+#define AssertAlways AssertImpl(CHECK_F, __VA_ARGS__)
 #endif
 
 #define Macro_ConcatenateDetail(x, y) x##y
