@@ -12,8 +12,47 @@ local function get_vcpkg_root()
 end
 
 local vcpkg_root = (get_vcpkg_root())
-
 print("vcpkg root is \"" .. vcpkg_root .. "\"")
+
+local function vcpkg_common()
+    filter {"system:windows", "platforms:x64"}
+        includedirs{vcpkg_root .. "installed\\x64-windows\\include"}
+    filter {"system:windows", "platforms:x32"}
+        includedirs{vcpkg_root .. "installed\\x86-windows\\include"}
+    filter {}
+
+    filter {"system:windows", "platforms:x64", "configurations:Debug"}
+        libdirs {vcpkg_root .. "installed\\x64-windows\\debug\\lib"}
+    filter {"system:windows", "platforms:x32", "configurations:Debug"}
+        libdirs {vcpkg_root .. "installed\\x86-windows\\debug\\lib"}
+    filter {}
+
+    filter {"system:windows", "platforms:x64", "configurations:Release"}
+        libdirs {vcpkg_root .. "installed\\x64-windows\\lib"}
+    filter {"system:windows", "platforms:x32", "configurations:Debug"}
+        libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
+    filter {}
+end
+
+local function copy_compile_commands()
+    -- For moving the compile commands into the root directory of the project
+    -- so that autocomplete tools can see them (cquery...)
+    
+    -- This is messy but was the only way to get it to work consistently
+    -- across multiple platforms (circleci, windows 10, vsts...)
+    filter "system:linux"
+        prebuildcommands  {
+            "{MKDIR} %{wks.location}/compile_commands/",
+            "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
+            "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json"
+        }
+    filter "system:windows"
+        prebuildcommands  {
+            "cmd.exe /c \"" .. "{MKDIR} %{wks.location}/compile_commands/",
+            "cmd.exe /c \""  .. "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
+            "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"
+        }
+end
 
 workspace "workspace"
     configurations { "Debug", "Release" }
@@ -89,23 +128,7 @@ workspace "workspace"
             warnings "off"
         filter {}
 
-        filter {"system:windows", "platforms:x64"}
-            includedirs{vcpkg_root .. "installed\\x64-windows\\include"}
-        filter {"system:windows", "platforms:x32"}
-            includedirs{vcpkg_root .. "installed\\x86-windows\\include"}
-        filter {}
-
-        filter {"system:windows", "platforms:x64", "configurations:Debug"}
-            libdirs {vcpkg_root .. "installed\\x64-windows\\debug\\lib"}
-        filter {"system:windows", "platforms:x32", "configurations:Debug"}
-            libdirs {vcpkg_root .. "installed\\x86-windows\\debug\\lib"}
-        filter {}
-
-        filter {"system:windows", "platforms:x64", "configurations:Release"}
-            libdirs {vcpkg_root .. "installed\\x64-windows\\lib"}
-        filter {"system:windows", "platforms:x32", "configurations:Debug"}
-            libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
-        filter {}
+        vcpkg_common()
         
         includedirs { "client", "protogen", "common", "external", "external/OpenSteamworks", "." }
 
@@ -125,23 +148,7 @@ workspace "workspace"
             links {"cryptopp-static"}
         filter {}
 
-        -- For moving the compile commands into the root directory of the project
-        -- so that autocomplete tools can see them (cquery...)
-        
-        -- This is messy but was the only way to get it to work consistently
-        -- across multiple platforms (circleci, windows 10, vsts...)
-        filter "system:linux"
-            prebuildcommands  {
-                "{MKDIR} %{wks.location}/compile_commands/",
-                "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
-                "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json"
-            }
-        filter "system:windows"
-            prebuildcommands  {
-                "cmd.exe /c \"" .. "{MKDIR} %{wks.location}/compile_commands/",
-                "cmd.exe /c \""  .. "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
-                "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"
-            }
+        copy_compile_commands()
 
     project "server"
         kind "ConsoleApp"
@@ -160,23 +167,7 @@ workspace "workspace"
             warnings "off"
         filter {}
 
-        filter {"system:windows", "platforms:x64"}
-            includedirs{vcpkg_root .. "installed\\x64-windows\\include"}
-        filter {"system:windows", "platforms:x32"}
-            includedirs{vcpkg_root .. "installed\\x86-windows\\include"}
-        filter {}
-
-        filter {"system:windows", "platforms:x64", "configurations:Debug"}
-            libdirs {vcpkg_root .. "installed\\x64-windows\\debug\\lib"}
-        filter {"system:windows", "platforms:x32", "configurations:Debug"}
-            libdirs {vcpkg_root .. "installed\\x86-windows\\debug\\lib"}
-        filter {}
-
-        filter {"system:windows", "platforms:x64", "configurations:Release"}
-            libdirs {vcpkg_root .. "installed\\x64-windows\\lib"}
-        filter {"system:windows", "platforms:x32", "configurations:Debug"}
-            libdirs {vcpkg_root .. "installed\\x86-windows\\lib"}
-        filter {}
+        vcpkg_common()
         
         includedirs { "server", "protogen", "common", "external", "external/OpenSteamworks", "." }
 
@@ -196,23 +187,7 @@ workspace "workspace"
             links {"cryptopp-static"}
         filter {}
 
-        -- For moving the compile commands into the root directory of the project
-        -- so that autocomplete tools can see them (cquery...)
-        
-        -- This is messy but was the only way to get it to work consistently
-        -- across multiple platforms (circleci, windows 10, vsts...)
-        filter "system:linux"
-            prebuildcommands  {
-                "{MKDIR} %{wks.location}/compile_commands/",
-                "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
-                "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json"
-            }
-        filter "system:windows"
-            prebuildcommands  {
-                "cmd.exe /c \"" .. "{MKDIR} %{wks.location}/compile_commands/",
-                "cmd.exe /c \""  .. "{TOUCH} %{wks.location}/compile_commands/%{cfg.shortname}.json",
-                "cmd.exe /c \""  .. "{COPY} %{wks.location}/compile_commands/%{cfg.shortname}.json ../compile_commands.json*"
-            }
+        copy_compile_commands()
 
     project "tests"
         kind "ConsoleApp"
