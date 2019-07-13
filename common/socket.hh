@@ -3,6 +3,8 @@
 #include "platform.hh"
 
 #include <array>
+#include <mutex>
+#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -28,28 +30,69 @@ class Socket {
 
     bool valid;
 
-    void ReadUnsafe(u8 *buffer, unsigned count);
-
+    bool ReadUnsafe(u8 *buffer, unsigned count);
     void WriteUnsafe(const u8 *buffer, unsigned count);
+
+    std::mutex mutex;
+
+    std::queue<u8> readQueue;
+    std::thread    readThread;
+    void           BackgroundReader();
 
 public:
     Socket(const std::string &addr, const std::string &port);
     Socket(std::pair<const std::string &, const std::string &> addr_port) : Socket(addr_port.first, addr_port.second) {}
+    ~Socket() {
+        valid = false;
+        if (readThread.joinable()) readThread.join();
 
-    // Blocking read functions
+        // Make sure that the mutex is unlocked
+        mutex.lock();
+        mutex.unlock();
+    }
 
-    u8   ReadByte();
-    void Read(std::vector<u8> &output, unsigned count);
+    void operator=(Socket &&s) noexcept {
+        // Stop both tasks as otherwise the old socket will
+        // use the wrong mutex!
+        valid = false;
+        readThread.join();
 
+        auto oldValid = s.valid;
+        s.valid       = false;
+        s.readThread.join();
+
+        mutex.lock();
+
+        // Move all of the important stuff over
+        socket     = s.socket;
+        valid      = oldValid;
+        readQueue  = std::move(s.readQueue);
+        readThread = std::thread{[this]() { BackgroundReader(); }};
+
+        mutex.unlock();
+    }
+
+    // Non-Blocking read functions
+
+    // You probably shouldnt use readbyte
+    std::optional<u8> ReadByte();
+
+    // Returns false if not enough data is available
+    bool Read(std::vector<u8> &output, unsigned count);
+
+    // Returns false if not enough data is available
     template <unsigned int N>
-    void Read(std::array<u8, N> arr) {
-        ReadUnsafe(&*arr.begin(), N);
+    bool Read(std::array<u8, N> arr) {
+        return ReadUnsafe(&*arr.begin(), N);
     }
 
+    // Returns false if not enough data is available
     template <typename T>
-    void ReadStructure(T &into) {
-        ReadUnsafe(reinterpret_cast<u8 *>(&into), sizeof(T) * sizeof(u8));
+    bool ReadStructure(T &into) {
+        return ReadUnsafe(reinterpret_cast<u8 *>(&into), sizeof(T) * sizeof(u8));
     }
+
+    // TODO: Write functions are still blocking...
 
     template <typename T>
     void Write(const T v) {

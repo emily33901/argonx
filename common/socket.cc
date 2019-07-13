@@ -1,5 +1,10 @@
 #include "precompiled.hh"
 
+#include <mutex>
+#include <optional>
+
+#include "defer.hh"
+
 #ifdef ARGONX_WIN
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -79,33 +84,75 @@ Socket::Socket(const std::string &address, const std::string &port) {
             printf("Unable to connect to server!\n");
             return;
         }
+
+        valid = true;
+
+        // u32 optvalue = 1;
+        // setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, (char *)&optvalue, sizeof(optvalue));
+    }
+
+    // Start the reader thread
+    readThread = std::thread{[this]() { BackgroundReader(); }};
+}
+
+void Socket::BackgroundReader() {
+    u8 buffer[4096];
+    memset(buffer, 0, sizeof(buffer));
+
+    while (valid) {
+        // Grab some data
+        auto read = recv(socket, (char *)buffer, sizeof(buffer), 0);
+
+        if (read == 0) {
+            // Dont choke the cpu
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        } else {
+            // Add to the read queue
+            std::lock_guard<std::mutex> lock{mutex};
+            for (auto i = 0; i < read; i++)
+                readQueue.push(buffer[i]);
+        }
     }
 }
 
-u8 Socket::ReadByte() {
-    char ret;
-
-    while (auto read = recv(socket, &ret, 1, 0) != 1) {
+std::optional<u8> Socket::ReadByte() {
+    std::lock_guard<std::mutex> lock{mutex};
+    if (readQueue.size() > 0) {
+        Defer(readQueue.pop());
+        return readQueue.front();
     }
-
-    return ret;
+    return std::nullopt;
 }
 
-void Socket::Read(std::vector<u8> &output, unsigned count) {
-    output.resize(count, 0);
+bool Socket::Read(std::vector<u8> &output, unsigned count) {
+    std::lock_guard<std::mutex> lock{mutex};
+    output.reserve(count);
 
-    for (auto &x : output) {
-        x = ReadByte();
+    if (readQueue.size() < count) return false;
+
+    for (auto i = 0; i < count; i++) {
+        output.push_back(readQueue.front());
+        readQueue.pop();
     }
+
+    return true;
 }
 
-void Socket::ReadUnsafe(u8 *output, unsigned count) {
+bool Socket::ReadUnsafe(u8 *output, unsigned count) {
+    std::lock_guard<std::mutex> lock{mutex};
+    if (readQueue.size() < count) return false;
+
     for (unsigned i = 0; i < count; i++) {
-        output[i] = ReadByte();
+        output[i] = readQueue.front();
+        readQueue.pop();
     }
+
+    return true;
 }
 
 void Socket::WriteUnsafe(const u8 *buffer, unsigned length) {
+    std::lock_guard<std::mutex> lock{mutex};
+
     auto bytesSent = 0;
 
     while (length > 0) {
