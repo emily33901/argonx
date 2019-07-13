@@ -39,7 +39,7 @@ public:
             // Ensure that our thisptr is going to be correct!
             // For the purposes of what we are doing this check can
             // probably be removed to speed up init time.
-            Assert(*(realTarget + 1) == 0, "thisptr offset not 0 (was %d)", *(realTarget + 1));
+            Assert(*(realTarget + 1) == 0, "thisptr offset not 0 (was %p)", *(realTarget + 1));
         }
 
         return CreateTrampoline(*realTarget);
