@@ -9,3 +9,4 @@ steamguard=""
 [rpc]
 # Response timeout in seconds
 responseTimeout = 5
+reconnectTime = 1

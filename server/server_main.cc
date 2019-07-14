@@ -63,6 +63,10 @@ void CreateServerPipe() {
                 // Show that we got the disconnect
                 Steam::ServerPipe()->SendMessage(target, data, size);
             } break;
+            case Steam::RpcType::connect: {
+                // Send back
+                Steam::ServerPipe()->SendMessage(target, data, size);
+            } break;
             }
         } else {
             Steam::RpcCallHeader header;

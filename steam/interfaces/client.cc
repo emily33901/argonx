@@ -72,22 +72,24 @@ UserInterfaceStorage FillUserInterfaceStorage(UserHandle h, bool isServer) {
 // This behaviour is roughly on par with how steam deals with its cm connections - although it only has 1
 // CMClient (afaik iirc).
 
-// TODO: we really need more than 1 clientpipe because the client can create more than 1 clientpipe
-// ...which makes this relationship complicated...
+// Keep track of how many pipes we have
 static std::atomic_int pipeReferenceCount;
 
 template <bool isServer>
 class ClientEngineMap : Reference::IClientEngine {
-    void CreateClientPipe() {
+    bool CreateClientPipe() {
         if (Steam::ClientPipe() == nullptr) {
-            const auto cfg     = cpptoml::parse_file("argonx_client.toml");
-            const auto timeout = cfg->get_qualified_as<int>("rpc.timeout");
+            bool connected = false;
 
-            Assert(timeout, "Client config invalid!");
+            const auto cfg       = cpptoml::parse_file("argonx_client.toml");
+            const auto timeout   = cfg->get_qualified_as<int>("rpc.responseTimeout");
+            const auto reconnect = cfg->get_qualified_as<int>("rpc.reconnectTime");
+
+            Assert(timeout && reconnect, "Client config invalid!");
 
             Steam::JobManager::SetResponseTimeout(*timeout);
             Steam::SetClientPipe(new Pipe(false, Steam::rpcSocketAddress));
-            Steam::ClientPipe()->processMessage = [](Pipe::Target, u8 *data, u32 size) {
+            Steam::ClientPipe()->processMessage = [&connected](Pipe::Target, u8 *data, u32 size) {
                 LOG_SCOPE_F(INFO, "Client message");
 
                 LOG_F(INFO, "size:%d", size);
@@ -98,11 +100,16 @@ class ClientEngineMap : Reference::IClientEngine {
                 b.SetPos(0);
 
                 auto jobId = b.Read<i64>();
+                LOG_F(INFO, "jobId:%d", jobId);
 
                 if (jobId < 0) {
                     auto header = b.Read<Steam::RpcNonCallHeader>();
 
                     switch (header.t) {
+                    case Steam::RpcType::connect: {
+                        LOG_F(INFO, "Connected!");
+                        connected = true;
+                    } break;
                     case Steam::RpcType::heartbeat: {
                         LOG_F(INFO, "Recieved heartbeat response from server");
                     } break;
@@ -118,6 +125,19 @@ class ClientEngineMap : Reference::IClientEngine {
                     Steam::JobManager::PostResult(jobId, b);
                 }
             };
+
+            Steam::ClientPipe()->SendMessage(0, Buffer{Steam::JobManager::GetNextNonCallJobId(), Steam::RpcType::connect});
+            std::this_thread::sleep_for(std::chrono::seconds(*reconnect));
+            Steam::ClientPipe()->ProcessMessages();
+
+            if (!connected) {
+                // Server isnt up
+                // Cleanup and tell whoever called us it isnt
+                delete Steam::ClientPipe();
+                Steam::SetClientPipe(nullptr);
+
+                return false;
+            }
 
             std::thread pipeThread{[]() {
                 loguru::set_thread_name("client");
@@ -145,18 +165,23 @@ class ClientEngineMap : Reference::IClientEngine {
         }
         // Increment the reference count
         ++pipeReferenceCount;
+
+        return true;
     }
 
 public:
     // Inherited via IClientEngine
     virtual Steam::PipeHandle CreateSteamPipe() override {
-        CreateClientPipe();
-        return Steam::ClientPipe()->Id();
+        auto success = CreateClientPipe();
+
+        if (success) return Steam::ClientPipe()->Id();
+
+        return 0;
     }
     virtual bool BReleaseSteamPipe(Steam::PipeHandle pipe) override {
         pipeReferenceCount--;
 
-        if (pipeReferenceCount == 0) {
+        if (pipeReferenceCount <= 0) {
             // Tell the server we are going bye bye
             auto b = Buffer{
                 Steam::JobManager::GetNextNonCallJobId(),
@@ -205,6 +230,12 @@ public:
         // whether this userhandle is valid!
 
         *pipe = CreateSteamPipe();
+
+        if (*pipe == 0) {
+            // We cant even connect to the server
+            // which means this cant happen right now
+            return;
+        }
 
         auto serverResult = [this, &pipe, &h]() {
             // No code inside here as we call IsValidHSteamUserPipe to check if this use handle is correct

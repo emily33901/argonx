@@ -37,6 +37,7 @@ public:
 
     // Rewinds the buffer to base and then reads the message
     void SendMessage(Pipe::Target h, class Buffer &data);
+    void SendMessage(Pipe::Target h, Buffer &&data);
 
     void ClientDisconnected(Pipe::Target who);
 

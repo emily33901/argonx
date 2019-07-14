@@ -30,8 +30,12 @@ int main(int argCount, char **argStrings) {
 
     auto *clientEngine = (Reference::IClientEngine *)Steam::CreateInterface("ClientEngine", nullptr);
 
-    auto pipeHandle = clientEngine->CreateSteamPipe();
-    LOG_F(INFO, "Pipe id is %lu", pipeHandle);
+    Steam::PipeHandle pipeHandle = 0;
+
+    while (pipeHandle == 0) {
+        pipeHandle = clientEngine->CreateSteamPipe();
+        LOG_F(INFO, "Pipe id is %lu", pipeHandle);
+    }
 
     auto userHandle = clientEngine->CreateLocalUser(&pipeHandle, Steam::EAccountType::k_EAccountTypeIndividual);
 
@@ -64,5 +68,4 @@ int main(int argCount, char **argStrings) {
 
     clientEngine->ReleaseUser(pipeHandle, userHandle);
     clientEngine->BReleaseSteamPipe(pipeHandle);
-
 }

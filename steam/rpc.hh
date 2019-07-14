@@ -28,8 +28,9 @@ struct RpcCallHeader {
 
 // Other packets will have a jobId of < 0 ()
 enum class RpcType : u32 {
-    heartbeat, // Sent by clients to signal that they are still active
-    disconnect // Sent by clients to signal that they have disonnected
+    heartbeat,  // Sent by clients to signal that they are still active
+    disconnect, // Sent by clients to signal that they have disonnected
+    connect,    // Sent by clients when they connect to see if they are connected
 };
 
 struct RpcNonCallHeader {

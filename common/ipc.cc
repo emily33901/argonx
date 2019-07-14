@@ -16,7 +16,8 @@ static u32 CreateSocketIdentity() {
 
     // We cannot return "0" as a pipe handle
     u32 r;
-    while (true) if (r = e() != 0) return r;
+    while (true)
+        if ((r = e()) != 0) return r;
 }
 
 Pipe::Pipe(bool isServer, const char *serverAddr) : isServer(isServer) {
@@ -40,7 +41,6 @@ Pipe::Pipe(bool isServer, const char *serverAddr) : isServer(isServer) {
 
         try {
             sock->connect(serverAddr);
-            Assert(sock->connected(), "Socket failed to connect!");
         } catch (zmq::error_t &e) {
             Assert(false, "ZMQ Error: %s\n", e.what());
         }
@@ -81,6 +81,11 @@ void Pipe::SendMessage(Pipe::Target h, void *data, u32 size) {
 }
 
 void Pipe::SendMessage(Pipe::Target h, Buffer &b) {
+    b.SetPos(0);
+    SendMessage(h, b.Read(0), (u32)b.Size());
+}
+
+void Pipe::SendMessage(Pipe::Target h, Buffer &&b) {
     b.SetPos(0);
     SendMessage(h, b.Read(0), (u32)b.Size());
 }
