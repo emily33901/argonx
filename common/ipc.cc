@@ -1,105 +1,67 @@
 #include "precompiled.hh"
+
+#include <random>
+
 #include <cppzmq/zmq.hpp>
 
+#include "buffer.hh"
 #include "ipc.hh"
-
-static u32 magic = 0xF155104;
-
-struct RequestPipeResult {
-    Pipe::Target id;
-    char         address[64];
-};
 
 zmq::context_t *Pipe::context = nullptr;
 
-Pipe::Pipe(bool isServer, const char *serverAddr, u16 basePort) : isServer(isServer), pipeCount(0), basePort(basePort) {
+static u32 CreateSocketIdentity() {
+    // Something unique
+    auto e = std::default_random_engine();
+    e.seed(std::chrono::system_clock::now().time_since_epoch().count());
+
+    // We cannot return "0" as a pipe handle
+    u32 r;
+    while (true) if (r = e() != 0) return r;
+}
+
+Pipe::Pipe(bool isServer, const char *serverAddr) : isServer(isServer) {
     if (context == nullptr) context = new zmq::context_t();
 
     if (isServer) {
-        id = 0;
-
-        sock = new zmq::socket_t(*context, zmq::socket_type::rep);
+        sock = new zmq::socket_t(*context, zmq::socket_type::router);
         try {
             sock->bind(serverAddr);
         } catch (zmq::error_t &e) {
             Assert(false, "ZMQ Error: %s\n", e.what());
         }
     } else {
-        // Request a new socket from server
-        sock = new zmq::socket_t(*context, zmq::socket_type::req);
+        // Connect to the server as a dealer
+        sock = new zmq::socket_t(*context, zmq::socket_type::dealer);
+
+        id = CreateSocketIdentity();
+
+        // Create an identity for ourselves
+        sock->setsockopt(ZMQ_IDENTITY, id);
 
         try {
             sock->connect(serverAddr);
+            Assert(sock->connected(), "Socket failed to connect!");
         } catch (zmq::error_t &e) {
             Assert(false, "ZMQ Error: %s\n", e.what());
         }
-
-        sock->send(&magic, sizeof(magic));
-
-        RequestPipeResult p;
-        zmq::message_t    msg;
-
-        auto r = sock->recv(&msg);
-        Assert(r, "pipeRequest failed");
-
-        memcpy(&p, msg.data(), sizeof(RequestPipeResult));
-
-        delete sock;
-        sock = new zmq::socket_t(*context, zmq::socket_type::pair);
-
-        try {
-            sock->connect(p.address);
-        } catch (zmq::error_t &e) {
-            Assert(false, "ZMQ Error: %s\n", e.what());
-        }
-
-        id = p.id;
     }
 }
 
 Pipe::~Pipe() {
     delete sock;
-
-    for (auto &s : childSockets) {
-        delete s;
-    }
 }
 
 void Pipe::ProcessMessages() {
     zmq::message_t msg;
 
     if (isServer) {
-        for (auto i = 0; i < childSockets.size(); i++) {
-            auto &s = childSockets[i];
-            if (s == nullptr) continue;
-
-            while (s->recv(&msg, ZMQ_DONTWAIT)) {
-                processMessage(i + 1, (u8 *)msg.data(), msg.size());
-            }
-        }
-
         while (sock->recv(&msg, ZMQ_DONTWAIT)) {
-            pipeCount += 1;
+            u32 identity = *(u32 *)msg.data();
 
-            std::string newAddr = "tcp://127.0.0.1:";
-            newAddr += std::to_string(basePort + pipeCount);
-
-            auto s = new zmq::socket_t(*context, zmq::socket_type::pair);
-
-            try {
-                s->bind(newAddr.c_str());
-            } catch (zmq::error_t &e) {
-                Assert(false, "ZMQ Error: %s\n", e.what());
-            }
-
-            childSockets.push_back(s);
-            auto handle = childSockets.size();
-
-            auto              data = newAddr.data();
-            RequestPipeResult p{static_cast<Target>(handle)};
-            memcpy(&p.address, data, newAddr.size());
-
-            sock->send(&p, sizeof(p));
+            // If we recieved a msg header then we MUST
+            // recieve the body aswell
+            sock->recv(&msg);
+            processMessage(identity, (u8 *)msg.data(), msg.size());
         }
     } else {
         while (sock->recv(&msg, ZMQ_DONTWAIT)) {
@@ -109,23 +71,23 @@ void Pipe::ProcessMessages() {
 }
 
 void Pipe::SendMessage(Pipe::Target h, void *data, u32 size) {
-    if (isServer)
-        childSockets[h - 1]->send(data, size);
-    else
+    if (isServer) {
+        sock->send(&h, sizeof(h), ZMQ_SNDMORE);
         sock->send(data, size);
+        return;
+    }
+
+    sock->send(data, size);
+}
+
+void Pipe::SendMessage(Pipe::Target h, Buffer &b) {
+    b.SetPos(0);
+    SendMessage(h, b.Read(0), (u32)b.Size());
 }
 
 void Pipe::ClientDisconnected(Pipe::Target h) {
-    if (isServer) {
-        auto &s = childSockets[h - 1];
-
-        delete childSockets[h - 1];
-        childSockets[h - 1] = nullptr;
-    }
-}
-
-u32 Pipe::PipeCount() {
-    return pipeCount;
+    // We dont really need to do anything here
+    // But TODO: we should be the ones tracking clients!
 }
 
 Pipe::Target Pipe::Id() {

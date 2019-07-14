@@ -58,6 +58,9 @@ public:
 
     static void backgroundThread(Argonx::CMClient *c, bool &shouldRun) {
         // Make sure this is only called from server code!
+        char nameBuffer[255];
+        sprintf(nameBuffer, "user %d cm", LookupHandle(c));
+        loguru::set_thread_name(nameBuffer);
         AssertServer();
         c->Run(shouldRun);
     }

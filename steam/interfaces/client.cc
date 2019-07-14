@@ -1,5 +1,9 @@
 #include <precompiled.hh>
 
+#include <atomic>
+
+#include <cpptoml/include/cpptoml.h>
+
 #include "helpers.hh"
 #include "steamplatform.hh"
 
@@ -62,26 +66,118 @@ UserInterfaceStorage FillUserInterfaceStorage(UserHandle h, bool isServer) {
     return storage;
 }
 
+// The clients job (SteamClientMap / ClientEngineMap) is to deal with the ipc connection to the server
+// by managing jobs and processing messages - reporting on dropped rpc connection, so on
+// CMClients are only "created" when a user handle is created (you need 1 per user afterall).
+// This behaviour is roughly on par with how steam deals with its cm connections - although it only has 1
+// CMClient (afaik iirc).
+
+// TODO: we really need more than 1 clientpipe because the client can create more than 1 clientpipe
+// ...which makes this relationship complicated...
+static std::atomic_int pipeReferenceCount;
+
 template <bool isServer>
 class ClientEngineMap : Reference::IClientEngine {
+    void CreateClientPipe() {
+        if (Steam::ClientPipe() == nullptr) {
+            const auto cfg     = cpptoml::parse_file("argonx_client.toml");
+            const auto timeout = cfg->get_qualified_as<int>("rpc.timeout");
+
+            Assert(timeout, "Client config invalid!");
+
+            Steam::JobManager::SetResponseTimeout(*timeout);
+            Steam::SetClientPipe(new Pipe(false, Steam::rpcSocketAddress));
+            Steam::ClientPipe()->processMessage = [](Pipe::Target, u8 *data, u32 size) {
+                LOG_SCOPE_F(INFO, "Client message");
+
+                LOG_F(INFO, "size:%d", size);
+
+                // Assume rpc job
+                Buffer b;
+                b.Write(std::make_pair(data, size));
+                b.SetPos(0);
+
+                auto jobId = b.Read<i64>();
+
+                if (jobId < 0) {
+                    auto header = b.Read<Steam::RpcNonCallHeader>();
+
+                    switch (header.t) {
+                    case Steam::RpcType::heartbeat: {
+                        LOG_F(INFO, "Recieved heartbeat response from server");
+                    } break;
+                    case Steam::RpcType::disconnect: {
+                        // Server confirmed our disconnect
+                        auto oldPipe = Steam::ClientPipe();
+                        Steam::SetClientPipe(nullptr);
+                        delete oldPipe;
+                    } break;
+                    }
+                } else {
+                    b.SetBaseAtCurPos();
+                    Steam::JobManager::PostResult(jobId, b);
+                }
+            };
+
+            std::thread pipeThread{[]() {
+                loguru::set_thread_name("client");
+                std::chrono::time_point<std::chrono::system_clock> lastHeartbeatSent;
+                while (Steam::ClientPipe()) {
+                    Steam::ClientPipe()->ProcessMessages();
+
+                    using namespace std::chrono_literals;
+                    std::this_thread::sleep_for(1ms);
+
+                    if ((std::chrono::system_clock::now() - lastHeartbeatSent) > 20s) {
+                        auto b = Buffer{
+                            Steam::JobManager::GetNextNonCallJobId(),
+                            Steam::RpcNonCallHeader{Steam::RpcType::heartbeat},
+                        };
+                        Steam::ClientPipe()->SendMessage(0, b);
+
+                        // Update the timepoints
+                        lastHeartbeatSent = std::chrono::system_clock::now();
+                    }
+                }
+            }};
+
+            pipeThread.detach();
+        }
+        // Increment the reference count
+        ++pipeReferenceCount;
+    }
+
 public:
     // Inherited via IClientEngine
     virtual Steam::PipeHandle CreateSteamPipe() override {
-        // TODO: we probably shouldnt create a pipe until this function gets called!
-        return 1;
+        CreateClientPipe();
+        return Steam::ClientPipe()->Id();
     }
     virtual bool BReleaseSteamPipe(Steam::PipeHandle pipe) override {
-        // TODO: tell the server to release the port!
-        // this is done automatically as the result of heartbeats but we should still do it!
+        pipeReferenceCount--;
+
+        if (pipeReferenceCount == 0) {
+            // Tell the server we are going bye bye
+            auto b = Buffer{
+                Steam::JobManager::GetNextNonCallJobId(),
+                Steam::RpcNonCallHeader{Steam::RpcType::disconnect},
+            };
+            Steam::ClientPipe()->SendMessage(0, b);
+
+        } else if (pipeReferenceCount < 0) {
+            pipeReferenceCount++;
+        }
 
         return true;
     }
     virtual Steam::UserHandle CreateGlobalUser(Steam::PipeHandle *pipe) override {
         // TODO: This cannot be a no-op
+        Assert(false, "CreateGlobalUser has not been implemented");
         return 1;
     }
     virtual Steam::UserHandle ConnectToGlobalUser(Steam::PipeHandle pipe) override {
         // TODO: This cannot be a no-op!
+        Assert(false, "ConnectToGlobalUser has not been implemented");
         return 1;
     }
     virtual Steam::UserHandle CreateLocalUser(Steam::PipeHandle *pipe, EAccountType t) override {
@@ -105,8 +201,10 @@ public:
         return handle;
     }
     virtual void CreatePipeToLocalUser(Steam::UserHandle h, Steam::PipeHandle *pipe) override {
-        // TODO: create user storage here
-        *pipe = 0;
+        // We need a valid steam pipe here in order to ask the server
+        // whether this userhandle is valid!
+
+        *pipe = CreateSteamPipe();
 
         auto serverResult = [this, &pipe, &h]() {
             // No code inside here as we call IsValidHSteamUserPipe to check if this use handle is correct
@@ -118,12 +216,12 @@ public:
 
         RpcRunOnClient() {
             if (serverResult) {
-                // This user handle was valid so make the pipe handle valid
-                *pipe = 1;
-
                 // Create a local user storage if it does not already exist
                 if (userStorage.find(h) == userStorage.end())
                     userStorage.insert({h, FillUserInterfaceStorage(h, isServer)});
+            } else {
+                // Not valid so get rid of the pipe now
+                BReleaseSteamPipe(*pipe);
             }
         }
     }

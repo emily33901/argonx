@@ -20,20 +20,14 @@ private:
     static zmq::context_t *context;
 
     zmq::socket_t *sock;
-    Target         id;
 
-    std::vector<zmq::socket_t *> childSockets;
-
-    bool isServer;
-
-    // Used by server pipes for allocating pipes
-    u32 pipeCount;
-    u16 basePort;
+    bool   isServer;
+    Target id;
 
 public:
     std::function<void(Pipe::Target from, u8 *data, u32 size)> processMessage;
 
-    Pipe(bool isServer, const char *serverAddr, u16 basePort = 0);
+    Pipe(bool isServer, const char *serverAddr);
     ~Pipe();
 
     // Processes currently waiting messages and then returns
@@ -41,9 +35,10 @@ public:
 
     void SendMessage(Pipe::Target h, void *data, u32 size);
 
-    void ClientDisconnected(Pipe::Target who);
+    // Rewinds the buffer to base and then reads the message
+    void SendMessage(Pipe::Target h, class Buffer &data);
 
-    u32 PipeCount();
+    void ClientDisconnected(Pipe::Target who);
 
     Target Id();
 };

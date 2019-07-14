@@ -12,6 +12,8 @@
 #include "rpcdetail.hh"
 
 namespace Steam {
+
+constexpr char rpcSocketAddress[] = "tcp://127.0.0.1:33901";
 // Rpc conventions
 // All "messages" begin with the jobId <i64>
 struct RpcCallHeader {
@@ -26,7 +28,8 @@ struct RpcCallHeader {
 
 // Other packets will have a jobId of < 0 ()
 enum class RpcType : u32 {
-    heartbeat
+    heartbeat, // Sent by clients to signal that they are still active
+    disconnect // Sent by clients to signal that they have disonnected
 };
 
 struct RpcNonCallHeader {
@@ -35,6 +38,9 @@ struct RpcNonCallHeader {
 
 // Pipes that are used for clients
 // TODO: we really dont need 2 of these!
+// (The answer to the above question is yes probably
+// - it really depends on how steam.exe loads steamclient
+// and how it interacts with it)
 Pipe *ClientPipe();
 void  SetClientPipe(Pipe *newPipe);
 Pipe *ServerPipe();

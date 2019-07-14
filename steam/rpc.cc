@@ -91,9 +91,8 @@ Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn) {
     i64 thisJob = GetNextJobId();
 
     data.Write(thisJob);
-    data.SetPos(0);
 
-    p.SendMessage(handle, data.Read(0), data.Size());
+    p.SendMessage(handle, data);
 
     if (!hasReturn) return {};
 

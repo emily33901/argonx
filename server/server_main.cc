@@ -32,9 +32,9 @@ void  CreateNoUserInterfaceStorage() {
 static std::unordered_map<Pipe::Target, std::chrono::time_point<std::chrono::system_clock>> heartbeats;
 
 void CreateServerPipe() {
-    Steam::SetServerPipe(new Pipe(true, "tcp://127.0.0.1:33901", 33901));
+    Steam::SetServerPipe(new Pipe(true, "tcp://127.0.0.1:33901"));
     Steam::ServerPipe()->processMessage = [](Pipe::Target target, u8 *data, u32 size) {
-        LOG_SCOPE_F(INFO, "Server Message");
+        LOG_SCOPE_F(INFO, "Server message [%lu]", target);
         LOG_F(INFO, "size:%d", size);
 
         Buffer b;
@@ -50,10 +50,17 @@ void CreateServerPipe() {
 
             switch (header.t) {
             case Steam::RpcType::heartbeat: {
-                LOG_F(INFO, "Recieved Heartbeat from %d", target);
+                LOG_F(INFO, "Recieved heartbeat");
                 heartbeats[target] = std::chrono::system_clock::now();
 
                 // Send it straight back
+                // Steam::ServerPipe()->SendMessage(target, data, size);
+            } break;
+            case Steam::RpcType::disconnect: {
+                LOG_F(INFO, "Recieved disconnect");
+                heartbeats[target] = std::chrono::system_clock::now() - std::chrono::seconds(100000);
+
+                // Show that we got the disconnect
                 Steam::ServerPipe()->SendMessage(target, data, size);
             } break;
             }
@@ -97,9 +104,8 @@ void CreateServerPipe() {
             // Paste the jobid back onto the front of the buffer and send it back
             b.SetPos(0);
             b.Write(jobId);
-            b.SetPos(0);
 
-            Steam::ServerPipe()->SendMessage(target, b.Read(0), b.Size());
+            Steam::ServerPipe()->SendMessage(target, b);
         }
     };
 }
@@ -121,6 +127,7 @@ int main(int argCount, char **argStrings) {
     CreateServerPipe();
     std::thread serverThread{
         []() {
+            loguru::set_thread_name("server");
             std::vector<Pipe::Target> keysToErase;
 
             while (true) {

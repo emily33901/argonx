@@ -8,36 +8,6 @@
 
 #include "ipc.hh"
 
-void CreateClientPipe(int rpcTimeout) {
-    Steam::JobManager::SetResponseTimeout(rpcTimeout);
-    Steam::SetClientPipe(new Pipe(false, "tcp://127.0.0.1:33901"));
-    Steam::ClientPipe()->processMessage = [](Pipe::Target, u8 *data, u32 size) {
-        LOG_SCOPE_F(INFO, "Client message");
-
-        LOG_F(INFO, "size:%d", size);
-
-        // Assume rpc job
-        Buffer b;
-        b.Write(std::make_pair(data, size));
-        b.SetPos(0);
-
-        auto jobId = b.Read<i64>();
-
-        if (jobId < 0) {
-            LOG_F(INFO, "Recieved heartbeat response from server");
-            auto header = b.Read<Steam::RpcNonCallHeader>();
-
-            switch (header.t) {
-            case Steam::RpcType::heartbeat: {
-            } break;
-            }
-        } else {
-            b.SetBaseAtCurPos();
-            Steam::JobManager::PostResult(jobId, b);
-        }
-    };
-}
-
 // Since this is test code we are allowing ourselves to use this
 #include "../steam/interfaces/steamplatform.hh"
 
@@ -58,38 +28,11 @@ int main(int argCount, char **argStrings) {
 
     LOG_F(INFO, "Waiting for server...");
 
-    const auto cfg     = cpptoml::parse_file("argonx_client.toml");
-    const auto timeout = cfg->get_qualified_as<int>("rpc.timeout");
-
-    Assert(timeout, "Client config invalid!");
-
-    CreateClientPipe(*timeout);
-    bool        running = true;
-    std::thread pipeThread{[&running]() {
-        std::chrono::time_point<std::chrono::system_clock> lastHeartbeatSent;
-        while (running) {
-            Steam::ClientPipe()->ProcessMessages();
-
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(1ms);
-
-            if ((std::chrono::system_clock::now() - lastHeartbeatSent) > 20s) {
-                auto b = Buffer{
-                    Steam::JobManager::GetNextNonCallJobId(),
-                    Steam::RpcNonCallHeader{Steam::RpcType::heartbeat},
-                };
-                b.SetPos(0);
-                Steam::ClientPipe()->SendMessage(0, b.Read(0), b.Size());
-
-                // Update the timepoints
-                lastHeartbeatSent     = std::chrono::system_clock::now();
-            }
-        }
-    }};
-
     auto *clientEngine = (Reference::IClientEngine *)Steam::CreateInterface("ClientEngine", nullptr);
 
     auto pipeHandle = clientEngine->CreateSteamPipe();
+    LOG_F(INFO, "Pipe id is %lu", pipeHandle);
+
     auto userHandle = clientEngine->CreateLocalUser(&pipeHandle, Steam::EAccountType::k_EAccountTypeIndividual);
 
     bool isValid = clientEngine->IsValidHSteamUserPipe(pipeHandle, userHandle);
@@ -98,6 +41,8 @@ int main(int argCount, char **argStrings) {
 
     auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
     LOG_F(INFO, "clientUser is null? %s", !clientUser ? "True" : "False");
+
+    const auto cfg = cpptoml::parse_file("argonx_client.toml");
 
     const auto username   = cfg->get_qualified_as<std::string>("login.username");
     const auto password   = cfg->get_qualified_as<std::string>("login.password");
@@ -111,7 +56,7 @@ int main(int argCount, char **argStrings) {
 
     clientUser->LogOnWithPassword(username->c_str(), password->c_str());
 
-#if 1
+#if 0
     std::this_thread::sleep_for(std::chrono::seconds(60));
 #endif
 
@@ -120,6 +65,4 @@ int main(int argCount, char **argStrings) {
     clientEngine->ReleaseUser(pipeHandle, userHandle);
     clientEngine->BReleaseSteamPipe(pipeHandle);
 
-    running = false;
-    pipeThread.join();
 }
