@@ -188,10 +188,9 @@ public:
                 Steam::RpcNonCallHeader{Steam::RpcType::disconnect},
             };
             Steam::ClientPipe()->SendMessage(0, b);
-
-        } else if (pipeReferenceCount < 0) {
-            pipeReferenceCount++;
         }
+
+        if (pipeReferenceCount < 0) pipeReferenceCount = 0;
 
         return true;
     }
