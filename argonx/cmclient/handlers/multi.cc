@@ -10,19 +10,20 @@
 
 using namespace Argonx;
 
-void CMClient::HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b, u64 jobId) {
+void CMClient::HandleMultiMessage(CMClient *s, u32 msgSize, Buffer &b, u64 jobId) {
     auto multi = b.ReadAsProto<CMsgMulti>(msgSize);
 
     auto &payload = multi.message_body();
     auto  data    = (u8 *)payload.data();
 
     auto sizeUnzipped = multi.size_unzipped();
-    auto payloadSize  = sizeUnzipped ? sizeUnzipped : payload.size();
 
     if (sizeUnzipped > 0) {
         // do the unzip...
-        data = Zip::Deflate(data, payloadSize, sizeUnzipped);
+        data = Zip::Deflate(data, payload.size(), sizeUnzipped);
     }
+
+    auto payloadSize = sizeUnzipped ? sizeUnzipped : payload.size();
 
     for (unsigned offset = 0; offset < payloadSize;) {
         auto subSize = *reinterpret_cast<const u32 *>(data + offset);
