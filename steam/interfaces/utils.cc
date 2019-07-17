@@ -19,8 +19,8 @@ public:
     }
 
     // Inherited via IClientUtils
-    virtual unknown_ret GetInstallPath() override {
-        return unknown_ret();
+    virtual const char *GetInstallPath() override {
+        return "";
     }
     virtual unknown_ret GetUserBaseFolderInstallImage() override {
         return unknown_ret();
@@ -39,8 +39,10 @@ public:
     virtual unknown_ret SetComputerActive() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetConnectedUniverse() override {
-        return unknown_ret();
+    virtual EUniverse GetConnectedUniverse() override {
+        // Its only possible to connect to public universe
+        // ... so just pretend that its the only option
+        return EUniverse::k_EUniversePublic;
     }
     virtual unknown_ret GetServerRealTime() override {
         return unknown_ret();
@@ -96,10 +98,9 @@ public:
     virtual unknown_ret IsAPICallCompleted(unsigned long long a, bool *b) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAPICallFailureReason(unsigned long long a) override {
-        RpcMakeCallIfClient(GetAPICallFailureReason, utils, a) {
-
-            return 2031023;
+    virtual ESteamAPICallFailure GetAPICallFailureReason(Steam::SteamAPICall_t h) override {
+        RpcMakeCallIfClient(GetAPICallFailureReason, utils, h) {
+            return ESteamAPICallFailure::k_ESteamAPICallFailureNone;
         }
     }
     virtual unknown_ret GetAPICallResult(unsigned long long, void *, int, int, bool *) override {

@@ -11,26 +11,27 @@ namespace Reference {
 
 template <bool isServer>
 class ClientFriendsMap : public Reference::IClientFriends {
+    UserHandle userHandle;
+
 public:
-    ClientFriendsMap(UserHandle h) {}
+    ClientFriendsMap(UserHandle h) : userHandle(h) {}
     // Inherited via IClientFriends
-    virtual unknown_ret GetPersonaName() override {
-        return unknown_ret();
+    virtual const char *GetPersonaName() override {
+        return "";
     }
-    virtual unknown_ret SetPersonaName(char const *) override {
-        return unknown_ret();
+    virtual SteamAPICall_t SetPersonaName(char const *newName) override {
+        return SetPersonaNameEx(newName, true);
     }
-    virtual unknown_ret SetPersonaNameEx(char const *, bool) override {
-        return unknown_ret();
+    virtual SteamAPICall_t SetPersonaNameEx(char const *newName, bool sendCallback) override {
+        return 0;
     }
-    virtual unknown_ret IsPersonaNameSet() override {
-        return unknown_ret();
+    virtual bool IsPersonaNameSet() override {
+        return false;
     }
-    virtual unknown_ret GetPersonaState() override {
-        return unknown_ret();
+    virtual EPersonaState GetPersonaState() override {
+        return EPersonaState::k_EPersonaStateOffline;
     }
-    virtual unknown_ret SetPersonaState(EPersonaState) override {
-        return unknown_ret();
+    virtual void SetPersonaState(EPersonaState) override {
     }
     virtual unknown_ret NotifyUIOfMenuChange(bool, bool, bool, bool) override {
         return unknown_ret();

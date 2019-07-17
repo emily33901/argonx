@@ -7,8 +7,9 @@
 
 #include "platform.hh"
 
-void *noUserInterfaceStorage[(u32)Steam::InterfaceTarget::max];
-void  CreateNoUserInterfaceStorage() {
+extern std::unordered_map<Steam::UserHandle, Steam::UserInterfaceStorage> userStorage;
+
+void CreateNoUserInterfaceStorage() {
     void *r[] = {
         nullptr,                                               // user
         nullptr,                                               // appList
@@ -26,13 +27,17 @@ void  CreateNoUserInterfaceStorage() {
         nullptr, // argon
     };
 
-    memcpy(noUserInterfaceStorage, r, sizeof(r));
+    auto storage = Steam::CreateUserInterfaceStorage();
+
+    memcpy(storage, r, sizeof(r));
+
+    userStorage[Steam::noUserHandle] = storage;
 }
 
 static std::unordered_map<Pipe::Target, std::chrono::time_point<std::chrono::system_clock>> heartbeats;
 
 void CreateServerPipe() {
-    Steam::SetServerPipe(new Pipe(true, "tcp://127.0.0.1:33901"));
+    Steam::SetServerPipe(new Pipe(true, Steam::rpcSocketAddress));
     Steam::ServerPipe()->processMessage = [](Pipe::Target target, u8 *data, u32 size) {
         LOG_SCOPE_F(INFO, "Server message [%lu]", target);
         LOG_F(INFO, "size:%d", size);
@@ -76,13 +81,9 @@ void CreateServerPipe() {
 
             void *instance = nullptr;
 
-            if (header.userHandle == ~0) {
-                // TODO: function for this
-                // TODO: also no user *could* just be a normal user (-1)
-                instance = noUserInterfaceStorage[(u32)header.targetInterface];
-            } else {
-                instance = Steam::GetUserInterface((Steam::UserHandle)header.userHandle, header.targetInterface);
-            }
+            // Get the interface that matches this target
+            // noUserHandle (-1) is automatically handled
+            instance = Steam::GetUserInterface((Steam::UserHandle)header.userHandle, header.targetInterface);
 
             // If the interface was not gettable as a no-user then this will error
             AssertAlways(instance != nullptr, "Instance was 0 when userHandle was %d", header.userHandle);

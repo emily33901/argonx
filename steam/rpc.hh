@@ -202,6 +202,13 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
 #define RpcRunOnServer() \
     if constexpr (isServer)
 
+
+// Helper macros for catching when code is incorrectly called 
+// from the wrong binary
+#define AssertServer() AssertAlways(isServer, "This function should only be called on the server!")
+#define AssertClient() AssertAlways(!isServer, "This function should only be called on the client!")
+
+
 // Helper macro for making rpc dispatch calls
 // Use case:
 // virtual unknown_ret a() override {

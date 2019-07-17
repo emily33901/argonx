@@ -38,10 +38,9 @@ int main(int argCount, char **argStrings) {
     }
 
     auto userHandle = clientEngine->CreateLocalUser(&pipeHandle, Steam::EAccountType::k_EAccountTypeIndividual);
+    bool isValid    = clientEngine->IsValidHSteamUserPipe(pipeHandle, userHandle);
 
-    bool isValid = clientEngine->IsValidHSteamUserPipe(pipeHandle, userHandle);
-
-    LOG_F(INFO, "Are pipe and user valid: %s", isValid ? "Yes" : "No");
+    LOG_F(INFO, "Are pipe and user valid: %s", isValid ? "Yes" : "!! No");
 
     auto *clientUser = (Reference::IClientUser *)clientEngine->GetIClientUser(userHandle, pipeHandle);
     LOG_F(INFO, "clientUser is null? %s", !clientUser ? "True" : "False");
@@ -60,7 +59,7 @@ int main(int argCount, char **argStrings) {
 
     clientUser->LogOnWithPassword(username->c_str(), password->c_str());
 
-#if 0
+#if 1
     std::this_thread::sleep_for(std::chrono::seconds(60));
 #endif
 

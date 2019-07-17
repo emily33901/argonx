@@ -3,6 +3,8 @@
 namespace Steam {
 using UserHandle = u32;
 
+constexpr UserHandle noUserHandle = ~0;
+
 enum class InterfaceTarget : u32 {
     user,
     appList,

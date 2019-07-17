@@ -10,7 +10,7 @@
 using namespace Argonx;
 using namespace SteamMessageHandler;
 
-void CMClient::HandleEncryptionRequest(CMClient *c, size_t msgSize, Buffer &request_body, u64 jobId) {
+void CMClient::HandleEncryptionRequest(CMClient *c, u32 msgSize, Buffer &request_body, u64 jobId) {
     MsgChannelEncryptRequest r;
     r.FromBuffer(request_body);
     LOG_F(INFO, "proto: %d, universe: %d", r.protocolVersion, r.universe);
@@ -25,7 +25,7 @@ void CMClient::HandleEncryptionRequest(CMClient *c, size_t msgSize, Buffer &requ
     c->WriteMessage(w);
 }
 
-void CMClient::HandleEncryptionResult(CMClient *c, size_t msgSize, Buffer &b, u64 jobId) {
+void CMClient::HandleEncryptionResult(CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
     MsgChannelEncryptResult r;
     r.FromBuffer(b);
 

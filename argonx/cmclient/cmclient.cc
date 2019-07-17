@@ -287,11 +287,8 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
 
     LOG_F(INFO, "msg:%s%d size:%d bsize:%lu", isProto ? "p" : "", message, p.header.packetSize, p.body.Size());
 
-    // TODO: WE NEED A JOB HANDLER!
-    // We should really pass the jobid along to the handlers so that they know what job theyre dealing with and can
-    // respond accordingly
-
     u64 jobId;
+    u32 msgSize;
 
     if (!isProto) {
         // Header processing
@@ -307,7 +304,8 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
             jobId = h.sourceJobID;
         }
 
-        SteamMessageHandler::ProcessMessage(this, message, p.body.Size(), p.body, jobId);
+        msgSize = p.body.Size();
+
     } else {
         MsgHdrProtoBuf msgHeader;
         msgHeader.FromBuffer(p.body);
@@ -320,12 +318,11 @@ bool CMClient::ProcessPacket(TcpPacket &p) {
             steamId   = protoHeader.steamid();
         }
 
-        jobId = protoHeader.jobid_source();
-
-        u32 msgSize = (u32)p.body.SizeNoBase() - (u32)sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
-
-        SteamMessageHandler::ProcessMessage(this, message, msgSize, p.body, jobId);
+        jobId   = protoHeader.jobid_source();
+        msgSize = (u32)p.body.SizeNoBase() - (u32)sizeof(MsgHdrProtoBuf) - msgHeader.headerLength;
     }
+
+    SteamMessageHandler::ProcessMessage(this, message, msgSize, p.body, jobId);
 
     return false;
 }
@@ -341,14 +338,23 @@ void CMClient::Run(const bool &run) {
     // TODO: some I/O functions are now non-blocking!
     // So we should be able to change this behaviour!
     while (run) {
-        auto p = ReadPacket();
-
-        if (p.has_value()) ProcessPacket(p.value());
+        RunFrame();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     LOG_F(INFO, "====> Run exited");
+}
+
+void CMClient::RunFrame() {
+    std::optional<Argonx::TcpPacket> p;
+
+    // Read and process all the avaliable packets
+    // and then return
+    do {
+        p = ReadPacket();
+        if (p) ProcessPacket(*p);
+    } while (p);
 }
 
 void CMClient::WriteMessage(MsgBuilder &b) {
@@ -373,16 +379,19 @@ void CMClient::WriteMessage(EMsg t, const ::google::protobuf::Message &message, 
 }
 
 void CMClient::SendClientHeartbeat() {
-    LOG_F(INFO, "Sending heartbeat!");
+    LOG_F(INFO, "Sending heartbeat to steam!");
     MsgBuilder b{EMsg::ClientHeartBeat, CMsgClientHeartBeat{}, sessionId, steamId};
     WriteMessage(b);
 }
 
 void CMClient::ResetClientHeartbeat(std::chrono::milliseconds d) {
-    LOG_F(INFO, "Out of game heartbeat is %llu seconds", d.count());
+    using namespace std::chrono_literals;
+    LOG_F(INFO, "Out of game heartbeat is %llums", d.count());
     clientHeartbeatFunction.Stop();
-    clientHeartbeatFunction.Delay(d);
-    clientHeartbeatFunction.Start();
+    if (d > 0ms) {
+        clientHeartbeatFunction.Delay(d);
+        clientHeartbeatFunction.Start();
+    }
 }
 void CMClient::SendQueuedMessages() {
     for (auto &m : msgQueue) {

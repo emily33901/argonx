@@ -17,8 +17,6 @@ namespace Reference {
 #include "SteamStructs/IClientUser.h"
 }
 
-#define AssertServer() AssertAlways(isServer, "This function should only be called on the server!")
-
 enum class LogonNeeds {
     none,
     steamGuard,
@@ -58,11 +56,14 @@ public:
 
     static void backgroundThread(Argonx::CMClient *c, bool &shouldRun) {
         // Make sure this is only called from server code!
+        AssertServer();
         char nameBuffer[255];
         sprintf(nameBuffer, "user %d cm", LookupHandle(c));
         loguru::set_thread_name(nameBuffer);
-        AssertServer();
-        c->Run(shouldRun);
+
+        while (shouldRun) {
+            c->RunFrame();
+        }
     }
 
 public:
@@ -79,9 +80,12 @@ public:
     std::string steamGuardCode;
 
     // Should match the cmclients steamid!
-    CSteamID steamId;
+    Argonx::SteamId &SteamId() {
+        Assert(cmClient, "Valid cmclient needed for SteamId!");
+        return cmClient->steamId;
+    }
 
-    static void OnMachineAuth(Argonx::CMClient *c, size_t msgSize, Buffer &b, u64 jobId) {
+    static void OnMachineAuth(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
         auto  userHandle = LookupHandle(c);
         auto  msg        = b.ReadAsProto<CMsgClientUpdateMachineAuth>(msgSize);
         auto &bytes      = msg.bytes();
@@ -90,6 +94,13 @@ public:
 
         CMsgClientUpdateMachineAuthResponse r;
         r.set_sha_file(sha.Read(0), sha.Size());
+        r.set_eresult((u32)Argonx::EResult::OK);
+        r.set_cubwrote(msg.cubtowrite());
+        r.set_offset(msg.offset());
+        r.set_getlasterror(0);
+        r.set_filesize(bytes.length());
+        r.set_otp_identifier(msg.otp_identifier());
+
         c->WriteMessage(Argonx::EMsg::ClientUpdateMachineAuthResponse, r, jobId);
 
         // TODO: write sha file to disk
@@ -97,26 +108,30 @@ public:
         // printf("[%d] OnMachineAuth", userHandle);
     }
 
-    static void OnClientLogon(Argonx::CMClient *c, size_t msgSize, Buffer &b, u64 jobId) {
+    static void OnClientLogon(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
         auto logonResp = b.ReadAsProto<CMsgClientLogonResponse>(msgSize);
         auto eresult   = static_cast<Argonx::EResult>(logonResp.eresult());
 
-        LOG_F(INFO, "Logon result: %d", eresult);
+        LOG_F(INFO, "Logon result: %d (extended %d)", eresult, logonResp.eresult_extended());
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
         if (eresult == Argonx::EResult::OK) {
             c->ResetClientHeartbeat(
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::seconds(logonResp.out_of_game_heartbeat_seconds())));
 
-            auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
-
             user->logonState = LogonState::loggedOn;
-        } else if (eresult == Argonx::EResult::Fail ||
-                   eresult == Argonx::EResult::AccountLoginDeniedNeedTwoFactor ||
-                   eresult == Argonx::EResult::AccountLogonDenied) {
+        } else {
             // After you fail a login you need to get a new cm
             c->TryAnotherCM();
+            user->logonState = LogonState::loggedOff;
+
+            using namespace std::chrono_literals;
+            c->ResetClientHeartbeat(0ms);
         }
+    }
+
+    static void OnAccountInfo(Argonx::CMClient *c, u32 msgSize, u64 jobId) {
     }
 
     void LogonInternal() {
@@ -129,8 +144,8 @@ public:
         c.set_password(password);
         c.set_protocol_version(65575);
 
-        if (steamGuardCode != "") c.set_two_factor_code(twoFactorCode.c_str());
-        if (twoFactorCode != "") c.set_auth_code(steamGuardCode.c_str());
+        if (twoFactorCode != "") c.set_two_factor_code(twoFactorCode.c_str());
+        if (steamGuardCode != "") c.set_auth_code(steamGuardCode.c_str());
 
         // TODO: sha hash file
 
@@ -177,8 +192,11 @@ public:
     virtual unknown_ret VerifyOfflineLogon() override {
         return unknown_ret();
     }
-    virtual unknown_ret LogOff() override {
-        return unknown_ret();
+    virtual void LogOff() override {
+        RpcMakeCallIfClient(LogOff, user, ) {
+            CMsgClientLogOff c;
+            cmClient->WriteMessage(Argonx::EMsg::ClientLogOff, c);
+        }
     }
     virtual bool BLoggedOn() override {
         RpcMakeCallIfClient(BLoggedOn, user, ) {
@@ -200,8 +218,8 @@ public:
             return logonState == LogonState::loggingOn;
         }
     }
-    virtual unknown_ret GetSteamID() override {
-        return unknown_ret();
+    virtual Steam::CSteamID GetSteamID() override {
+        return SteamId();
     }
     virtual unknown_ret GetConsoleSteamID() override {
         return unknown_ret();
@@ -212,7 +230,7 @@ public:
     virtual unknown_ret IsVACBanned(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetEmail(char const *) override {
+    virtual unknown_ret SetEmail(char const *email) override {
         return unknown_ret();
     }
     virtual unknown_ret SetConfigString(EConfigSubTree, char const *, char const *) override {

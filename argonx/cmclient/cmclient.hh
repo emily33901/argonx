@@ -70,9 +70,9 @@ class CMClient {
 
 public:
     // Handlers
-    static void HandleMultiMessage(CMClient *s, size_t msgSize, Buffer &b, u64 jobId);
-    static void HandleEncryptionRequest(CMClient *s, size_t msgSize, Buffer &b, u64 jobId);
-    static void HandleEncryptionResult(CMClient *s, size_t msgSize, Buffer &b, u64 jobId);
+    static void HandleMultiMessage(CMClient *s, u32 msgSize, Buffer &b, u64 jobId);
+    static void HandleEncryptionRequest(CMClient *s, u32 msgSize, Buffer &b, u64 jobId);
+    static void HandleEncryptionResult(CMClient *s, u32 msgSize, Buffer &b, u64 jobId);
 
 public:
     SteamId           steamId;
@@ -91,6 +91,7 @@ public:
     bool                     ProcessPacket(TcpPacket &p);
 
     void Run(const bool &run = true);
+    void RunFrame();
 
     void WriteMessage(MsgBuilder &b);
     void WriteMessage(EMsg t, const ::google::protobuf::Message &message, u64 jobId = 0);

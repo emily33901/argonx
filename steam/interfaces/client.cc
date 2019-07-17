@@ -77,7 +77,11 @@ static std::atomic_int pipeReferenceCount;
 
 template <bool isServer>
 class ClientEngineMap : Reference::IClientEngine {
+
+    // This should not be called directly 
+    // Call CreateSteamPipe which will then call this!
     bool CreateClientPipe() {
+        AssertClient();
         if (Steam::ClientPipe() == nullptr) {
             bool connected = false;
 
@@ -100,7 +104,7 @@ class ClientEngineMap : Reference::IClientEngine {
                 b.SetPos(0);
 
                 auto jobId = b.Read<i64>();
-                LOG_F(INFO, "jobId:%d", jobId);
+                LOG_F(INFO, "jobId:%lld", jobId);
 
                 if (jobId < 0) {
                     auto header = b.Read<Steam::RpcNonCallHeader>();
@@ -118,6 +122,7 @@ class ClientEngineMap : Reference::IClientEngine {
                         auto oldPipe = Steam::ClientPipe();
                         Steam::SetClientPipe(nullptr);
                         delete oldPipe;
+                        LOG_F(WARNING, "Pipe destroyed successfully!");
                     } break;
                     }
                 } else {
@@ -174,7 +179,10 @@ public:
     virtual Steam::PipeHandle CreateSteamPipe() override {
         auto success = CreateClientPipe();
 
-        if (success) return Steam::ClientPipe()->Id();
+        if (success) {
+            LOG_F(INFO, "Pipe created successfully!");
+            return Steam::ClientPipe()->Id();
+        }
 
         return 0;
     }
@@ -276,6 +284,11 @@ public:
         }
     }
     virtual bool IsValidHSteamUserPipe(Steam::PipeHandle pipe, Steam::UserHandle h) override {
+        RpcRunOnClient() {
+            // If this pipe is invalid then how can we check if the user is valid?
+            if (pipe == 0 || Steam::ClientPipe() == nullptr) return false;
+        }
+
         auto serverResult = [this, &pipe, &h]() {
             RpcMakeCallIfClientNoUser(IsValidHSteamUserPipe, engine, pipe, h) {
                 return userStorage.find(h) != userStorage.end();
@@ -300,8 +313,21 @@ public:
     virtual unknown_ret SetLocalIPBinding(unsigned int, unsigned short) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetUniverseName(EUniverse) override {
-        return unknown_ret();
+    virtual const char *GetUniverseName(EUniverse e) override {
+        switch (e) {
+        case Steam::k_EUniverseInvalid:
+            return "Invalid";
+        case Steam::k_EUniversePublic:
+            return "Public";
+        case Steam::k_EUniverseBeta:
+            return "Beta";
+        case Steam::k_EUniverseInternal:
+            return "Internal";
+        case Steam::k_EUniverseDev:
+            return "Dev";
+        default:
+            return "Invalid";
+        }
     }
     virtual void *GetIClientFriends(Steam::UserHandle h, Steam::PipeHandle p) override {
         if (IsValidHSteamUserPipe(p, h)) {
@@ -309,8 +335,10 @@ public:
         }
         return nullptr;
     }
-    virtual unknown_ret GetIClientUtils(int) override {
-        return unknown_ret();
+    virtual void *GetIClientUtils(Steam::PipeHandle p) override {
+        if (p == 0) return nullptr;
+
+        return Steam::GetUserInterface(noUserHandle, InterfaceTarget::utils);
     }
     virtual unknown_ret GetIClientBilling(int, int) override {
         return unknown_ret();
