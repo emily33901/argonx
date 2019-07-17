@@ -219,7 +219,7 @@ public:
         }
     }
     virtual Steam::CSteamID GetSteamID() override {
-        return SteamId();
+        return Steam::CSteamID(SteamId().steamId64);
     }
     virtual unknown_ret GetConsoleSteamID() override {
         return unknown_ret();
