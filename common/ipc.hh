@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <unordered_set>
 #include <vector>
 
 #include "platform.hh"
@@ -23,6 +24,10 @@ private:
 
     bool   isServer;
     Target id;
+
+    // Magic is used to ensure that the client is from
+    // this instance of the ipc and not a previous one
+    u32 magic;
 
 public:
     std::function<void(Pipe::Target from, u8 *data, u32 size)> processMessage;

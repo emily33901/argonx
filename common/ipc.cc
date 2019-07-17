@@ -30,6 +30,7 @@ Pipe::Pipe(bool isServer, const char *serverAddr) : isServer(isServer) {
         } catch (zmq::error_t &e) {
             Assert(false, "ZMQ Error: %s\n", e.what());
         }
+        magic = CreateSocketIdentity();
     } else {
         // Connect to the server as a dealer
         sock = new zmq::socket_t(*context, zmq::socket_type::dealer);
@@ -44,6 +45,19 @@ Pipe::Pipe(bool isServer, const char *serverAddr) : isServer(isServer) {
         } catch (zmq::error_t &e) {
             Assert(false, "ZMQ Error: %s\n", e.what());
         }
+
+        // The first thing we need to get from the server is the session magic
+        // So block and wait for that
+        u32            newMagic = 0;
+        zmq::message_t msg{
+            &newMagic,
+            sizeof(newMagic),
+        };
+        sock->send(msg);
+        sock->recv(&msg);
+        magic = *(u32 *)msg.data();
+        // recieve body (although its empty)
+        sock->recv(&msg);
     }
 }
 
@@ -58,6 +72,24 @@ void Pipe::ProcessMessages() {
         while (sock->recv(&msg, ZMQ_DONTWAIT)) {
             u32 identity = *(u32 *)msg.data();
 
+            sock->recv(&msg);
+            u32 clientMagic = *(u32 *)msg.data();
+
+            if (clientMagic != magic) {
+                // New client (or old)
+                if (clientMagic == 0) {
+                    // Actual new client
+                    SendMessage(identity, Buffer{magic});
+                } else {
+                    LOG_F(WARNING, "Wrong magic from client %lu", identity);
+                }
+
+                // If magic was something else then they are an old client
+                // and need to try to reconnect - so give them the hard
+                // shoulder
+                continue;
+            }
+
             // If we recieved a msg header then we MUST
             // recieve the body aswell
             sock->recv(&msg);
@@ -65,7 +97,11 @@ void Pipe::ProcessMessages() {
         }
     } else {
         while (sock->recv(&msg, ZMQ_DONTWAIT)) {
-            processMessage(0, (u8 *)msg.data(), msg.size());
+            // First packet was the magic so get the next one now
+            sock->recv(&msg);
+            // TODO: do we need to check if the magic is correct?
+            // (probably not)
+            processMessage(0, (u8 *)msg.data(), (u32)msg.size());
         }
     }
 }
@@ -73,10 +109,9 @@ void Pipe::ProcessMessages() {
 void Pipe::SendMessage(Pipe::Target h, void *data, u32 size) {
     if (isServer) {
         sock->send(&h, sizeof(h), ZMQ_SNDMORE);
-        sock->send(data, size);
-        return;
     }
 
+    sock->send(&magic, sizeof(u32), ZMQ_SNDMORE);
     sock->send(data, size);
 }
 

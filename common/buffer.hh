@@ -176,7 +176,7 @@ public:
 
     // This will consume the rest of the buffer!
     template <typename Proto>
-    Proto ReadAsProto(size_t msgSize) {
+    Proto ReadAsProto(u32 msgSize) {
         SetBaseAtCurPos();
         Proto p;
         p.ParseFromArray(Read(msgSize), msgSize);
