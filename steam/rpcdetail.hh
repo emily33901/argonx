@@ -38,7 +38,7 @@ struct OutParamsHelper<idx, std::tuple<>, Res, RealRes> {
 // Turn a `u8*,u32` into a pair for outParams
 template <u32 idx, typename... Ts, typename... TRes, typename... TReal>
 struct OutParamsHelper<idx, std::tuple<u8 *, u32, Ts...>, std::tuple<TRes...>, std::tuple<TReal...>>
-    : OutParamsHelper<(idx + 1), std::tuple<Ts...>, std::tuple<TRes..., IndexedParam<std::pair<u8 *, u32>, idx>>, std::tuple<TReal...>> {};
+    : OutParamsHelper<(idx + 2), std::tuple<Ts...>, std::tuple<TRes..., IndexedParam<std::pair<u8 *, u32>, idx>>, std::tuple<TReal...>> {};
 
 // Remove const char *
 template <u32 idx, typename... Ts, typename... TRes, typename... TReal>
@@ -320,7 +320,7 @@ struct _ReadBuffers<Args, idx, std::tuple<T, T1, Ts...>> {
 
             auto &ptr  = std::get<idx>(args);
             auto &size = std::get<(idx + 1)>(args);
-            ptr        = malloc(size);
+            ptr        = (u8 *)malloc(size);
 
             b.ReadInto(std::make_pair(ptr, size));
         }
@@ -377,7 +377,7 @@ struct _WriteBuffers<Args, idx, std::tuple<T, T1, Ts...>> {
 
     static void Write(Buffer &b, Args &args) {
         if constexpr (std::is_same_v<std::pair<T, T1>, std::pair<u8 *, u32>>) {
-            b.Write(std::get<(idx + 1)>(args).second);
+            b.Write(std::get<(idx + 1)>(args));
 
             b.Write(std::make_pair(std::get<idx>(args), std::get<(idx + 1)>(args)));
         }

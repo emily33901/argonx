@@ -96,7 +96,7 @@ public:
         return unknown_ret();
     }
     virtual bool IsAPICallCompleted(Steam::SteamAPICall_t h, bool *failed) override {
-        RpcMakeCallIfClient(IsAPICallCompleted, utils, h) {
+        RpcMakeCallIfClient(IsAPICallCompleted, utils, h, failed) {
             return JobManager::HasResult((i64)h);
         }
     }
@@ -105,8 +105,8 @@ public:
             return ESteamAPICallFailure::k_ESteamAPICallFailureNone;
         }
     }
-    virtual bool GetAPICallResult(Steam::SteamAPICall_t h, u8 *callbackBuffer, u32 bufferSize, int expectedCallback, bool *failed) override {
-        RpcMakeCallIfClient(GetAPICallResult, utils, h, callbackBuffer, bufferSize, expectedCallback, failed) {
+    virtual bool GetAPICallResult(Steam::SteamAPICall_t h, u8 *outBuffer, u32 bufferSize, int expectedCallback, bool *failed) override {
+        RpcMakeCallIfClient(GetAPICallResult, utils, h, outBuffer, bufferSize, expectedCallback, failed) {
 
             // If the call isnt ready then early out
             if (!IsAPICallCompleted(h, failed)) return false;
@@ -120,7 +120,7 @@ public:
 
             // Copy the buffer into the storage allocated by the user
             callbackBuffer.SetPos(0);
-            callbackBuffer.ReadInto<u8, u32>(std::make_pair(callbackBuffer, bufferSize));
+            callbackBuffer.ReadInto<u8, u32>(std::make_pair(outBuffer, bufferSize));
 
             *failed = false;
 
