@@ -11,8 +11,63 @@ namespace Reference {
 #include "SteamStructs/IClientApps.h"
 }
 
+#include "argonx/cmclient/steamhandlers.hh"
+#include "language_internal.hh"
+#include "steammessages_base.pb.h"
+#include "steammessages_clientserver.pb.h"
+
+struct License {
+    u32                       packageId;
+    u32                       timeCreated;
+    u32                       timeNextProcess;
+    i32                       minuteLimit;
+    i32                       minutesUsed;
+    u32                       paymentMethod;
+    Steam::EAppOwnershipFlags flags;
+    std::string               purchaseCountryCode;
+    i32                       territoryCode;
+    i32                       changeNumber;
+    u32                       ownerId;
+    u32                       initialPeriod;
+    u32                       initialTimeUnit;
+    u32                       renewalPeriod;
+    u32                       renewalTimeUnit;
+};
+
 template <bool isServer>
 class ClientAppsMap : public Reference::IClientApps {
+
+    std::vector<License> licenses;
+
+public:
+    static void OnClientLicenseList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto msg = b.ReadAsProto<CMsgClientLicenseList>(msgSize);
+
+        auto apps = LookupInterface<ClientAppsMap<true>>(c, Steam::InterfaceTarget::apps);
+
+        for (auto &license : msg.licenses()) {
+            LOG_F(INFO, "Got license for package %d", license.package_id());
+
+            apps->licenses.push_back({
+                license.package_id(),
+                license.time_created(),
+                license.time_next_process(),
+                license.minute_limit(),
+                license.minutes_used(),
+                license.payment_method(),
+                (Steam::EAppOwnershipFlags)license.flags(),
+                license.purchase_country_code(),
+                license.territory_code(),
+                license.change_number(),
+                license.owner_id(),
+                license.initial_period(),
+                license.initial_time_unit(),
+                license.renewal_period(),
+                license.renewal_time_unit(),
+            });
+        }
+    }
+
 public:
     ClientAppsMap(UserHandle h) {}
 
@@ -48,6 +103,8 @@ public:
         return unknown_ret();
     }
 };
+
+RegisterHelperUnique(Argonx::EMsg::ClientLicenseList, ClientAppsMap<true>::OnClientLicenseList);
 
 AdaptExposeClientServer(ClientAppsMap, "SteamApps");
 

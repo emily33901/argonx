@@ -73,6 +73,7 @@ public:
     static void HandleMultiMessage(CMClient *s, u32 msgSize, Buffer &b, u64 jobId);
     static void HandleEncryptionRequest(CMClient *s, u32 msgSize, Buffer &b, u64 jobId);
     static void HandleEncryptionResult(CMClient *s, u32 msgSize, Buffer &b, u64 jobId);
+    static void HandleClientCMList(CMClient *s, u32 msgSize, Buffer &b, u64 jobId);
 
 public:
     SteamId           steamId;

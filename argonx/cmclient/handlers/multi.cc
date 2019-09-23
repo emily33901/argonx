@@ -33,11 +33,11 @@ void CMClient::HandleMultiMessage(CMClient *s, u32 msgSize, Buffer &b, u64 jobId
         p.header.packetSize = subSize;
 
         // TODO: Dont do this data copying!
-        p.body.Write(std::make_pair(data + offset + 4, subSize));
+        p.body.Write(std::make_pair(data + offset + sizeof(u32), subSize));
 
         s->ProcessPacket(p);
 
-        offset += 4 + subSize;
+        offset += sizeof(u32) + subSize;
     }
 
     if (sizeUnzipped > 0) {

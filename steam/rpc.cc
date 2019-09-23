@@ -82,7 +82,22 @@ i64 GetNextJobId() {
 
 void PostResult(i64 jobId, Buffer &result) {
     resultMap[jobId] = result;
-    waitMap[jobId].notify();
+
+    // Some jobs may not have a semaphore i.e. async callresults
+    if (waitMap.find(jobId) != waitMap.end())
+        waitMap[jobId].notify();
+}
+
+bool HasResult(i64 jobId) {
+    return resultMap.find(jobId) != resultMap.end();
+}
+
+Buffer FetchResult(i64 jobId) {
+    // TODO should we do this?
+    Assert(HasResult(jobId));
+
+    Defer(resultMap.erase(jobId));
+    return resultMap[jobId];
 }
 
 static std::chrono::seconds responseTimeout;

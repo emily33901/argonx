@@ -56,10 +56,13 @@ inline u32 GetVirtualFunctionIndex(void *instance, F function) {
 } // namespace RpcHelpers
 
 // Manages jobs that exist between the client and server.
+// these could be rpc jobs or just async call results
 namespace JobManager {
 i64    GetNextJobId();
 i64    GetNextNonCallJobId();
 void   PostResult(i64 jobId, Buffer &result);
+bool   HasResult(i64 jobId);
+Buffer FetchResult(i64 jobId);
 Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn);
 void   SetResponseTimeout(int seconds);
 } // namespace JobManager
@@ -202,12 +205,10 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
 #define RpcRunOnServer() \
     if constexpr (isServer)
 
-
-// Helper macros for catching when code is incorrectly called 
+// Helper macros for catching when code is incorrectly called
 // from the wrong binary
 #define AssertServer() AssertAlways(isServer, "This function should only be called on the server!")
 #define AssertClient() AssertAlways(!isServer, "This function should only be called on the client!")
-
 
 // Helper macro for making rpc dispatch calls
 // Use case:

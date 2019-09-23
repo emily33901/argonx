@@ -74,6 +74,7 @@ public:
     // TODO: use a secure string thing
     std::string username;
     std::string password;
+    std::string email;
 
     // Additional security codes that we might need
     std::string twoFactorCode;
@@ -131,7 +132,46 @@ public:
         }
     }
 
-    static void OnAccountInfo(Argonx::CMClient *c, u32 msgSize, u64 jobId) {
+    static void OnLoginKey(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto proto = b.ReadAsProto<CMsgClientNewLoginKey>(msgSize);
+
+        CMsgClientNewLoginKeyAccepted ack;
+        ack.set_unique_id(proto.unique_id());
+
+        c->WriteMessage(Argonx::EMsg::ClientNewLoginKeyAccepted, ack, jobId);
+    }
+
+    static void OnAccountInfo(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+
+        LOG_F(INFO, "OnAccountInfo");
+    }
+
+    std::vector<std::string> gameConnectTokens;
+
+    static void OnGameConnectTokens(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto self = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+        auto msg = b.ReadAsProto<CMsgClientGameConnectTokens>(msgSize);
+
+        for (const auto &x : msg.tokens()) {
+            self->gameConnectTokens.push_back(x);
+        }
+        LOG_F(INFO, "OnGameConnectTokens : %d tokens", self->gameConnectTokens.size());
+    }
+
+    static void OnVACBanStatus(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto banCount = b.Read<u32>();
+        LOG_F(INFO, "OnVACBanStatus: %d", banCount);
+    }
+
+    u64 sessionToken;
+
+    static void OnSessionToken(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto msg = b.ReadAsProto<CMsgClientSessionToken>(msgSize);
+
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+        user->sessionToken = msg.token();
     }
 
     void LogonInternal() {
@@ -221,17 +261,22 @@ public:
     virtual Steam::CSteamID GetSteamID() override {
         return Steam::CSteamID(SteamId().steamId64);
     }
-    virtual unknown_ret GetConsoleSteamID() override {
-        return unknown_ret();
+    virtual Steam::CSteamID GetConsoleSteamID() override {
+        // In CUser this returns a different SteamID to the actual one
+        // (which is GetSteamID)
+
+        // For now we will just return the main one
+        return Steam::CSteamID(SteamId());
     }
     virtual unknown_ret GetClientInstanceID() override {
         return unknown_ret();
     }
-    virtual unknown_ret IsVACBanned(unsigned int) override {
-        return unknown_ret();
+    virtual bool IsVACBanned(Steam::CGameID appid) override {
+        // Look at CClientJobVACBanStatus2::
+        return false;
     }
-    virtual unknown_ret SetEmail(char const *email) override {
-        return unknown_ret();
+    virtual void SetEmail(char const *email) override {
+        email = email;
     }
     virtual unknown_ret SetConfigString(EConfigSubTree, char const *, char const *) override {
         return unknown_ret();
@@ -870,6 +915,10 @@ AdaptExposeClientServer(ClientUserMap, "SteamUser");
 // Handler registering
 RegisterHelperUnique(Argonx::EMsg::ClientLogOnResponse, ClientUserMap<true>::OnClientLogon);
 RegisterHelperUnique(Argonx::EMsg::ClientUpdateMachineAuth, ClientUserMap<true>::OnMachineAuth);
+RegisterHelperUnique(Argonx::EMsg::ClientNewLoginKey, ClientUserMap<true>::OnLoginKey);
+RegisterHelperUnique(Argonx::EMsg::ClientGameConnectTokens, ClientUserMap<true>::OnGameConnectTokens);
+RegisterHelperUnique(Argonx::EMsg::ClientAccountInfo, ClientUserMap<true>::OnAccountInfo);
+RegisterHelperUnique(Argonx::EMsg::ClientVACBanStatus, ClientUserMap<true>::OnVACBanStatus);
 
 using IClientUserMap = ClientUserMap<false>;
 

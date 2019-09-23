@@ -9,9 +9,99 @@ namespace Reference {
 #include "SteamStructs/IClientFriends.h"
 } // namespace Reference
 
+#include "argonx/cmclient/cmclient.hh"
+#include "argonx/cmclient/steamcrypt.hh"
+#include "argonx/cmclient/steamhandlers.hh"
+
+#include "steammessages_clientserver.pb.h"
+#include "steammessages_clientserver_2.pb.h"
+#include "steammessages_clientserver_friends.pb.h"
+
+struct SteamEntity {
+    Argonx::SteamId id;
+    union {
+        Steam::EFriendRelationship friendRelationship;
+        Steam::EClanRelationship   clanRelationship;
+    };
+
+    SteamEntity(Argonx::SteamId id, Steam::EFriendRelationship relation) : id(id), friendRelationship(relation) {
+    }
+
+    SteamEntity(Argonx::SteamId id, Steam::EClanRelationship relation) : id(id), clanRelationship(relation) {
+    }
+
+    bool IsFriend() {
+        return Steam::CSteamID(id).BIndividualAccount();
+    }
+
+    bool IsClan() {
+        return Steam::CSteamID(id).BClanAccount();
+    }
+};
+
 template <bool isServer>
 class ClientFriendsMap : public Reference::IClientFriends {
     UserHandle userHandle;
+
+public:
+    std::vector<SteamEntity> friends;
+    std::vector<SteamEntity> clans;
+
+    static void OnClientFriendsList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto self = LookupInterface<ClientFriendsMap<false>>(c, Steam::InterfaceTarget::friends);
+
+        auto msg = b.ReadAsProto<CMsgClientFriendsList>(msgSize);
+
+        if (!msg.bincremental()) {
+            self->friends.clear();
+        }
+
+        using IterType = std::vector<SteamEntity>::iterator;
+        std::vector<IterType> friendsToRemove;
+        std::vector<IterType> clansToRemove;
+
+        for (const auto &f : msg.friends()) {
+            auto steamId = Argonx::SteamId(f.ulfriendid());
+
+            if (Steam::CSteamID(f.ulfriendid()).BClanAccount()) {
+                auto relation = (Steam::EClanRelationship)f.efriendrelationship();
+
+                auto iter = std::find_if(self->clans.begin(), self->clans.end(), [steamId](const auto &x) -> bool { return x.id == steamId; });
+                if (iter != self->clans.end()) {
+                    // If we already have this account then its probably being removed
+                    // but make sure anyway...
+                    if (relation == Steam::EClanRelationship::eClanRelationshipNone || relation == Steam::EClanRelationship::eClanRelationshipKicked) {
+                        clansToRemove.push_back(iter);
+                    } else {
+                        self->clans.push_back(SteamEntity(steamId, relation));
+                    }
+                }
+            } else if (Steam::CSteamID(f.ulfriendid()).BIndividualAccount()) {
+                auto relation = (Steam::EFriendRelationship)f.efriendrelationship();
+
+                auto iter = std::find_if(self->friends.begin(), self->friends.end(), [steamId](const auto &x) -> bool { return x.id == steamId; });
+
+                if (iter != self->friends.end()) {
+                    // If we already have this account then its probably being removed
+                    // but make sure anyway...
+                    if (relation == Steam::EFriendRelationship::k_EFriendRelationshipNone) {
+                        friendsToRemove.push_back(iter);
+                    } else {
+                        self->friends.push_back(SteamEntity(steamId, relation));
+                    }
+                }
+            }
+            // Check relationships to see whether we need to remove or add friends
+
+            // Also check for clan accounts and add them seperately
+            // friends.push_back({Argonx::SteamId(f.ulfriendid()),
+            //                    (Steam::EFriendRelationship)f.efriendrelationship()});
+        }
+
+        LOG_F(INFO, "Got %d friends and %d clans", self->friends.size(), self->clans.size());
+    }
+
+    std::string personaName;
 
 public:
     ClientFriendsMap(UserHandle h) : userHandle(h) {}
@@ -26,7 +116,7 @@ public:
         return 0;
     }
     virtual bool IsPersonaNameSet() override {
-        return false;
+        return true;
     }
     virtual EPersonaState GetPersonaState() override {
         return EPersonaState::k_EPersonaStateOffline;
@@ -745,6 +835,8 @@ public:
         return unknown_ret();
     }
 };
+
+RegisterHelperUnique(Argonx::EMsg::ClientFriendsList, ClientFriendsMap<true>::OnClientFriendsList);
 
 AdaptExposeClientServer(ClientFriendsMap, "SteamFriends");
 

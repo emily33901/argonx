@@ -95,18 +95,39 @@ public:
     virtual unknown_ret AllocPendingAPICallHandle() override {
         return unknown_ret();
     }
-    virtual unknown_ret IsAPICallCompleted(unsigned long long a, bool *b) override {
-        return unknown_ret();
+    virtual bool IsAPICallCompleted(Steam::SteamAPICall_t h, bool *failed) override {
+        RpcMakeCallIfClient(IsAPICallCompleted, utils, h) {
+            return JobManager::HasResult((i64)h);
+        }
     }
     virtual ESteamAPICallFailure GetAPICallFailureReason(Steam::SteamAPICall_t h) override {
         RpcMakeCallIfClient(GetAPICallFailureReason, utils, h) {
             return ESteamAPICallFailure::k_ESteamAPICallFailureNone;
         }
     }
-    virtual unknown_ret GetAPICallResult(unsigned long long, void *, int, int, bool *) override {
-        return unknown_ret();
+    virtual bool GetAPICallResult(Steam::SteamAPICall_t h, u8 *callbackBuffer, u32 bufferSize, int expectedCallback, bool *failed) override {
+        RpcMakeCallIfClient(GetAPICallResult, utils, h, callbackBuffer, bufferSize, expectedCallback, failed) {
+
+            // If the call isnt ready then early out
+            if (!IsAPICallCompleted(h, failed)) return false;
+
+            auto callbackBuffer = JobManager::FetchResult((i64)h);
+
+            // Check the first u32 in the buffer to see if it matches the expected callback
+            auto cbId = callbackBuffer.Read<u32>();
+
+            if (cbId != expectedCallback) return false;
+
+            // Copy the buffer into the storage allocated by the user
+            callbackBuffer.SetPos(0);
+            callbackBuffer.ReadInto<u8, u32>(std::make_pair(callbackBuffer, bufferSize));
+
+            *failed = false;
+
+            return true;
+        }
     }
-    virtual unknown_ret SetAPICallResultWithoutPostingCallback(unsigned long long, void const *, int, int) override {
+    virtual unknown_ret SetAPICallResultWithoutPostingCallback(unsigned long long handle, void const *callback, int size, int) override {
         return unknown_ret();
     }
     virtual unknown_ret SignalAppsToShutDown() override {
