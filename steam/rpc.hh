@@ -57,12 +57,20 @@ inline u32 GetVirtualFunctionIndex(void *instance, F function) {
 
 // Manages jobs that exist between the client and server.
 // these could be rpc jobs or just async call results
+
+// These should only be called from the server
+// calling them on the client is ill-formed
 namespace JobManager {
+// Get q unique jobid
 i64    GetNextJobId();
 i64    GetNextNonCallJobId();
+
+// Post or fetch a result from the job match
 void   PostResult(i64 jobId, Buffer &result);
 bool   HasResult(i64 jobId);
 Buffer FetchResult(i64 jobId);
+
+// Make an rpc call (assumes the buffer is well formed from a call to RpcBase::MakeRpcCall())
 Buffer MakeCall(Buffer &data, Pipe::Target handle, Pipe &p, bool hasReturn);
 void   SetResponseTimeout(int seconds);
 } // namespace JobManager

@@ -45,10 +45,12 @@ public:
         return EUniverse::k_EUniversePublic;
     }
     virtual unknown_ret GetServerRealTime() override {
+        // TODO: ask server for time
         return unknown_ret();
     }
     virtual const char *GetIPCountry() override {
         RpcMakeCallIfClient(GetIPCountry, utils) {
+            // TODO: implement some form of geolocation here (or maybe ask steam?)
             return "GB";
         }
     }
@@ -61,9 +63,9 @@ public:
     }
     virtual unknown_ret GetImageRGBA(int imgHandle, u8 *bufferOut, u32 maxOut) override {
         RpcMakeCallIfClient(GetImageRGBA, utils, imgHandle, bufferOut, maxOut) {
-            memset(bufferOut, 0xBB, maxOut);
+            memset(bufferOut, 0x00, maxOut);
 
-            return 14123;
+            return maxOut;
         }
     }
     virtual unknown_ret GetCSERIPPort(unsigned int *, unsigned short *) override {
@@ -75,13 +77,13 @@ public:
     virtual unknown_ret GetCurrentBatteryPower() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetOfflineMode(bool) override {
+    virtual unknown_ret SetOfflineMode(bool offline) override {
         return unknown_ret();
     }
     virtual unknown_ret GetOfflineMode() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetAppIDForCurrentPipe(unsigned int, bool) override {
+    virtual unknown_ret SetAppIDForCurrentPipe(unsigned int appid, bool trackProcess) override {
         return unknown_ret();
     }
     virtual unknown_ret GetAppID() override {
@@ -89,7 +91,7 @@ public:
     }
     virtual unknown_ret SetAPIDebuggingActive(bool a, bool b) override {
         RpcMakeCallIfClient(SetAPIDebuggingActive, utils, a, b) {
-            return 123;
+            return unknown_ret();
         }
     }
     virtual unknown_ret AllocPendingAPICallHandle() override {
@@ -102,6 +104,7 @@ public:
     }
     virtual ESteamAPICallFailure GetAPICallFailureReason(Steam::SteamAPICall_t h) override {
         RpcMakeCallIfClient(GetAPICallFailureReason, utils, h) {
+            // TODO: we need some method of actually conveying failure to end user!
             return ESteamAPICallFailure::k_ESteamAPICallFailureNone;
         }
     }
