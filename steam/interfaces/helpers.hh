@@ -2,6 +2,7 @@
 
 #include "platform.hh"
 
+#include "../asyncjob.hh"
 #include "../rpc.hh"
 
 namespace Steam {
@@ -160,4 +161,4 @@ template <typename T>
 T *LookupInterface(Argonx::CMClient *c, InterfaceTarget t) {
     return reinterpret_cast<T *>(LookupInterfaceInternal(c, t));
 }
-}
+} // namespace Steam

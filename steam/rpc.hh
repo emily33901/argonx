@@ -260,5 +260,3 @@ u32 Rpc<F>::dispatchPosition = MakeDispatch((void *)&Rpc<F>::DispatchFromBuffer,
     }
 
 } // namespace Steam
-
-#include "defer.hh"

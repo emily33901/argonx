@@ -113,7 +113,14 @@ public:
         return SetPersonaNameEx(newName, true);
     }
     virtual SteamAPICall_t SetPersonaNameEx(char const *newName, bool sendCallback) override {
-        return 0;
+        auto job = Steam::NewAsyncJob([this](const Steam::AsyncJob &b) -> Steam::AsyncJob::Result {
+            // Check if we got a namechange callback
+            // If we did return finished
+
+            return Steam::AsyncJob::Result::yield;
+        });
+
+        return job.jobId;
     }
     virtual bool IsPersonaNameSet() override {
         return true;
