@@ -17,10 +17,10 @@ struct AsyncJob {
     // Callback should be non-blocking
     // If you cannot compute the result right now (due to not having your
     // result back from steam etc... then you shoud return AsyncJobResult::yield)
-    using Callback = Result (*)(const AsyncJob &b);
+    using Callback = std::function<Result(const AsyncJob &b)>;
 
     // jobId this represents
-    const i64 jobId;
+    i64 jobId;
 
     // Callback for this job
     Callback callback;
@@ -33,7 +33,7 @@ struct AsyncJob {
         return Result::finish;
     }
 
-    Result RunJob() {
+    Result RunJob() const {
         return callback(*this);
     }
 };

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "asyncjob.hh"
 
 namespace Steam {
@@ -20,7 +18,7 @@ void RunAsyncJobs() {
 
     for (auto it = jobs.begin(); it != jobs.end(); ++it) {
         const auto j      = *it;
-        auto       result = (*j.callback)(j);
+        auto       result = j.RunJob();
         if (result == AsyncJob::Result::finish) {
             toRemove.push_back(it);
         }
@@ -28,7 +26,7 @@ void RunAsyncJobs() {
 
     // Now remove them from the jobs
     for (auto it : toRemove) {
-        jobs.erase(it, it + 1);
+        jobs.erase(it);
     }
 }
 } // namespace Steam
