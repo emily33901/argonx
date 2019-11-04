@@ -362,7 +362,7 @@ void CMClient::WriteMessage(MsgBuilder &b) {
 
     if (encrypted) {
         crypt.SymetricEncrypt(body, body);
-    } else if (IsProto(b.msg)) {
+    } else if (RawMsg(b.msg) != EMsg::ChannelEncryptRequest) {
         msgQueue.push_back(b);
         return;
     }
