@@ -618,3 +618,4 @@ compile_commands.json
 
 .vscode/
 protogen
+.clangd

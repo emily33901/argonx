@@ -202,7 +202,7 @@ public:
         }
     }
 
-    ~ClientUserMap() {
+    virtual ~ClientUserMap() {
         RpcRunOnServer() {
             Defer(userHandleLookup.erase(cmClient));
             threadRunning = false;

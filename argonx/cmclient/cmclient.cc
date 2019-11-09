@@ -239,6 +239,10 @@ static std::array hardCodedCMList = {
     "180.101.192.200:27018",
 };
 
+Argonx::CMClient::~CMClient() {
+    clientHeartbeatFunction.Stop();
+}
+
 std::pair<const std::string, const std::string> CMClient::FindServer() {
     auto addr = std::string(hardCodedCMList[rand() % hardCodedCMList.size()]);
 
@@ -362,7 +366,7 @@ void CMClient::WriteMessage(MsgBuilder &b) {
 
     if (encrypted) {
         crypt.SymetricEncrypt(body, body);
-    } else if (RawMsg(b.msg) != EMsg::ChannelEncryptRequest) {
+    } else if (RawMsg(b.msg) != EMsg::ChannelEncryptResponse) {
         msgQueue.push_back(b);
         return;
     }

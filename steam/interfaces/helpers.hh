@@ -161,4 +161,10 @@ template <typename T>
 T *LookupInterface(Argonx::CMClient *c, InterfaceTarget t) {
     return reinterpret_cast<T *>(LookupInterfaceInternal(c, t));
 }
+
+template<typename T>
+T *LookupInterface(Steam::UserHandle h, InterfaceTarget t) {
+    return reinterpret_cast<T *>(GetUserInterface(h, t));
+}
+
 } // namespace Steam

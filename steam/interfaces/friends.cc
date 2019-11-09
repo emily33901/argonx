@@ -7,6 +7,7 @@ using namespace Steam;
 
 namespace Reference {
 #include "SteamStructs/IClientFriends.h"
+#include "SteamStructs/IClientUser.h"
 } // namespace Reference
 
 #include "argonx/cmclient/cmclient.hh"
@@ -102,39 +103,69 @@ public:
     }
 
     std::string personaName;
+    EPersonaState personaState;
 
 public:
-    ClientFriendsMap(UserHandle h) : userHandle(h) {}
+    ClientFriendsMap(UserHandle h) : userHandle(h) {
+        RpcRunOnServer() {
+            personaState = EPersonaState::k_EPersonaStateOffline;
+        }
+    }
     // Inherited via IClientFriends
     virtual const char *GetPersonaName() override {
-        return "";
+        RpcMakeCallIfClient(GetPersonaName, friends, ) {
+            return personaName.c_str();
+        }
     }
     virtual SteamAPICall_t SetPersonaName(char const *newName) override {
         return SetPersonaNameEx(newName, true);
     }
     virtual SteamAPICall_t SetPersonaNameEx(char const *newName, bool sendCallback) override {
-        auto job = Steam::NewAsyncJob([this](const Steam::AsyncJob &b) -> Steam::AsyncJob::Result {
-            // Check if we got a namechange callback
-            // If we did return finished
+        RpcMakeCallIfClient(SetPersonaNameEx, friends, newName, sendCallback) {
+            auto job = Steam::NewAsyncJob([this](const Steam::AsyncJob &b) -> Steam::AsyncJob::Result {
+                // Check if we got a namechange callback
+                // If we did return finished
 
-            return Steam::AsyncJob::Result::yield;
-        });
+                return Steam::AsyncJob::Result::yield;
+            });
 
-        return job.jobId;
+            return job.jobId;
+        }
     }
     virtual bool IsPersonaNameSet() override {
-        return true;
+        RpcMakeCallIfClient(IsPersonaNameSet, friends,) {
+            return personaName != "";
+        }
     }
     virtual EPersonaState GetPersonaState() override {
-        return EPersonaState::k_EPersonaStateOffline;
+        RpcMakeCallIfClient(GetPersonaState, friends, ) {
+            return personaState;
+        }
     }
-    virtual void SetPersonaState(EPersonaState) override {
+    virtual void SetPersonaState(EPersonaState state) override {
+        RpcMakeCallIfClient(SetPersonaState, friends, state) {
+            personaState = state;
+        }
     }
-    virtual unknown_ret NotifyUIOfMenuChange(bool, bool, bool, bool) override {
+    virtual unknown_ret NotifyUIOfMenuChange(bool showAvatar, bool sortByName, bool showOnlineOnly, bool showUntaggedFriends) override {
+        // I assume that this refers to the friends menu - is this even used now that we have the new friends UI?
         return unknown_ret();
     }
-    virtual unknown_ret GetFriendCount(int) override {
-        return unknown_ret();
+    virtual int GetFriendCount(EFriendFlags friendFlags) override {
+        RpcMakeCallIfClient(GetFriendCount, friends, friendFlags) {
+            auto *user = LookupInterface<Reference::IClientUser>(userHandle, InterfaceTarget::user);
+
+            auto count = 0;
+            
+            for (auto &f : friends) {
+                if ((f.friendRelationship & friendFlags) == friendFlags) {
+                    count += 1;
+                }
+            }
+
+            return count;
+        }
+
     }
     virtual unknown_ret GetFriendArray(CSteamID *, signed char *, int, int) override {
         return unknown_ret();
@@ -142,8 +173,15 @@ public:
     virtual unknown_ret GetFriendArrayInGame(CSteamID *, unsigned long long *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetFriendByIndex(int, int) override {
-        return unknown_ret();
+    virtual CSteamID GetFriendByIndex(int index, EFriendFlags flags) override {
+        RpcMakeCallIfClient(GetFriendByIndex, friends, index, flags) {
+            auto count = 0;
+            for (const auto it = friends.begin(); f != friends.end(); f++) {
+                if ((it->friendRelationship & flags) == flags) {
+                    count += 1;
+                }
+            }
+        }
     }
     virtual unknown_ret GetOnlineFriendCount() override {
         return unknown_ret();

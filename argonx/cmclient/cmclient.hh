@@ -88,6 +88,8 @@ public:
         steamId.type     = static_cast<unsigned>(EAccountType::Individual);
     }
 
+    ~CMClient();
+
     std::optional<TcpPacket> ReadPacket();
     bool                     ProcessPacket(TcpPacket &p);
 

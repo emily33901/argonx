@@ -146,9 +146,10 @@ int main(int argCount, char **argStrings) {
                 auto now = std::chrono::system_clock::now();
 
                 for (auto &[k, v] : heartbeats) {
-                    if ((now - v) > 2min) {
+                    if ((now - v) > 30s) {
                         LOG_F(INFO, "Dropping client %d", k);
                         Steam::ServerPipe()->ClientDisconnected(k);
+
                         keysToErase.push_back(k);
                     }
                 }
