@@ -7,8 +7,11 @@
 
 namespace Argonx {
 struct SteamId {
-    SteamId(u64 = 0) { steamId64 = 0; };
     operator u64() const { return steamId64; };
+
+    SteamId() = default;
+
+    SteamId(const u64 x) { steamId64 = x; }
 
     union {
         struct {

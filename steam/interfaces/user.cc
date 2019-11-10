@@ -82,6 +82,7 @@ public:
 
     // Should match the cmclients steamid!
     Argonx::SteamId &SteamId() {
+        AssertServer();
         Assert(cmClient, "Valid cmclient needed for SteamId!");
         return cmClient->steamId;
     }

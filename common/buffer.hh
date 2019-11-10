@@ -13,7 +13,8 @@ class Buffer {
     size_t          base   = 0;
 
     template <typename T>
-    static constexpr bool ValidToWrite = std::is_trivially_constructible_v<T> && !std::is_pointer_v<T>;
+    // static constexpr bool ValidToWrite = std::is_trivially_constructible_v<T> && !std::is_pointer_v<T>;
+    static constexpr bool ValidToWrite = std::is_constructible_v<T> && !std::is_pointer_v<T>;
 
     decltype(storage.begin()) OffsetIterator() {
         return storage.begin() + base + offset;

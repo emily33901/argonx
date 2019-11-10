@@ -78,7 +78,7 @@ static std::atomic_int pipeReferenceCount;
 template <bool isServer>
 class ClientEngineMap : Reference::IClientEngine {
 
-    // This should not be called directly 
+    // This should not be called directly
     // Call CreateSteamPipe which will then call this!
     bool CreateClientPipe() {
         AssertClient();

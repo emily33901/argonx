@@ -102,7 +102,7 @@ public:
         LOG_F(INFO, "Got %d friends and %d clans", self->friends.size(), self->clans.size());
     }
 
-    std::string personaName;
+    std::string   personaName;
     EPersonaState personaState;
 
 public:
@@ -133,7 +133,7 @@ public:
         }
     }
     virtual bool IsPersonaNameSet() override {
-        RpcMakeCallIfClient(IsPersonaNameSet, friends,) {
+        RpcMakeCallIfClient(IsPersonaNameSet, friends, ) {
             return personaName != "";
         }
     }
@@ -156,7 +156,7 @@ public:
             auto *user = LookupInterface<Reference::IClientUser>(userHandle, InterfaceTarget::user);
 
             auto count = 0;
-            
+
             for (auto &f : friends) {
                 if ((f.friendRelationship & friendFlags) == friendFlags) {
                     count += 1;
@@ -165,7 +165,6 @@ public:
 
             return count;
         }
-
     }
     virtual unknown_ret GetFriendArray(CSteamID *, signed char *, int, int) override {
         return unknown_ret();
@@ -173,12 +172,14 @@ public:
     virtual unknown_ret GetFriendArrayInGame(CSteamID *, unsigned long long *, int) override {
         return unknown_ret();
     }
-    virtual CSteamID GetFriendByIndex(int index, EFriendFlags flags) override {
+    virtual CSteamID GetFriendByIndex(int index, Steam::EFriendFlags flags) override {
         RpcMakeCallIfClient(GetFriendByIndex, friends, index, flags) {
             auto count = 0;
-            for (const auto it = friends.begin(); f != friends.end(); f++) {
+            for (auto it = friends.begin(); it != friends.end(); ++it) {
                 if ((it->friendRelationship & flags) == flags) {
                     count += 1;
+
+                    if (count == index) return CSteamID(it->id.steamId64);
                 }
             }
         }
