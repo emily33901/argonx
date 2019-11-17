@@ -39,7 +39,7 @@ static std::unordered_map<Pipe::Target, std::chrono::time_point<std::chrono::sys
 void CreateServerPipe() {
     Steam::SetServerPipe(new Pipe(true, Steam::rpcSocketAddress));
     Steam::ServerPipe()->processMessage = [](Pipe::Target target, u8 *data, u32 size) {
-        LOG_SCOPE_F(INFO, "Server message [%lu]", target);
+        LOG_SCOPE_F(INFO, "Server message [%u]", target);
         LOG_F(INFO, "size:%d", size);
 
         Buffer b;
@@ -49,7 +49,7 @@ void CreateServerPipe() {
         i64 jobId = b.Read<i64>();
 
         if (jobId < 0) {
-            LOG_F(INFO, "Recieved non-call job %lld", jobId);
+            LOG_F(INFO, "Recieved non-call job %ld", jobId);
             // Non-call job
             auto header = b.Read<Steam::RpcNonCallHeader>();
 
@@ -141,7 +141,7 @@ int main(int argCount, char **argStrings) {
                 Steam::ServerPipe()->ProcessMessages();
 
                 using namespace std::chrono_literals;
-                std::this_thread::sleep_for(1ms);
+                std::this_thread::sleep_for(10ms);
 
                 auto now = std::chrono::system_clock::now();
 
@@ -162,8 +162,8 @@ int main(int argCount, char **argStrings) {
 
 #if 0
     LOG_F(INFO, "%d trampolines allocated (%d bytes)...",
-           Steam::InterfaceHelpers::TAllocator()->NumAllocated(),
-           Steam::InterfaceHelpers::TAllocator()->BytesAllocated());
+          Steam::InterfaceHelpers::TAllocator()->NumAllocated(),
+          Steam::InterfaceHelpers::TAllocator()->BytesAllocated());
 
     {
         u32 counter = 0;
@@ -184,16 +184,6 @@ int main(int argCount, char **argStrings) {
 
         LOG_F(INFO, "[I] %d total interfaces", total);
     }
-
-    CreateClientPipe();
-    std::thread pipeThread{[]() {
-        while (true) {
-            Steam::ClientPipe()->ProcessMessages();
-
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(1ms);
-        }
-    }};
 #endif
 
     LOG_F(INFO, "Server started...");

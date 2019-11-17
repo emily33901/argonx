@@ -104,10 +104,10 @@ index ca421a2..631348a 100644
      virtual unknown_ret OnDebugTextArrived(char const*) = 0;
      virtual unknown_ret OnThreadLocalRegistration() = 0;
 diff --git a/IClientFriends.h b/IClientFriends.h
-index dfb5ee0..9c2531e 100644
+index dfb5ee0..5e2882d 100644
 --- a/IClientFriends.h
 +++ b/IClientFriends.h
-@@ -1,17 +1,17 @@
+@@ -1,24 +1,24 @@
  class IClientFriends
  {
  public:
@@ -129,10 +129,24 @@ index dfb5ee0..9c2531e 100644
      virtual unknown_ret GetFriendArray(CSteamID*, signed char*, int, int) = 0;
      virtual unknown_ret GetFriendArrayInGame(CSteamID*, unsigned long long*, int) = 0;
 -    virtual unknown_ret GetFriendByIndex(int, int) = 0;
-+    virtual Steam::CSteamID GetFriendByIndex(int, EFriendFlags) = 0;
-     virtual unknown_ret GetOnlineFriendCount() = 0;
-     virtual unknown_ret GetFriendRelationship(CSteamID) = 0;
-     virtual unknown_ret GetFriendPersonaState(CSteamID) = 0;
+-    virtual unknown_ret GetOnlineFriendCount() = 0;
+-    virtual unknown_ret GetFriendRelationship(CSteamID) = 0;
+-    virtual unknown_ret GetFriendPersonaState(CSteamID) = 0;
+-    virtual unknown_ret GetFriendPersonaName(CSteamID) = 0;
+-    virtual unknown_ret GetSmallFriendAvatar(CSteamID) = 0;
+-    virtual unknown_ret GetMediumFriendAvatar(CSteamID) = 0;
+-    virtual unknown_ret GetLargeFriendAvatar(CSteamID) = 0;
++    virtual CSteamID GetFriendByIndex(int, Steam::EFriendFlags) = 0;
++    virtual int GetOnlineFriendCount() = 0;
++    virtual EFriendRelationship GetFriendRelationship(CSteamID) = 0;
++    virtual EPersonaState GetFriendPersonaState(CSteamID) = 0;
++    virtual const char *GetFriendPersonaName(CSteamID) = 0;
++    virtual int GetSmallFriendAvatar(CSteamID) = 0;
++    virtual int GetMediumFriendAvatar(CSteamID) = 0;
++    virtual int GetLargeFriendAvatar(CSteamID) = 0;
+     virtual unknown_ret BGetFriendAvatarURL(char*, unsigned int, CSteamID, EFriendAvatarSize) = 0;
+     virtual unknown_ret GetFriendAvatarHash(char*, unsigned int, CSteamID) = 0;
+     virtual unknown_ret SetFriendRegValue(CSteamID, char const*, char const*) = 0;
 diff --git a/IClientUser.h b/IClientUser.h
 index c5f387b..dc2cf5d 100644
 --- a/IClientUser.h

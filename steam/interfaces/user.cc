@@ -8,6 +8,7 @@
 #include "argonx/cmclient/steamhandlers.hh"
 
 #include "steammessages_clientserver.pb.h"
+#include "steammessages_clientserver_friends.pb.h"
 #include "steammessages_clientserver_2.pb.h"
 #include "steammessages_clientserver_login.pb.h"
 
@@ -157,7 +158,7 @@ public:
         for (const auto &x : msg.tokens()) {
             self->gameConnectTokens.push_back(x);
         }
-        LOG_F(INFO, "OnGameConnectTokens : %d tokens", self->gameConnectTokens.size());
+        LOG_F(INFO, "OnGameConnectTokens : %zu tokens", self->gameConnectTokens.size());
     }
 
     static void OnVACBanStatus(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
@@ -173,6 +174,52 @@ public:
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
         user->sessionToken = msg.token();
+    }
+
+    static void OnIsLimitedAccount(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto msg  = b.ReadAsProto<CMsgClientIsLimitedAccount>(msgSize);
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+        LOG_F(INFO, "OnIsLimitedAccount %s", msg.DebugString().c_str());
+    }
+    static void OnEmailAddrInfo(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto msg  = b.ReadAsProto<CMsgClientEmailAddrInfo>(msgSize);
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+        LOG_F(INFO, "OnEmailAddrInfo %s", msg.DebugString().c_str());
+    }
+    static void OnPlayerNicknameList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+        LOG_F(INFO, "OnPlayerNicknameList");
+    }
+    static void OnUpdateGuestPassesList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+        LOG_F(INFO, "OnUpdateGuestPassesList");
+    }
+    static void OnWalletInfoUpdate(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto msg  = b.ReadAsProto<CMsgClientWalletInfoUpdate>(msgSize);
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+        LOG_F(INFO, "OnWalletInfoUpdate %s", msg.DebugString().c_str());
+    }
+
+    static void OnCMList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+        LOG_F(INFO, "OnCMList");
+    }
+
+    static void OnRequestedClientStats(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto msg  = b.ReadAsProto<CMsgClientRequestedClientStats>(msgSize);
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+        LOG_F(INFO, "OnRequestedClientStats %s", msg.DebugString().c_str());
+    }
+
+    static void OnFriendsGroupsList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+        auto msg  = b.ReadAsProto<CMsgClientFriendsGroupsList>(msgSize);
+        auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
+
+        LOG_F(INFO, "OnFriendsGroupsList %s", msg.DebugString().c_str());
     }
 
     void LogonInternal() {
@@ -260,7 +307,7 @@ public:
         }
     }
     virtual Steam::CSteamID GetSteamID() override {
-        RpcMakeCallIfClient(GetSteamID, user,) {
+        RpcMakeCallIfClient(GetSteamID, user, ) {
             return Steam::CSteamID(SteamId().steamId64);
         }
     }
@@ -922,6 +969,15 @@ RegisterHelperUnique(Argonx::EMsg::ClientNewLoginKey, ClientUserMap<true>::OnLog
 RegisterHelperUnique(Argonx::EMsg::ClientGameConnectTokens, ClientUserMap<true>::OnGameConnectTokens);
 RegisterHelperUnique(Argonx::EMsg::ClientAccountInfo, ClientUserMap<true>::OnAccountInfo);
 RegisterHelperUnique(Argonx::EMsg::ClientVACBanStatus, ClientUserMap<true>::OnVACBanStatus);
+RegisterHelperUnique(Argonx::EMsg::ClientIsLimitedAccount, ClientUserMap<true>::OnIsLimitedAccount);
+RegisterHelperUnique(Argonx::EMsg::ClientEmailAddrInfo, ClientUserMap<true>::OnEmailAddrInfo);
+RegisterHelperUnique(Argonx::EMsg::ClientPlayerNicknameList, ClientUserMap<true>::OnPlayerNicknameList); // Should probably be handled by friends
+RegisterHelperUnique(Argonx::EMsg::ClientUpdateGuestPassesList, ClientUserMap<true>::OnUpdateGuestPassesList);
+RegisterHelperUnique(Argonx::EMsg::ClientWalletInfoUpdate, ClientUserMap<true>::OnWalletInfoUpdate);
+RegisterHelperUnique(Argonx::EMsg::ClientSessionToken, ClientUserMap<true>::OnSessionToken);
+RegisterHelperUnique(Argonx::EMsg::ClientCMList, ClientUserMap<true>::OnCMList);
+RegisterHelperUnique(Argonx::EMsg::ClientRequestedClientStats, ClientUserMap<true>::OnRequestedClientStats);
+RegisterHelperUnique(Argonx::EMsg::ClientFriendsGroupsList, ClientUserMap<true>::OnFriendsGroupsList); // Should probably be handled by friends
 
 using IClientUserMap = ClientUserMap<false>;
 

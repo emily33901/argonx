@@ -185,39 +185,36 @@ public:
         }
     }
     virtual int GetOnlineFriendCount() override {
-        RpcMakeCallIfClient(GetOnlineFriendCount, friends,) {
-            for(auto &f : friends) {
-                
+        RpcMakeCallIfClient(GetOnlineFriendCount, friends, ) {
+            for (auto &f : friends) {
             }
 
             return 0;
         }
     }
-    virtual int GetFriendRelationship(CSteamID id) override {
+    virtual EFriendRelationship GetFriendRelationship(CSteamID id) override {
         RpcMakeCallIfClient(GetFriendRelationship, friends, id) {
-            for(auto &x : friends) {
-                if (x.id == id) {
+            for (auto &x : friends) {
+                if (x.id == Argonx::SteamId(id.ConvertToUint64())) {
                     return x.friendRelationship;
                 }
             }
         }
-        
     }
     virtual EPersonaState GetFriendPersonaState(CSteamID id) override {
-
-        return unknown_ret();
+        return EPersonaState::k_EPersonaStateOffline;
     }
     virtual const char *GetFriendPersonaName(CSteamID id) override {
-        return unknown_ret();
+        return "";
     }
     virtual int GetSmallFriendAvatar(CSteamID) override {
-        return unknown_ret();
+        return 0;
     }
     virtual int GetMediumFriendAvatar(CSteamID) override {
-        return unknown_ret();
+        return 0;
     }
     virtual int GetLargeFriendAvatar(CSteamID) override {
-        return unknown_ret();
+        return 0;
     }
     virtual unknown_ret BGetFriendAvatarURL(char *, unsigned int, CSteamID, EFriendAvatarSize) override {
         return unknown_ret();
@@ -1655,4 +1652,55 @@ AdaptDefine(ISteamFriends017, IClientFriendsMap, "SteamFriends017") = {
     AdaptPassThrough(IClientFriendsMap::GetClanByIndex),
     AdaptPassThrough(IClientFriendsMap::GetClanName),
     AdaptPassThrough(IClientFriendsMap::GetClanTag),
-    Ada
+    AdaptPassThrough(IClientFriendsMap::GetClanActivityCounts),
+    AdaptPassThrough(IClientFriendsMap::DownloadClanActivityCounts),
+    AdaptPassThrough(IClientFriendsMap::GetFriendCountFromSource),
+    AdaptPassThrough(IClientFriendsMap::GetFriendFromSourceByIndex),
+    AdaptPassThrough(IClientFriendsMap::IsUserInSource),
+    AdaptPassThrough(IClientFriendsMap::SetInGameVoiceSpeaking),
+    AdaptPassThrough(IClientFriendsMap::ActivateGameOverlay),
+    AdaptPassThrough(IClientFriendsMap::ActivateGameOverlayToUser),
+    AdaptPassThrough(IClientFriendsMap::ActivateGameOverlayToWebPage),
+    AdaptPassThrough(IClientFriendsMap::ActivateGameOverlayToStore),
+    AdaptPassThrough(IClientFriendsMap::SetPlayedWith),
+    AdaptPassThrough(IClientFriendsMap::ActivateGameOverlayInviteDialog),
+    AdaptPassThrough(IClientFriendsMap::GetSmallFriendAvatar),
+    AdaptPassThrough(IClientFriendsMap::GetMediumFriendAvatar),
+    AdaptPassThrough(IClientFriendsMap::GetLargeFriendAvatar),
+    AdaptPassThrough(IClientFriendsMap::RequestUserInformation),
+    AdaptPassThrough(IClientFriendsMap::RequestClanOfficerList),
+    AdaptPassThrough(IClientFriendsMap::GetClanOwner),
+    AdaptPassThrough(IClientFriendsMap::GetClanOfficerCount),
+    AdaptPassThrough(IClientFriendsMap::GetClanOfficerByIndex),
+    AdaptPassThrough(IClientFriendsMap::GetUserRestrictions),
+    AdaptPassThrough(IClientFriendsMap::SetRichPresence),
+    AdaptPassThrough(IClientFriendsMap::ClearRichPresence),
+    AdaptPassThrough(IClientFriendsMap::GetFriendRichPresence),
+    AdaptPassThrough(IClientFriendsMap::GetFriendRichPresenceKeyCount),
+    AdaptPassThrough(IClientFriendsMap::GetFriendRichPresenceKeyByIndex),
+    AdaptPassThrough(IClientFriendsMap::RequestFriendRichPresence),
+    AdaptPassThrough(IClientFriendsMap::InviteUserToGame),
+    AdaptPassThrough(IClientFriendsMap::GetCoplayFriendCount),
+    AdaptPassThrough(IClientFriendsMap::GetCoplayFriend),
+    AdaptPassThrough(IClientFriendsMap::GetFriendCoplayTime),
+    AdaptPassThrough(IClientFriendsMap::GetFriendCoplayGame),
+    AdaptPassThrough(IClientFriendsMap::JoinClanChatRoom),
+    AdaptPassThrough(IClientFriendsMap::LeaveClanChatRoom),
+    AdaptPassThrough(IClientFriendsMap::GetClanChatMemberCount),
+    AdaptPassThrough(IClientFriendsMap::GetChatMemberByIndex),
+    AdaptPassThrough(IClientFriendsMap::SendClanChatMessage),
+    AdaptPassThrough(IClientFriendsMap::GetClanChatMessage),
+    AdaptPassThrough(IClientFriendsMap::IsClanChatAdmin),
+    AdaptPassThrough(IClientFriendsMap::IsClanChatWindowOpenInSteam),
+    AdaptPassThrough(IClientFriendsMap::OpenClanChatWindowInSteam),
+    AdaptPassThrough(IClientFriendsMap::CloseClanChatWindowInSteam),
+    AdaptPassThrough(IClientFriendsMap::SetListenForFriendsMessages),
+    AdaptPassThrough(IClientFriendsMap::ReplyToFriendMessage),
+    AdaptPassThrough(IClientFriendsMap::GetFriendMessage),
+    AdaptPassThrough(IClientFriendsMap::GetFollowerCount),
+    AdaptPassThrough(IClientFriendsMap::IsFollowing),
+    AdaptPassThrough(IClientFriendsMap::EnumerateFollowingList),
+    AdaptPassThrough(IClientFriendsMap::IsClanPublic),
+    AdaptPassThrough(IClientFriendsMap::IsClanOfficialGameGroup),
+    AdaptPassThrough(IClientFriendsMap::GetNumChatsWithUnreadPriorityMessages),
+};

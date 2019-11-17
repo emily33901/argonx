@@ -812,6 +812,13 @@ struct MsgClientServerUnavailable {
     }
 };
 
+struct MsgClientMarketingMessageUpdate2 {
+    u32 marketingMessageUpdateTime;
+    u32 count;
+
+    void FromBuffer(Buffer &b);
+};
+
 } // namespace Argonx
 
 #pragma pack(pop)

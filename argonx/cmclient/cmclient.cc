@@ -339,8 +339,6 @@ void CMClient::TryAnotherCM() {
 }
 
 void CMClient::Run(const bool &run) {
-    // TODO: some I/O functions are now non-blocking!
-    // So we should be able to change this behaviour!
     while (run) {
         RunFrame();
 

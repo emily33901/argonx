@@ -36,3 +36,7 @@ Buffer MsgHdrProtoBuf::ToBuffer() {
 void Argonx::ExtendedClientMsgHdr::FromBuffer(Buffer &b) {
     b.Read(msg, headerSize, headerVersion, targetJobID, sourceJobID, headerCanary, steamID, sessionID);
 }
+
+void Argonx::MsgClientMarketingMessageUpdate2::FromBuffer(Buffer &b) {
+    b.Read(marketingMessageUpdateTime, count);
+}

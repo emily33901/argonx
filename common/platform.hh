@@ -109,6 +109,9 @@ struct IsPair<std::pair<First, Second>> : std::true_type {
 template <typename T>
 inline constexpr bool is_pair_v = IsPair<T>::value;
 
+// Does not allocate a buffer
+// if you are planning to store the result then you will need to
+// strdup or similar...
 const char *DemangleName(const char *n);
 
 template <typename T>

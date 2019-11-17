@@ -62,8 +62,8 @@ inline u32 GetVirtualFunctionIndex(void *instance, F function) {
 // calling them on the client is ill-formed
 namespace JobManager {
 // Get q unique jobid
-i64    GetNextJobId();
-i64    GetNextNonCallJobId();
+i64 GetNextJobId();
+i64 GetNextNonCallJobId();
 
 // Post or fetch a result from the job match
 void   PostResult(i64 jobId, Buffer &result);
@@ -198,7 +198,8 @@ Buffer Rpc<F>::DispatchFromBuffer(Class *instance, u32 functionIndex, Buffer &b)
 std::vector<std::pair<void *, const char *>> &RpcDispatches();
 
 inline u32 MakeDispatch(void *f, const char *debugName) {
-    RpcDispatches().push_back(std::make_pair(f, debugName));
+    auto name = strdup(debugName);
+    RpcDispatches().push_back(std::make_pair(f, name));
     return (u32)RpcDispatches().size() - 1;
 }
 
