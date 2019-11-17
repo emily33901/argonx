@@ -213,16 +213,14 @@ struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal
     // using BaseIfOut  = _SpliceRead<(thisIdx + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<>>;
 
     static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
-        if constexpr (thisIdx == idxReal) {
-            std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
+        static_assert(thisIdx == idxReal, "Your two types do not line up, this should never happen!");
 
-            if constexpr (Platform::is_pair_v<TReal>)
-                BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
-            else
-                BaseIfReal::Read(toBuild, realStorage, outStore);
-        } else {
-            Assert(0, "This should NEVER happen! Your two types do not line up correctly");
-        }
+        std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
+
+        if constexpr (Platform::is_pair_v<TReal>)
+            BaseIfRealIfPair::Read(toBuild, realStorage, outStore);
+        else
+            BaseIfReal::Read(toBuild, realStorage, outStore);
     }
 };
 
@@ -234,21 +232,19 @@ struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal
     using BaseIfOutIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<>, std::tuple<TOuts...>>;
 
     static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
-        if constexpr (thisIdx == idxOut) {
-            if constexpr (Platform::is_pair_v<TOut>) {
-                auto &[ptr, len] = std::get<thisIdxOut>(outStore);
+        static_assert(thisIdx == idxOut, "Your two types do not line up, this should never happen!");
 
-                std::get<thisIdx>(toBuild)       = ptr;
-                std::get<(thisIdx + 1)>(toBuild) = len;
+        if constexpr (Platform::is_pair_v<TOut>) {
+            auto &[ptr, len] = std::get<thisIdxOut>(outStore);
 
-                BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
-            } else {
-                std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
+            std::get<thisIdx>(toBuild)       = ptr;
+            std::get<(thisIdx + 1)>(toBuild) = len;
 
-                BaseIfOut::Read(toBuild, realStorage, outStore);
-            }
+            BaseIfOutIfPair::Read(toBuild, realStorage, outStore);
         } else {
-            Assert(0, "This should NEVER happen! Your two types do not line up correctly");
+            std::get<thisIdx>(toBuild) = &std::get<thisIdxOut>(outStore);
+
+            BaseIfOut::Read(toBuild, realStorage, outStore);
         }
     }
 };
@@ -263,6 +259,8 @@ struct _SpliceRead<Args, RealArgsStorage, OutParamsStorage, thisIdx, thisIdxReal
     using BaseIfOutIfPair = _SpliceRead<Args, RealArgsStorage, OutParamsStorage, (thisIdx + 2), thisIdxReal, (thisIdxOut + 1), std::tuple<RpcHelpers::IndexedParam<TReal, idxReal>, TReals...>, std::tuple<TOuts...>>;
 
     static void Read(Args &toBuild, RealArgsStorage &realStorage, OutParamsStorage &outStore) {
+        static_assert(thisIdx == idxReal || thisIdx == idxOut, "Your two types do not line up, this should never happen!");
+
         if constexpr (thisIdx == idxReal) {
             std::get<thisIdx>(toBuild) = std::get<thisIdxReal>(realStorage);
 
