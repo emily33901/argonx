@@ -260,7 +260,9 @@ public:
         }
     }
     virtual Steam::CSteamID GetSteamID() override {
-        return Steam::CSteamID(SteamId().steamId64);
+        RpcMakeCallIfClient(GetSteamID, user,) {
+            return Steam::CSteamID(SteamId().steamId64);
+        }
     }
     virtual Steam::CSteamID GetConsoleSteamID() override {
         // In CUser this returns a different SteamID to the actual one
