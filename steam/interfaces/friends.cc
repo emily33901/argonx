@@ -99,7 +99,7 @@ public:
             //                    (Steam::EFriendRelationship)f.efriendrelationship()});
         }
 
-        LOG_F(INFO, "Got %d friends and %d clans", self->friends.size(), self->clans.size());
+        LOG_F(INFO, "Got %lu friends and %lu clans", self->friends.size(), self->clans.size());
     }
 
     std::string   personaName;
@@ -182,6 +182,8 @@ public:
                     if (count == index) return CSteamID(it->id.steamId64);
                 }
             }
+
+            return CSteamID();
         }
     }
     virtual int GetOnlineFriendCount() override {
@@ -199,6 +201,8 @@ public:
                     return x.friendRelationship;
                 }
             }
+
+            return EFriendRelationship::k_EFriendRelationshipNone;
         }
     }
     virtual EPersonaState GetFriendPersonaState(CSteamID id) override {

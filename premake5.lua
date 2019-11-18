@@ -54,10 +54,14 @@ local function copy_compile_commands()
         }
 end
 
+local function protogen()
+
+end
+
 workspace "workspace"
     configurations { "Debug", "Release" }
     platforms { "x64", "x32" }
-    targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}/%{prj.name}"
+    targetdir "bin/%{cfg.platform}_%{cfg.buildcfg}/%{prj.name}"
 
     location "premake"
     
@@ -110,6 +114,19 @@ workspace "workspace"
         flags {"LinkTimeOptimization"}
         
     filter {}
+
+    project "protobufs"
+        kind "StaticLib"
+        language "C++"
+        warnings "off"
+
+        vcpkg_common()
+
+        includedirs { "protogen" }
+
+        targetdir "protogen/lib/%{cfg.platform}_%{cfg.buildcfg}/%{prj.name}"
+
+        files { "protogen/**.pb.*" }
     
     project "client"
         kind "ConsoleApp"
@@ -134,7 +151,7 @@ workspace "workspace"
 
         files { "client/**.hh", "client/**.cc", 
                 "common/**.cc", "common/**.hh",
-                "protogen/**.pb.*",
+                -- "protogen/**.pb.h",
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
@@ -143,7 +160,7 @@ workspace "workspace"
             }
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl", "protobufs"}
         filter {"system:windows"}
             links {"cryptopp-static"}
         filter {}
@@ -173,7 +190,7 @@ workspace "workspace"
 
         files { "server/**.hh", "server/**.cc", 
                 "common/**.cc", "common/**.hh",
-                "protogen/**.pb.*",
+                -- "protogen/**.pb.*",
                 "steam/**.hh", "steam/**.cc",
                 "external/SteamStructs/**.h",
                 "external/OpenSteamworks/Open Steamworks/**.h",
@@ -182,7 +199,7 @@ workspace "workspace"
             }
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl", "protobufs"}
         filter {"system:windows"}
             links {"cryptopp-static"}
         filter {}

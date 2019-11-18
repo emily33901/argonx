@@ -388,7 +388,7 @@ void CMClient::SendClientHeartbeat() {
 
 void CMClient::ResetClientHeartbeat(std::chrono::milliseconds d) {
     using namespace std::chrono_literals;
-    LOG_F(INFO, "Out of game heartbeat is %llums", d.count());
+    LOG_F(INFO, "Out of game heartbeat is %lums", d.count());
     clientHeartbeatFunction.Stop();
     if (d > 0ms) {
         clientHeartbeatFunction.Delay(d);

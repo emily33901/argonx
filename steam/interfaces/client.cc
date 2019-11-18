@@ -104,7 +104,7 @@ class ClientEngineMap : Reference::IClientEngine {
                 b.SetPos(0);
 
                 auto jobId = b.Read<i64>();
-                LOG_F(INFO, "jobId:%lld", jobId);
+                LOG_F(INFO, "jobId:%ld", jobId);
 
                 if (jobId < 0) {
                     auto header = b.Read<Steam::RpcNonCallHeader>();

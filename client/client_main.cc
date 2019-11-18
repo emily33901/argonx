@@ -34,7 +34,7 @@ int main(int argCount, char **argStrings) {
 
     while (pipeHandle == 0) {
         pipeHandle = clientEngine->CreateSteamPipe();
-        LOG_F(INFO, "Pipe id is %lu", pipeHandle);
+        LOG_F(INFO, "Pipe id is %u", pipeHandle);
     }
 
     auto userHandle = clientEngine->CreateLocalUser(&pipeHandle, Steam::EAccountType::k_EAccountTypeIndividual);
