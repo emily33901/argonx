@@ -529,6 +529,7 @@ struct ControllerDetails_t;
 struct ControllerPersonalizationData_t;
 struct OverlayChatBrowserInfo_t;
 struct ConnectedUserInfo_t;
+struct EPlayerResult_t {};
 
 // using CSteamID                          = u64;
 // using CGameID                           = u64;
@@ -545,6 +546,7 @@ using ECommunityPreference              = u32;
 using ECurrencyCode                     = u32;
 using EItemStatistic                    = u32;
 using EItemPreviewType                  = u32;
+using EPaymentMethod                    = u32;
 
 using SteamControllerAppSettings_t = u64;
 using EControllerConfigFeature     = u32;
@@ -562,12 +564,139 @@ using EInputActionOrigin           = u64;
 using EControllerConnectionState   = u32;
 using EClientUINotificationType    = u32;
 
+using SetId          = u32;
+using PresetId       = u32;
+using GameActionGid  = u32;
+using GroupId        = u32;
+using ActivatorId    = u32;
+using LayerAGroupId  = u32;
+using LayerAPresetId = u32;
+class CBaseGameActionSet;
+class CLayerGameActionSet;
+using ASetId      = u32;
+using LayerASetId = u32;
+
 namespace Voltroller {
 using DigitalIO    = u32;
 using MouseButtons = u32;
 class ControllerSetting;
 struct SteamControllerStatusEvent_t;
 } // namespace Voltroller
+
+using _EMatchMakingType_v001                    = u32;
+using ISteamMatchmakingServerListResponse_v001  = void;
+using ISteamMatchmakingPingResponse             = void;
+using ISteamMatchmakingPlayersResponse          = void;
+using ISteamMatchmakingRulesResponse            = void;
+using MatchMakingKeyValuePair_t                 = void;
+using _ISteamMatchmakingServerListResponse_v001 = void;
+
+using EVRScreenshotType = u32;
+using EScreenshotFile   = u32;
+
+using EDepotBuildStatus = u32;
+
+using EClientVRError = u32;
+namespace vr {
+using EVRInitError = u32;
+}
+
+struct GameNotification_t;
+
+namespace ISteamHTMLSurface {
+using EHTMLMouseButton  = u32;
+using EHTMLKeyModifiers = u32;
+} // namespace ISteamHTMLSurface
+
+using EBroadcastRecorderResult = u32;
+using EBroadcastPermission     = u32;
+
+using ESteamPartyBeaconLocationType = u32;
+
+struct SteamPartyBeaconLocation_t {
+    ESteamPartyBeaconLocationType type;
+    uint64                        locationID;
+};
+using ESteamPartyBeaconLocationData = u32;
+
+struct AppStateInfo_s;
+
+using ESteamTVRegionBehavior = u32;
+struct SteamTVRegion_t;
+
+using EBrowserType = u32;
+
+enum ESteamIPType {
+    k_ESteamIPTypeIPv4 = 0,
+    k_ESteamIPTypeIPv6 = 1,
+};
+
+struct SteamIPAddress_t {
+    union {
+
+        uint32 m_unIPv4;       // Host order
+        uint8  m_rgubIPv6[16]; // Network order! Same as inaddr_in6.  (0011:2233:4455:6677:8899:aabb:ccdd:eeff)
+
+        // Internal use only
+        uint64 m_ipv6Qword[2]; // big endian
+    };
+
+    ESteamIPType m_eType;
+
+    bool IsSet() const {
+        if (k_ESteamIPTypeIPv4 == m_eType) {
+            return m_unIPv4 != 0;
+        } else {
+            return m_ipv6Qword[0] != 0 || m_ipv6Qword[1] != 0;
+        }
+    }
+
+    static SteamIPAddress_t IPv4Any() {
+        SteamIPAddress_t ipOut;
+        ipOut.m_eType  = k_ESteamIPTypeIPv4;
+        ipOut.m_unIPv4 = 0;
+
+        return ipOut;
+    }
+
+    static SteamIPAddress_t IPv6Any() {
+        SteamIPAddress_t ipOut;
+        ipOut.m_eType        = k_ESteamIPTypeIPv6;
+        ipOut.m_ipv6Qword[0] = 0;
+        ipOut.m_ipv6Qword[1] = 0;
+
+        return ipOut;
+    }
+
+    static SteamIPAddress_t IPv4Loopback() {
+        SteamIPAddress_t ipOut;
+        ipOut.m_eType  = k_ESteamIPTypeIPv4;
+        ipOut.m_unIPv4 = 0x7f000001;
+
+        return ipOut;
+    }
+
+    static SteamIPAddress_t IPv6Loopback() {
+        SteamIPAddress_t ipOut;
+        ipOut.m_eType        = k_ESteamIPTypeIPv6;
+        ipOut.m_ipv6Qword[0] = 0;
+        ipOut.m_ipv6Qword[1] = 0;
+        ipOut.m_rgubIPv6[15] = 1;
+
+        return ipOut;
+    }
+};
+
+using ETrackQueueOrigin = u32;
+
+using PlayingRepeat_Status = u32;
+using AudioPlayback_Status = u32;
+
+  
+using EP2PSend = u32;
+struct P2PSessionState_t;
+
+using ESteamIPv6ConnectivityProtocol = u32;
 
 // Ignore opens steamworks steamtypes.h
 #define STEAMTYPES_H
@@ -580,9 +709,11 @@ struct SteamControllerStatusEvent_t;
 
 #include "Open Steamworks/AppsCommon.h"
 #include "Open Steamworks/FriendsCommon.h"
-#include "Open Steamworks/RemoteStorageCommon.h"
-
 #include "Open Steamworks/GameServerCommon.h"
+#include "Open Steamworks/HTTPCommon.h"
+#include "Open Steamworks/InventoryCommon.h"
+#include "Open Steamworks/MatchmakingCommon.h"
+#include "Open Steamworks/RemoteStorageCommon.h"
 
 #include "Open Steamworks/UGCCommon.h"
 #include "Open Steamworks/UserCommon.h"

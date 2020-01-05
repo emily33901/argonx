@@ -82,6 +82,7 @@ class ClientEngineMap : Reference::IClientEngine {
     // Call CreateSteamPipe which will then call this!
     bool CreateClientPipe() {
         AssertClient();
+
         if (Steam::ClientPipe() == nullptr) {
             bool connected = false;
 
@@ -153,6 +154,8 @@ class ClientEngineMap : Reference::IClientEngine {
                     using namespace std::chrono_literals;
                     std::this_thread::sleep_for(1ms);
 
+                    // TODO: heartbeats should really be part of the transport
+                    // and not really our issue...
                     if ((std::chrono::system_clock::now() - lastHeartbeatSent) > 20s) {
                         auto b = Buffer{
                             Steam::JobManager::GetNextNonCallJobId(),
@@ -177,6 +180,8 @@ class ClientEngineMap : Reference::IClientEngine {
 public:
     // Inherited via IClientEngine
     virtual Steam::PipeHandle CreateSteamPipe() override {
+        AssertClient();
+
         auto success = CreateClientPipe();
 
         if (success) {
@@ -187,6 +192,8 @@ public:
         return 0;
     }
     virtual bool BReleaseSteamPipe(Steam::PipeHandle pipe) override {
+        AssertClient();
+
         pipeReferenceCount--;
 
         if (pipeReferenceCount <= 0) {
@@ -310,7 +317,7 @@ public:
     virtual void *GetIClientGameServer(Steam::UserHandle, Steam::PipeHandle) override {
         return nullptr;
     }
-    virtual unknown_ret SetLocalIPBinding(unsigned int, unsigned short) override {
+    virtual unknown_ret SetLocalIPBinding(SteamIPAddress_t const &, unsigned short) override {
         return unknown_ret();
     }
     virtual const char *GetUniverseName(EUniverse e) override {
@@ -336,24 +343,29 @@ public:
         return nullptr;
     }
     virtual void *GetIClientUtils(Steam::PipeHandle p) override {
+        // TODO: name a constant for bad pipe!
         if (p == 0) return nullptr;
 
         return Steam::GetUserInterface(noUserHandle, InterfaceTarget::utils);
     }
-    virtual unknown_ret GetIClientBilling(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientBilling(Steam::UserHandle h, Steam::PipeHandle p) override {
+        if (p == 0) return nullptr;
+
+        return Steam::GetUserInterface(h, InterfaceTarget::billing);
     }
-    virtual unknown_ret GetIClientMatchmaking(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientMatchmaking(Steam::UserHandle h, Steam::PipeHandle p) override {
+        if (p == 0) return nullptr;
+
+        return Steam::GetUserInterface(h, InterfaceTarget::matchmaking);
     }
-    virtual unknown_ret GetIClientApps(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientApps(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientMatchmakingServers(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientMatchmakingServers(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientGameSearch(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientGameSearch(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
     virtual unknown_ret RunFrame() override {
         return unknown_ret();
@@ -361,31 +373,31 @@ public:
     virtual unknown_ret GetIPCCallCount() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientUserStats(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientUserStats(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientGameServerStats(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientGameServerStats(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientNetworking(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientNetworking(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientRemoteStorage(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientRemoteStorage(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientScreenshots(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientScreenshots(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
     virtual unknown_ret SetWarningMessageHook(void (*)(int, char const *)) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientGameCoordinator(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientGameCoordinator(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
     virtual unknown_ret SetOverlayNotificationPosition(ENotificationPosition) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetOverlayNotificationInset(int, int) override {
+    virtual unknown_ret SetOverlayNotificationInset(Steam::UserHandle h, Steam::PipeHandle p) override {
         return unknown_ret();
     }
     virtual unknown_ret HookScreenshots(bool) override {
@@ -400,114 +412,137 @@ public:
     virtual unknown_ret GetAPICallResult(int, unsigned long long, void *, int, int, bool *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientProductBuilder(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientProductBuilder(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientDepotBuilder(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientDepotBuilder(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientNetworkDeviceManager(int) override {
-        return unknown_ret();
+    virtual void *GetIClientNetworkDeviceManager(int) override {
+        return nullptr;
     }
     virtual unknown_ret ConCommandInit(IConCommandBaseAccessor *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientAppManager(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientAppManager(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientConfigStore(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientConfigStore(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
     virtual unknown_ret BOverlayNeedsPresent() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientGameStats(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientGameStats(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientHTTP(int, int) override {
+    virtual void *GetIClientHTTP(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
+    }
+    virtual unknown_ret FlushBeforeValidate() override {
         return unknown_ret();
     }
     virtual unknown_ret BShutdownIfAllPipesClosed() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientAudio(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientAudio(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientMusic(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientMusic(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientUnifiedMessages(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientUnifiedMessages(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientController(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientController(Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientParentalSettings(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientParentalSettings(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientStreamLauncher(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientStreamLauncher(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientDeviceAuth(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientDeviceAuth(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientRemoteClientManager(int) override {
-        return unknown_ret();
+    virtual void *GetIClientRemoteClientManager(int) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientStreamClient(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientStreamClient(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientShortcuts(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientShortcuts(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientUGC(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientUGC(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientInventory(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientInventory(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientVR(int) override {
-        return unknown_ret();
+    virtual void *GetIClientVR(int) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientGameNotifications(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientGameNotifications(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientHTMLSurface(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientHTMLSurface(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientVideo(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientVideo(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientControllerSerialized(int) override {
-        return unknown_ret();
+    virtual void *GetIClientControllerSerialized(int) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientAppDisableUpdate(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientAppDisableUpdate(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
     virtual unknown_ret Set_Client_API_CCheckCallbackRegisteredInProcess(unsigned int (*)(int)) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientBluetoothManager(int) override {
-        return unknown_ret();
+    virtual void *GetIClientBluetoothManager(int) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientSharedConnection(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientSharedConnection(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientShader(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientShader(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientNetworkingSocketsSerialized(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientNetworkingSocketsSerialized(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
-    virtual unknown_ret GetIClientCompat(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientCompat(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
     virtual unknown_ret SetClientCommandLine(int, char **) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetIClientParties(int, int) override {
-        return unknown_ret();
+    virtual void *GetIClientParties(Steam::UserHandle h, Steam::PipeHandle p) override {
+        return nullptr;
     }
+
+    void *GetIClientNetworkingMessages(int, int) override {
+        return nullptr;
+    }
+    void *GetIClientNetworkingSockets(int, int) override {
+        return nullptr;
+    }
+    void *GetIClientNetworkingUtils(int) override {
+        return nullptr;
+    }
+    void *GetIClientNetworkingUtilsSerialized(int) override {
+        return nullptr;
+    }
+    void *GetIClientSTARInternal(int, int) override {
+        return nullptr;
+    }
+    void *GetIClientRemotePlay(int, int) override {
+        return nullptr;
+    }
+
     virtual unknown_ret __Destructor1() override {
         return unknown_ret();
     }

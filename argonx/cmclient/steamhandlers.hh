@@ -30,3 +30,7 @@ public:
     namespace {                                                                                               \
     static ::Argonx::SteamMessageHandler::RegisterHelper Macro_Concatenate(Handler_, __LINE__){msg, handler}; \
     }
+
+// Helper to prevent typing the boiler-plate of a handler
+#define DefineHelperHandler(handler) \
+  static void handler(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId)

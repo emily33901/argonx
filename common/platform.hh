@@ -109,6 +109,9 @@ struct IsPair<std::pair<First, Second>> : std::true_type {
 template <typename T>
 inline constexpr bool is_pair_v = IsPair<T>::value;
 
+template<typename T, std::size_t N>
+constexpr std::size_t ArrayLength(T(&)[N]) { return N; }
+
 // Does not allocate a buffer
 // if you are planning to store the result then you will need to
 // strdup or similar...
@@ -126,9 +129,28 @@ const char *DemangleName() {
 #define PlatformThisCall
 #define PlatformEdx
 #define PlatformEdxParam
+
+// Used to define thiscall functions
+#define PlatformThisCallArgs(...) __VA_ARGS__
+
+// Used to call thiscall functions
+#define PlatformThisCallParams(...) __VA_ARGS__
+
 #elif defined(ARGONX_WIN)
+
 // On windows x86 passes thisptr in ecx
+// But we cant define thiscall functions so we need to use
+// fastcall and define an extra parameter for edx
 #define PlatformThisCall __fastcall
 #define PlatformEdx void *__edx,
 #define PlatformEdxParam (nullptr),
+
+
+// Used to define thiscall functions
+#define PlatformThisCallArgs(thisarg, ...) thisarg, void *__edx, ## __VA_ARGS__
+
+// Used to call thiscall functions
+#define PlatformThisCallParams(thisarg, ...) thisarg, nullptr, ## __VA_ARGS__
+
+
 #endif

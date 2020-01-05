@@ -154,130 +154,160 @@ public:
             return strlen(filename);
         }
     }
-    virtual unknown_ret GetBuildID() override {
+    unknown_ret GetBuildID() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetCurrentUIMode(EUIMode) override {
+    unknown_ret SetCurrentUIMode(EUIMode) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetCurrentUIMode() override {
+    unknown_ret GetCurrentUIMode() override {
         return unknown_ret();
     }
-    virtual unknown_ret ShutdownLauncher(bool, bool) override {
+    unknown_ret ShutdownLauncher(bool, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetLauncherType(ELauncherType) override {
+    unknown_ret SetLauncherType(ELauncherType) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetLauncherType() override {
+    unknown_ret GetLauncherType() override {
         return unknown_ret();
     }
-    virtual unknown_ret ShowGamepadTextInput(EGamepadTextInputMode, EGamepadTextInputLineMode, char const *, unsigned int, char const *) override {
+    unknown_ret ShowGamepadTextInput(EGamepadTextInputMode, EGamepadTextInputLineMode, char const *, unsigned int, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetEnteredGamepadTextLength() override {
+    unknown_ret GetEnteredGamepadTextLength() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetEnteredGamepadTextInput(char *, unsigned int) override {
+    unknown_ret GetEnteredGamepadTextInput(char *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GamepadTextInputClosed(int, bool, char const *) override {
+    unknown_ret GamepadTextInputClosed(int, bool, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetSpew(int, int, int) override {
+    unknown_ret SetSpew(int, int, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BDownloadsDisabled() override {
+    unknown_ret BDownloadsDisabled() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetFocusedWindow(CGameID, unsigned long long, bool) override {
+    unknown_ret SetFocusedWindow(CGameID, unsigned long long, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetSteamUILanguage() override {
+    unknown_ret GetSteamUILanguage() override {
         return unknown_ret();
     }
-    virtual unknown_ret CheckSteamReachable() override {
+    unknown_ret CheckSteamReachable() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetLastGameLaunchMethod(EGameLaunchMethod) override {
+    unknown_ret SetLastGameLaunchMethod(EGameLaunchMethod) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetVideoAdapterInfo(int, int, int, int, int, int, char const *) override {
+    unknown_ret SetVideoAdapterInfo(int, int, int, int, int, int, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetControllerOverrideMode(CGameID, char const *, unsigned int) override {
+    unknown_ret SetControllerOverrideMode(CGameID, char const *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetOverlayWindowFocusForPipe(bool, bool, CGameID) override {
+    unknown_ret SetOverlayWindowFocusForPipe(bool, bool, CGameID) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetGameOverlayUIInstanceFocusGameID(bool *) override {
+    unknown_ret GetGameOverlayUIInstanceFocusGameID(bool *) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetControllerConfigFileForAppID(unsigned int, char const *) override {
+    unknown_ret SetControllerConfigFileForAppID(unsigned int, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetControllerConfigFileForAppID(unsigned int, char *, unsigned int) override {
+    unknown_ret GetControllerConfigFileForAppID(unsigned int, char *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret IsSteamRunningInVR() override {
+    unknown_ret IsSteamRunningInVR() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsRunningOnAlienwareAlpha() override {
+    unknown_ret BIsRunningOnAlienwareAlpha() override {
         return unknown_ret();
     }
-    virtual unknown_ret StartVRDashboard() override {
+    unknown_ret StartVRDashboard() override {
         return unknown_ret();
     }
-    virtual unknown_ret IsVRHeadsetStreamingEnabled(unsigned int) override {
+    unknown_ret IsVRHeadsetStreamingEnabled(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetVRHeadsetStreamingEnabled(unsigned int, bool) override {
+    unknown_ret SetVRHeadsetStreamingEnabled(unsigned int, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GenerateSupportSystemReport() override {
+    unknown_ret GenerateSupportSystemReport() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetSupportSystemReport(char *, unsigned int, unsigned char *, unsigned int) override {
+    unknown_ret GetSupportSystemReport(char *, unsigned int, unsigned char *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppIdForPid(unsigned int, bool) override {
+    unknown_ret GetAppIdForPid(unsigned int, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetClientUIProcess() override {
+    unknown_ret SetClientUIProcess() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsClientUIInForeground() override {
+    unknown_ret BIsClientUIInForeground() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetOverlayChatBrowserInfo(unsigned int, int, int, int) override {
+    unknown_ret SetOverlayChatBrowserInfo(unsigned int, int, int, int, EBrowserType) override {
         return unknown_ret();
     }
-    virtual unknown_ret ClearOverlayChatBrowserInfo(unsigned int) override {
+    unknown_ret ClearOverlayChatBrowserInfo(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetOverlayChatBrowserInfo(OverlayChatBrowserInfo_t *, unsigned int, unsigned int *) override {
+    unknown_ret GetOverlayChatBrowserInfo(OverlayChatBrowserInfo_t *, unsigned int, unsigned int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret DispatchClientUINotification(EClientUINotificationType, char const *, unsigned int) override {
+    unknown_ret DispatchClientUINotification(EClientUINotificationType, char const *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret RespondToClientUINotification(unsigned int, bool, unsigned int) override {
+    unknown_ret RespondToClientUINotification(unsigned int, bool, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret DispatchClientUICommand(char const *, unsigned int) override {
+    unknown_ret DispatchClientUICommand(char const *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret DispatchComputerActiveStateChange() override {
+    unknown_ret DispatchComputerActiveStateChange() override {
         return unknown_ret();
     }
-    virtual unknown_ret DispatchOpenURLInClient(char const *, unsigned int, bool) override {
+    unknown_ret DispatchOpenURLInClient(char const *, unsigned int, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret UpdateWideVineCDM(char const *) override {
+    unknown_ret UpdateWideVineCDM(char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret DispatchClearAllBrowsingData() override {
+    unknown_ret DispatchClearAllBrowsingData() override {
+        return unknown_ret();
+    }
+    unknown_ret DispatchClientSettingsChanged() override {
+        return unknown_ret();
+    }
+    unknown_ret DispatchClientPostMessage(char const *, char const *, char const *) override {
+        return unknown_ret();
+    }
+    unknown_ret IsSteamChinaLauncher() override {
+        return unknown_ret();
+    }
+    unknown_ret InitFilterText(unsigned int) override {
+        return unknown_ret();
+    }
+    unknown_ret FilterText(unsigned int, char *, unsigned int, char const *, bool) override {
+        return unknown_ret();
+    }
+    unknown_ret GetIPv6ConnectivityState(ESteamIPv6ConnectivityProtocol) override {
+        return unknown_ret();
+    }
+    unknown_ret RecordSteamInterfaceCreation(char const *, char const *) override {
+        return unknown_ret();
+    }
+    unknown_ret StartRuntimeInformationGathering() override {
+        return unknown_ret();
+    }
+    unknown_ret GetRuntimeInformation() override {
+        return unknown_ret();
+    }
+    unknown_ret GetCloudGamingPlatform() override {
         return unknown_ret();
     }
 };

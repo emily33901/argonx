@@ -94,7 +94,7 @@ bool HasResult(i64 jobId) {
 
 Buffer FetchResult(i64 jobId) {
     // TODO should we do this?
-    Assert(HasResult(jobId), "Did not have a result for jobId %d", jobId);
+    Assert(HasResult(jobId), "Did not have a result for jobId %ull", jobId);
 
     Defer(resultMap.erase(jobId));
     return resultMap[jobId];

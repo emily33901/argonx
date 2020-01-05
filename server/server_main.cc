@@ -10,15 +10,22 @@
 extern std::unordered_map<Steam::UserHandle, Steam::UserInterfaceStorage> userStorage;
 
 void CreateNoUserInterfaceStorage() {
+
+    // Must match interfaces.hh
     void *r[] = {
         nullptr,                                               // user
         nullptr,                                               // appList
         nullptr,                                               // apps
+        nullptr,                                               // billing
         nullptr,                                               // client
-        Steam::CreateInterface("ClientEngineServer", nullptr), // engine
         nullptr,                                               // controller
+        Steam::CreateInterface("ClientEngineServer", nullptr), // engine
         nullptr,                                               // friends
         nullptr,                                               // gameserver
+        nullptr,                                               // gamesearch
+        nullptr,                                               // networking
+        nullptr,                                               // matchmaking
+        nullptr,                                               // matchmakingServers
         nullptr,                                               // remotestorage
         nullptr,                                               // ugc
         nullptr,                                               // userstats

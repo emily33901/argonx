@@ -122,10 +122,6 @@ struct GenericAdaptor {
 #define AdaptEmpty(target) \
     AdaptCreateTrampoline(static_cast<void(PlatformThisCall *)(void *)>([](void *thisptr) -> void { Assert(0, "Attempt to call function '" #target "'\n"); }))
 
-// Helper for msvcs type parsing
-template <typename T>
-using MsvcFuck = T;
-
 // Lambda wont convert to function easily
 // so we have to apply a little *coercion*
 
@@ -134,7 +130,7 @@ using MsvcFuck = T;
 // large amount of macro bollocks
 // used like `AdaptCustom(Test2, int, { return thisptr->Test(b, a); }, int a, int b)`
 #define AdaptCustom(TT, ret, body, ...) \
-    AdaptCreateTrampoline((::Steam::InterfaceHelpers::MsvcFuck<ret(PlatformThisCall *)(TT *, PlatformEdx __VA_ARGS__)>)[](TT * thisptr, PlatformEdx __VA_ARGS__)->ret body)
+    AdaptCreateTrampoline(static_cast<ret(PlatformThisCall *)(PlatformThisCallArgs(TT *, ##__VA_ARGS__))>([](PlatformThisCallArgs(TT * thisptr, ##__VA_ARGS__)) -> ret body))
 
 class InterfaceReg {
 public:
@@ -162,7 +158,7 @@ T *LookupInterface(Argonx::CMClient *c, InterfaceTarget t) {
     return reinterpret_cast<T *>(LookupInterfaceInternal(c, t));
 }
 
-template<typename T>
+template <typename T>
 T *LookupInterface(Steam::UserHandle h, InterfaceTarget t) {
     return reinterpret_cast<T *>(GetUserInterface(h, t));
 }

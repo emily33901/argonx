@@ -8,8 +8,8 @@
 #include "argonx/cmclient/steamhandlers.hh"
 
 #include "steammessages_clientserver.pb.h"
-#include "steammessages_clientserver_friends.pb.h"
 #include "steammessages_clientserver_2.pb.h"
+#include "steammessages_clientserver_friends.pb.h"
 #include "steammessages_clientserver_login.pb.h"
 
 using namespace Steam;
@@ -88,7 +88,7 @@ public:
         return cmClient->steamId;
     }
 
-    static void OnMachineAuth(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnMachineAuth) {
         auto  userHandle = LookupHandle(c);
         auto  msg        = b.ReadAsProto<CMsgClientUpdateMachineAuth>(msgSize);
         auto &bytes      = msg.bytes();
@@ -111,7 +111,7 @@ public:
         // printf("[%d] OnMachineAuth", userHandle);
     }
 
-    static void OnClientLogon(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnClientLogon) {
         auto logonResp = b.ReadAsProto<CMsgClientLogonResponse>(msgSize);
         auto eresult   = static_cast<Argonx::EResult>(logonResp.eresult());
 
@@ -134,7 +134,7 @@ public:
         }
     }
 
-    static void OnLoginKey(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnLoginKey) {
         auto proto = b.ReadAsProto<CMsgClientNewLoginKey>(msgSize);
 
         CMsgClientNewLoginKeyAccepted ack;
@@ -150,7 +150,7 @@ public:
 
     std::vector<std::string> gameConnectTokens;
 
-    static void OnGameConnectTokens(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnGameConnectTokens) {
         auto self = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
         auto msg = b.ReadAsProto<CMsgClientGameConnectTokens>(msgSize);
@@ -161,14 +161,14 @@ public:
         LOG_F(INFO, "OnGameConnectTokens : %zu tokens", self->gameConnectTokens.size());
     }
 
-    static void OnVACBanStatus(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnVACBanStatus) {
         auto banCount = b.Read<u32>();
         LOG_F(INFO, "OnVACBanStatus: %d", banCount);
     }
 
     u64 sessionToken;
 
-    static void OnSessionToken(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnSessionToken) {
         auto msg = b.ReadAsProto<CMsgClientSessionToken>(msgSize);
 
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
@@ -176,46 +176,46 @@ public:
         user->sessionToken = msg.token();
     }
 
-    static void OnIsLimitedAccount(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnIsLimitedAccount) {
         auto msg  = b.ReadAsProto<CMsgClientIsLimitedAccount>(msgSize);
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
         LOG_F(INFO, "OnIsLimitedAccount %s", msg.DebugString().c_str());
     }
-    static void OnEmailAddrInfo(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnEmailAddrInfo) {
         auto msg  = b.ReadAsProto<CMsgClientEmailAddrInfo>(msgSize);
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
         LOG_F(INFO, "OnEmailAddrInfo %s", msg.DebugString().c_str());
     }
-    static void OnPlayerNicknameList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnPlayerNicknameList) {
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
         LOG_F(INFO, "OnPlayerNicknameList");
     }
-    static void OnUpdateGuestPassesList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnUpdateGuestPassesList) {
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
         LOG_F(INFO, "OnUpdateGuestPassesList");
     }
-    static void OnWalletInfoUpdate(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnWalletInfoUpdate) {
         auto msg  = b.ReadAsProto<CMsgClientWalletInfoUpdate>(msgSize);
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
         LOG_F(INFO, "OnWalletInfoUpdate %s", msg.DebugString().c_str());
     }
 
-    static void OnCMList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnCMList) {
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
         LOG_F(INFO, "OnCMList");
     }
 
-    static void OnRequestedClientStats(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnRequestedClientStats) {
         auto msg  = b.ReadAsProto<CMsgClientRequestedClientStats>(msgSize);
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
         LOG_F(INFO, "OnRequestedClientStats %s", msg.DebugString().c_str());
     }
 
-    static void OnFriendsGroupsList(Argonx::CMClient *c, u32 msgSize, Buffer &b, u64 jobId) {
+    DefineHelperHandler(OnFriendsGroupsList) {
         auto msg  = b.ReadAsProto<CMsgClientFriendsGroupsList>(msgSize);
         auto user = LookupInterface<ClientUserMap<true>>(c, InterfaceTarget::user);
 
@@ -355,7 +355,10 @@ public:
     virtual unknown_ret TerminateGameConnection(unsigned int, unsigned short) override {
         return unknown_ret();
     }
-    virtual unknown_ret TerminateAppMultiStep(unsigned int, unsigned int) override {
+    unknown_ret SignalAppsToShutDown(CGameID) override {
+        return unknown_ret();
+    }
+    virtual unknown_ret TerminateAppMultiStep(CGameID, unsigned int) override {
         return unknown_ret();
     }
     virtual unknown_ret SetSelfAsChatDestination(bool) override {
@@ -457,505 +460,547 @@ public:
             steamGuardCode = "";
         }
     }
-    virtual unknown_ret GetLanguage(char *, int) override {
+    unknown_ret BEnableEmbeddedClient(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsCyberCafe() override {
+    unknown_ret ResetEmbeddedClient(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAcademicAccount() override {
+    unknown_ret BHasEmbeddedClientToken(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsPortal2EducationAccount() override {
+    unknown_ret RequestEmbeddedClientToken(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAlienwareDemoAccount() override {
+    unknown_ret AuthorizeNewDevice(unsigned int, unsigned int, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret TrackNatTraversalStat(CNatTraversalStat const *) override {
+    unknown_ret GetLanguage(char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret TrackSteamUsageEvent(ESteamUsageEvent, unsigned char const *, unsigned int) override {
+    unknown_ret BIsCyberCafe() override {
         return unknown_ret();
     }
-    virtual unknown_ret TrackSteamGUIUsage(char const *) override {
+    unknown_ret BIsAcademicAccount() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetComputerInUse() override {
+    unknown_ret BIsPortal2EducationAccount() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsGameRunning(CGameID) override {
+    unknown_ret BIsAlienwareDemoAccount() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsGameWindowReady(CGameID) override {
+    unknown_ret TrackNatTraversalStat(CNatTraversalStat const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BUpdateAppOwnershipTicket(unsigned int, bool) override {
+    unknown_ret TrackSteamUsageEvent(ESteamUsageEvent, unsigned char const *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestCustomBinary(char const *, unsigned int, bool, bool) override {
+    unknown_ret TrackSteamGUIUsage(char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetCustomBinariesState(unsigned int, long long *, long long *) override {
+    unknown_ret SetComputerInUse() override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestCustomBinaries(unsigned int, bool, bool, unsigned int *) override {
+    unknown_ret BIsGameRunning(CGameID) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetCellID(unsigned int) override {
+    unknown_ret BIsGameWindowReady(CGameID) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetUserBaseFolder() override {
+    unknown_ret BUpdateAppOwnershipTicket(unsigned int, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetUserDataFolder(CGameID, char *, int) override {
+    unknown_ret RequestCustomBinary(char const *, unsigned int, bool, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetUserConfigFolder(char *, int) override {
+    unknown_ret GetCustomBinariesState(unsigned int, long long *, long long *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAccountName(char *, unsigned int) override {
+    unknown_ret RequestCustomBinaries(unsigned int, bool, bool, unsigned int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAccountName(CSteamID, char *, unsigned int) override {
+    unknown_ret SetCellID(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret IsPasswordRemembered() override {
+    unknown_ret GetUserBaseFolder() override {
         return unknown_ret();
     }
-    virtual unknown_ret CheckoutSiteLicenseSeat(unsigned int) override {
+    unknown_ret GetUserDataFolder(CGameID, char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAvailableSeats(unsigned int) override {
+    unknown_ret GetUserConfigFolder(char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAssociatedSiteName() override {
+    unknown_ret GetAccountName(char *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsRunningInCafe() override {
+    unknown_ret GetAccountName(CSteamID, char *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequiresLegacyCDKey(unsigned int, bool *) override {
+    unknown_ret IsPasswordRemembered() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetLegacyCDKey(unsigned int, char *, int) override {
+    unknown_ret CheckoutSiteLicenseSeat(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetLegacyCDKey(unsigned int, char const *) override {
+    unknown_ret GetAvailableSeats(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret WriteLegacyCDKey(unsigned int) override {
+    unknown_ret GetAssociatedSiteName() override {
         return unknown_ret();
     }
-    virtual unknown_ret RemoveLegacyCDKey(unsigned int) override {
+    unknown_ret BIsRunningInCafe() override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestLegacyCDKeyFromApp(unsigned int, unsigned int, unsigned int) override {
+    unknown_ret BAllowCachedCredentialsInCafe() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAnyGameRunning() override {
+    unknown_ret RequiresLegacyCDKey(unsigned int, bool *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetSteamGuardDetails() override {
+    unknown_ret GetLegacyCDKey(unsigned int, char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetTwoFactorDetails() override {
+    unknown_ret SetLegacyCDKey(unsigned int, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BHasTwoFactor() override {
+    unknown_ret WriteLegacyCDKey(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetEmail(char *, int, bool *) override {
+    unknown_ret RemoveLegacyCDKey(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret FindAccountsByCdKey(char const *) override {
+    unknown_ret RequestLegacyCDKeyFromApp(unsigned int, unsigned int, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret Test_FakeConnectionTimeout() override {
+    unknown_ret BIsAnyGameRunning() override {
         return unknown_ret();
     }
-    virtual unknown_ret RunInstallScript(unsigned int, char const *, bool) override {
+    unknown_ret GetSteamGuardDetails() override {
         return unknown_ret();
     }
-    virtual unknown_ret IsInstallScriptRunning() override {
+    unknown_ret GetTwoFactorDetails() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetInstallScriptState(char *, unsigned int, unsigned int *, unsigned int *) override {
+    unknown_ret BHasTwoFactor() override {
         return unknown_ret();
     }
-    virtual unknown_ret SpawnProcess(char const *, char const *, unsigned int, char const *, CGameID, char const *, unsigned int, unsigned int, unsigned int) override {
+    unknown_ret GetEmail(char *, int, bool *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppOwnershipTicketLength(unsigned int) override {
+    unknown_ret FindAccountsByCdKey(char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppOwnershipTicketData(unsigned int, void *, unsigned int) override {
+    unknown_ret Test_FakeConnectionTimeout() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppOwnershipTicketExtendedData(unsigned int, void *, unsigned int, unsigned int *, unsigned int *, unsigned int *, unsigned int *) override {
+    unknown_ret RunInstallScript(unsigned int, char const *, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetMarketingMessageCount() override {
+    unknown_ret IsInstallScriptRunning() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetMarketingMessage(int, unsigned long long *, char *, int, EMarketingMessageFlags *) override {
+    unknown_ret GetInstallScriptState(char *, unsigned int, unsigned int *, unsigned int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAuthSessionTicket(void *, int, unsigned int *) override {
+    unknown_ret SpawnProcess(char const *, char const *, unsigned int, char const *, CGameID, char const *, unsigned int, unsigned int, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BeginAuthSession(void const *, int, CSteamID) override {
+    unknown_ret GetAppOwnershipTicketLength(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret EndAuthSession(CSteamID) override {
+    unknown_ret GetAppOwnershipTicketData(unsigned int, void *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret CancelAuthTicket(unsigned int) override {
+    unknown_ret GetAppOwnershipTicketExtendedData(unsigned int, void *, unsigned int, unsigned int *, unsigned int *, unsigned int *, unsigned int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret IsUserSubscribedAppInTicket(CSteamID, unsigned int) override {
+    unknown_ret GetMarketingMessageCount() override {
         return unknown_ret();
     }
-    virtual unknown_ret AdvertiseGame(CGameID, CSteamID, unsigned int, unsigned short) override {
+    unknown_ret GetMarketingMessage(int, unsigned long long *, char *, int, EMarketingMessageFlags *) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestEncryptedAppTicket(void *, int) override {
+    unknown_ret GetAuthSessionTicket(void *, int, unsigned int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetEncryptedAppTicket(void *, int, unsigned int *) override {
+    unknown_ret BeginAuthSession(void const *, int, CSteamID) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetGameBadgeLevel(int, bool) override {
+    unknown_ret EndAuthSession(CSteamID) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetPlayerSteamLevel() override {
+    unknown_ret CancelAuthTicket(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetAccountLimited(bool) override {
+    unknown_ret IsUserSubscribedAppInTicket(CSteamID, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAccountLimited() override {
+    unknown_ret AdvertiseGame(CGameID, CSteamID, unsigned int, unsigned short) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetAccountCommunityBanned(bool) override {
+    unknown_ret RequestEncryptedAppTicket(void *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAccountCommunityBanned() override {
+    unknown_ret GetEncryptedAppTicket(void *, int, unsigned int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetLimitedAccountCanInviteFriends(bool) override {
+    unknown_ret GetGameBadgeLevel(int, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret BLimitedAccountCanInviteFriends() override {
+    unknown_ret GetPlayerSteamLevel() override {
         return unknown_ret();
     }
-    virtual unknown_ret SendValidationEmail() override {
+    unknown_ret SetAccountLimited(bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGameConnectTokensAvailable() override {
+    unknown_ret BIsAccountLimited() override {
         return unknown_ret();
     }
-    virtual unknown_ret NumGamesRunning() override {
+    unknown_ret SetAccountCommunityBanned(bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetRunningGameID(int) override {
+    unknown_ret BIsAccountCommunityBanned() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetRunningGamePID(int) override {
+    unknown_ret SetLimitedAccountCanInviteFriends(bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAccountSecurityPolicyFlags() override {
+    unknown_ret BLimitedAccountCanInviteFriends() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetClientStat(EClientStat, long long, unsigned int, unsigned int, unsigned int) override {
+    unknown_ret SendValidationEmail() override {
         return unknown_ret();
     }
-    virtual unknown_ret VerifyPassword(char const *) override {
+    unknown_ret BGameConnectTokensAvailable() override {
         return unknown_ret();
     }
-    virtual unknown_ret BSupportUser() override {
+    unknown_ret NumGamesRunning() override {
         return unknown_ret();
     }
-    virtual unknown_ret BNeedsSSANextSteamLogon() override {
+    unknown_ret GetRunningGameID(int) override {
         return unknown_ret();
     }
-    virtual unknown_ret ClearNeedsSSANextSteamLogon() override {
+    unknown_ret GetRunningGamePID(int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAppOverlayEnabled(CGameID) override {
+    unknown_ret GetAccountSecurityPolicyFlags() override {
         return unknown_ret();
     }
-    virtual unknown_ret BOverlayIgnoreChildProcesses(CGameID) override {
+    unknown_ret SetClientStat(EClientStat, long long, unsigned int, unsigned int, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsBehindNAT() override {
+    unknown_ret VerifyPassword(char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetMicroTxnAppID(unsigned long long) override {
+    unknown_ret BSupportUser() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetMicroTxnOrderID(unsigned long long) override {
+    unknown_ret BNeedsSSANextSteamLogon() override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetMicroTxnPrice(unsigned long long, CAmount *, CAmount *, bool *, CAmount *) override {
+    unknown_ret ClearNeedsSSANextSteamLogon() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetMicroTxnLineItemCount(unsigned long long) override {
+    unknown_ret BIsAppOverlayEnabled(CGameID) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetMicroTxnLineItem(unsigned long long, unsigned int, CAmount *, unsigned int *, char *, unsigned int, int *, unsigned char *, CAmount *, bool *) override {
+    unknown_ret BOverlayIgnoreChildProcesses(CGameID) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsSandboxMicroTxn(unsigned long long, bool *) override {
+    unknown_ret BIsBehindNAT() override {
         return unknown_ret();
     }
-    virtual unknown_ret BMicroTxnRequiresCachedPmtMethod(unsigned long long, bool *) override {
+    unknown_ret GetMicroTxnAppID(unsigned long long) override {
         return unknown_ret();
     }
-    virtual unknown_ret AuthorizeMicroTxn(unsigned long long, EMicroTxnAuthResponse) override {
+    unknown_ret GetMicroTxnOrderID(unsigned long long) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetWalletBalance(bool *, CAmount *, CAmount *) override {
+    unknown_ret BGetMicroTxnPrice(unsigned long long, CAmount *, CAmount *, bool *, CAmount *) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestMicroTxnInfo(unsigned long long) override {
+    unknown_ret GetMicroTxnLineItemCount(unsigned long long) override {
         return unknown_ret();
     }
-    virtual unknown_ret BMicroTxnRefundable(unsigned long long) override {
+    unknown_ret BGetMicroTxnLineItem(unsigned long long, unsigned int, CAmount *, unsigned int *, char *, unsigned int, int *, unsigned char *, CAmount *, bool *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetAppMinutesPlayed(unsigned int, int *, int *) override {
+    unknown_ret BIsSandboxMicroTxn(unsigned long long, bool *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppLastPlayedTime(unsigned int) override {
+    unknown_ret BMicroTxnRequiresCachedPmtMethod(unsigned long long, bool *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppUpdateDisabledSecondsRemaining(unsigned int) override {
+    unknown_ret AuthorizeMicroTxn(unsigned long long, EMicroTxnAuthResponse) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetGuideURL(unsigned int, char *, unsigned int) override {
+    unknown_ret BGetWalletBalance(bool *, CAmount *, CAmount *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BPromptToVerifyEmail() override {
+    unknown_ret RequestMicroTxnInfo(unsigned long long) override {
         return unknown_ret();
     }
-    virtual unknown_ret BPromptToChangePassword() override {
+    unknown_ret BMicroTxnRefundable(unsigned long long) override {
         return unknown_ret();
     }
-    virtual unknown_ret BAccountExtraSecurity() override {
+    unknown_ret BGetAppMinutesPlayed(unsigned int, int *, int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BAccountShouldShowLockUI() override {
+    unknown_ret GetAppLastPlayedTime(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetCountAuthedComputers() override {
+    unknown_ret GetAppUpdateDisabledSecondsRemaining(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BSteamGuardNewMachineNotification() override {
+    unknown_ret BGetGuideURL(unsigned int, char *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetSteamGuardEnabledTime() override {
+    unknown_ret BPromptToVerifyEmail() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetSteamGuardHistoryEntry(int, unsigned int *, unsigned int *, bool *, char *, int, char *, int) override {
+    unknown_ret BPromptToChangePassword() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetSteamGuardNewMachineDialogResponse(bool, bool) override {
+    unknown_ret BAccountExtraSecurity() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetPhoneIsVerified(bool) override {
+    unknown_ret BAccountShouldShowLockUI() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsPhoneVerified() override {
+    unknown_ret GetCountAuthedComputers() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetPhoneIsIdentifying(bool) override {
+    unknown_ret BSteamGuardNewMachineNotification() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsPhoneIdentifying() override {
+    unknown_ret GetSteamGuardEnabledTime() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetPhoneIsRequiringVerification(bool) override {
+    unknown_ret GetSteamGuardHistoryEntry(int, unsigned int *, unsigned int *, bool *, char *, int, char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsPhoneRequiringVerification() override {
+    unknown_ret SetSteamGuardNewMachineDialogResponse(bool, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret ChangeTwoFactorAuthOptions(int) override {
+    unknown_ret SetPhoneIsVerified(bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret Set2ndFactorAuthCode(char const *code, bool a) override {
-        RpcMakeCallIfClient(Set2ndFactorAuthCode, user, code, a) {
-            steamGuardCode = code;
-            return unknown_ret();
-        }
+    unknown_ret BIsPhoneVerified() override {
+        return unknown_ret();
+    }
+    unknown_ret SetPhoneIsIdentifying(bool) override {
+        return unknown_ret();
+    }
+    unknown_ret BIsPhoneIdentifying() override {
+        return unknown_ret();
+    }
+    unknown_ret SetPhoneIsRequiringVerification(bool) override {
+        return unknown_ret();
+    }
+    unknown_ret BIsPhoneRequiringVerification() override {
+        return unknown_ret();
+    }
+    unknown_ret ChangeTwoFactorAuthOptions(int) override {
+        return unknown_ret();
+    }
+    unknown_ret Set2ndFactorAuthCode(char const *, bool) override {
+        return unknown_ret();
+    }
+    unknown_ret SetUserMachineName(char const *) override {
+        return unknown_ret();
+    }
+    unknown_ret GetUserMachineName(char *, int) override {
+        return unknown_ret();
+    }
+    unknown_ret GetEmailDomainFromLogonFailure(char *, int) override {
+        return unknown_ret();
+    }
+    unknown_ret GetDurationControl() override {
+        return unknown_ret();
+    }
+    unknown_ret GetDurationControlForApp(unsigned int) override {
+        return unknown_ret();
+    }
+    unknown_ret BIsSubscribedApp(unsigned int) override {
+        return unknown_ret();
+    }
+    unknown_ret GetSubscribedApps(unsigned int *, unsigned int, bool) override {
+        return unknown_ret();
+    }
+    unknown_ret RegisterActivationCode(char const *) override {
+        return unknown_ret();
+    }
+    unknown_ret AckSystemIM(unsigned long long) override {
+        return unknown_ret();
     }
-    virtual unknown_ret SetUserMachineName(char const *) override {
+    unknown_ret RequestSpecialSurvey(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetUserMachineName(char *, int) override {
+    unknown_ret SendSpecialSurveyResponse(unsigned int, unsigned char const *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetEmailDomainFromLogonFailure(char *, int) override {
+    unknown_ret RequestNotifications() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsSubscribedApp(unsigned int) override {
+    unknown_ret GetAppOwnershipInfo(unsigned int, unsigned int *, unsigned int *, char *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetSubscribedApps(unsigned int *, unsigned int, bool) override {
+    unknown_ret SendGameWebCallback(unsigned int, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret RegisterActivationCode(char const *) override {
+    unknown_ret BIsStreamingUIToRemoteDevice() override {
         return unknown_ret();
     }
-    virtual unknown_ret AckSystemIM(unsigned long long) override {
+    unknown_ret BIsCurrentlyNVStreaming() override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestSpecialSurvey(unsigned int) override {
+    unknown_ret OnBigPictureForStreamingStartResult(bool, void *) override {
         return unknown_ret();
     }
-    virtual unknown_ret SendSpecialSurveyResponse(unsigned int, unsigned char const *, unsigned int) override {
+    unknown_ret OnBigPictureForStreamingDone() override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestNotifications() override {
+    unknown_ret OnBigPictureForStreamingRestarting() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppOwnershipInfo(unsigned int, unsigned int *, unsigned int *, char *) override {
+    unknown_ret StopStreaming(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret SendGameWebCallback(unsigned int, char const *) override {
+    unknown_ret LockParentalLock() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsStreamingUIToRemoteDevice() override {
+    unknown_ret UnlockParentalLock(char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsCurrentlyNVStreaming() override {
+    unknown_ret BIsParentalLockEnabled() override {
         return unknown_ret();
     }
-    virtual unknown_ret OnBigPictureForStreamingStartResult(bool, void *) override {
+    unknown_ret BIsParentalLockLocked() override {
         return unknown_ret();
     }
-    virtual unknown_ret OnBigPictureForStreamingDone() override {
+    unknown_ret BlockApp(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret OnBigPictureForStreamingRestarting() override {
+    unknown_ret UnblockApp(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret StopStreaming(unsigned int) override {
+    unknown_ret BIsAppBlocked(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret LockParentalLock() override {
+    unknown_ret BIsAppInBlockList(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret UnlockParentalLock(char const *) override {
+    unknown_ret BlockFeature(EParentalFeature) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsParentalLockEnabled() override {
+    unknown_ret UnblockFeature(EParentalFeature) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsParentalLockLocked() override {
+    unknown_ret BIsFeatureBlocked(EParentalFeature) override {
         return unknown_ret();
     }
-    virtual unknown_ret BlockApp(unsigned int) override {
+    unknown_ret BIsFeatureInBlockList(EParentalFeature) override {
         return unknown_ret();
     }
-    virtual unknown_ret UnblockApp(unsigned int) override {
+    unknown_ret GetParentalUnlockTime() override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAppBlocked(unsigned int) override {
+    unknown_ret BGetRecoveryEmail(char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAppInBlockList(unsigned int) override {
+    unknown_ret RequestParentalRecoveryEmail() override {
         return unknown_ret();
     }
-    virtual unknown_ret BlockFeature(EParentalFeature) override {
+    unknown_ret BIsLockFromSiteLicense() override {
         return unknown_ret();
     }
-    virtual unknown_ret UnblockFeature(EParentalFeature) override {
+    unknown_ret BGetSerializedParentalSettings(CUtlBuffer *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsFeatureBlocked(EParentalFeature) override {
+    unknown_ret BSetParentalSettings(CUtlBuffer *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsFeatureInBlockList(EParentalFeature) override {
+    unknown_ret BDisableParentalSettings() override {
         return unknown_ret();
     }
-    virtual unknown_ret GetParentalUnlockTime() override {
+    unknown_ret BGetParentalWebToken(CUtlBuffer *, CUtlBuffer *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetRecoveryEmail(char *, int) override {
+    unknown_ret GetCommunityPreference(ECommunityPreference) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestParentalRecoveryEmail() override {
+    unknown_ret SetCommunityPreference(ECommunityPreference, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetSerializedParentalSettings(CUtlBuffer *) override {
+    unknown_ret BCanLogonOfflineMode() override {
         return unknown_ret();
     }
-    virtual unknown_ret BSetParentalSettings(CUtlBuffer *) override {
+    unknown_ret LogOnOfflineMode() override {
         return unknown_ret();
     }
-    virtual unknown_ret BDisableParentalSettings() override {
+    unknown_ret ValidateOfflineLogonTicket(char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetParentalWebToken(CUtlBuffer *, CUtlBuffer *) override {
+    unknown_ret BGetOfflineLogonTicket(char const *, COffline_OfflineLogonTicket *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetCommunityPreference(ECommunityPreference) override {
+    unknown_ret UploadLocalClientLogs() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetCommunityPreference(ECommunityPreference, bool) override {
+    unknown_ret SetAsyncNotificationEnabled(unsigned int, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret BCanLogonOfflineMode() override {
+    unknown_ret BIsOtherSessionPlaying(unsigned int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret LogOnOfflineMode() override {
+    unknown_ret BKickOtherPlayingSession() override {
         return unknown_ret();
     }
-    virtual unknown_ret ValidateOfflineLogonTicket(char const *) override {
+    unknown_ret BIsAccountLockedDown() override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetOfflineLogonTicket(char const *, COffline_OfflineLogonTicket *) override {
+    unknown_ret ClearAndSetAppTags(CGameID, SteamParamStringArray_t const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret UploadLocalClientLogs() override {
+    unknown_ret RemoveAppTag(CGameID, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetAsyncNotificationEnabled(unsigned int, bool) override {
+    unknown_ret AddAppTag(CGameID, char const *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsOtherSessionPlaying(unsigned int *) override {
+    unknown_ret ClearAppTags(CGameID) override {
         return unknown_ret();
     }
-    virtual unknown_ret BKickOtherPlayingSession() override {
+    unknown_ret SetAppHidden(CGameID, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret BIsAccountLockedDown() override {
+    unknown_ret RequestAccountLinkInfo() override {
         return unknown_ret();
     }
-    virtual unknown_ret RemoveAppTag(CGameID, char const *) override {
+    unknown_ret RequestSurveySchedule() override {
         return unknown_ret();
     }
-    virtual unknown_ret AddAppTag(CGameID, char const *) override {
+    unknown_ret RequestNewSteamAnnouncementState() override {
         return unknown_ret();
     }
-    virtual unknown_ret SetAppHidden(CGameID, bool) override {
+    unknown_ret UpdateSteamAnnouncementLastRead(unsigned long long, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestAccountLinkInfo() override {
+    unknown_ret GetMarketEligibility() override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestSurveySchedule() override {
+    unknown_ret UpdateGameVrDllState(CGameID, bool, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestNewSteamAnnouncementState() override {
+    unknown_ret BIsAnyGameOrServiceAppRunning() override {
         return unknown_ret();
     }
-    virtual unknown_ret UpdateSteamAnnouncementLastRead(unsigned long long, unsigned int) override {
+    unknown_ret BGetAppArrayMinutesPlayed(unsigned int *, int, int *, int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetMarketEligibility() override {
+    unknown_ret BGetAppsLastPlayedTime(unsigned int *, int, unsigned int *) override {
         return unknown_ret();
     }
 };

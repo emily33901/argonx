@@ -72,34 +72,40 @@ public:
     ClientAppsMap(UserHandle h) {}
 
     // Inherited via IClientApps
-    virtual unknown_ret GetAppData(unsigned int, char const *, char *, int) override {
+    unknown_ret GetAppData(unsigned int, char const *, char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret SetLocalAppConfig(unsigned int, unsigned char *, int) override {
+    unknown_ret SetLocalAppConfig(unsigned int, unsigned char *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetInternalAppIDFromGameID(CGameID) override {
+    unknown_ret GetInternalAppIDFromGameID(CGameID) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAllOwnedMultiplayerApps(unsigned int *, int) override {
+    unknown_ret GetAllOwnedMultiplayerApps(unsigned int *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppDataSection(unsigned int, int, unsigned char *, int, bool) override {
+    unknown_ret GetAvailableLaunchOptions(unsigned int, unsigned int *, unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret RequestAppInfoUpdate(unsigned int const *, int) override {
+    unknown_ret GetAppDataSection(unsigned int, int, unsigned char *, int, bool) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetDLCCount(unsigned int) override {
+    unknown_ret GetMultipleAppDataSections(unsigned int, int const *, int, unsigned char *, int, bool, int *) override {
         return unknown_ret();
     }
-    virtual unknown_ret BGetDLCDataByIndex(unsigned int, int, unsigned int *, bool *, char *, int) override {
+    unknown_ret RequestAppInfoUpdate(unsigned int const *, int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetAppType(unsigned int) override {
+    unknown_ret GetDLCCount(unsigned int) override {
         return unknown_ret();
     }
-    virtual unknown_ret GetStoreTagLocalization(ELanguage, unsigned int *, int, unsigned char *, int) override {
+    unknown_ret BGetDLCDataByIndex(unsigned int, int, unsigned int *, bool *, char *, int) override {
+        return unknown_ret();
+    }
+    unknown_ret GetAppType(unsigned int) override {
+        return unknown_ret();
+    }
+    unknown_ret GetStoreTagLocalization(ELanguage, unsigned int *, int, unsigned char *, int) override {
         return unknown_ret();
     }
 };
