@@ -539,19 +539,16 @@ using EVoiceResult                      = u32;
 using ELanguage                         = u32;
 using EConfigSubTree                    = u32;
 using EUserNotification                 = u32;
-using EConnectionPriority               = u32;
 using EConnectionPriorityReason         = u32;
 using EParentalFeature                  = u32;
 using ECommunityPreference              = u32;
 using ECurrencyCode                     = u32;
 using EItemStatistic                    = u32;
 using EItemPreviewType                  = u32;
-using EPaymentMethod                    = u32;
 
 using SteamControllerAppSettings_t = u64;
 using EControllerConfigFeature     = u32;
 using EControllerType              = u32;
-using ESteamControllerPad          = u32;
 using EControllerActionOrigin      = u32;
 using EXboxOrigin                  = u32;
 using EControllerSetting           = u32;
@@ -583,14 +580,6 @@ class ControllerSetting;
 struct SteamControllerStatusEvent_t;
 } // namespace Voltroller
 
-using _EMatchMakingType_v001                    = u32;
-using ISteamMatchmakingServerListResponse_v001  = void;
-using ISteamMatchmakingPingResponse             = void;
-using ISteamMatchmakingPlayersResponse          = void;
-using ISteamMatchmakingRulesResponse            = void;
-using MatchMakingKeyValuePair_t                 = void;
-using _ISteamMatchmakingServerListResponse_v001 = void;
-
 using EVRScreenshotType = u32;
 using EScreenshotFile   = u32;
 
@@ -602,11 +591,6 @@ using EVRInitError = u32;
 }
 
 struct GameNotification_t;
-
-namespace ISteamHTMLSurface {
-using EHTMLMouseButton  = u32;
-using EHTMLKeyModifiers = u32;
-} // namespace ISteamHTMLSurface
 
 using EBroadcastRecorderResult = u32;
 using EBroadcastPermission     = u32;
@@ -629,6 +613,12 @@ using EBrowserType = u32;
 enum ESteamIPType {
     k_ESteamIPTypeIPv4 = 0,
     k_ESteamIPTypeIPv6 = 1,
+};
+
+class ISteamHTMLSurface {
+public:
+    using EHTMLMouseButton  = u32;
+    using EHTMLKeyModifiers = u32;
 };
 
 struct SteamIPAddress_t {
@@ -687,14 +677,8 @@ struct SteamIPAddress_t {
     }
 };
 
-using ETrackQueueOrigin = u32;
-
+using ETrackQueueOrigin    = u32;
 using PlayingRepeat_Status = u32;
-using AudioPlayback_Status = u32;
-
-  
-using EP2PSend = u32;
-struct P2PSessionState_t;
 
 using ESteamIPv6ConnectivityProtocol = u32;
 
@@ -702,22 +686,56 @@ using ESteamIPv6ConnectivityProtocol = u32;
 #define STEAMTYPES_H
 #define NO_CSTEAMID_STL
 
+// For matchmakingserverscommon
+#define abstract_class class
+
 #include "Open Steamworks/ESteamError.h"
 
 #include "Open Steamworks/CGameID.h"
 #include "Open Steamworks/CSteamID.h"
 
-#include "Open Steamworks/AppsCommon.h"
-#include "Open Steamworks/FriendsCommon.h"
+#include "Open Steamworks/servernetadr.h"
+
+#include "Open Steamworks/gameserveritem.h"
+
 #include "Open Steamworks/GameServerCommon.h"
+
+#include "Open Steamworks/AppTicketCommon.h"
+#include "Open Steamworks/AppsCommon.h"
+#include "Open Steamworks/BillingCommon.h"
+#include "Open Steamworks/BridgeCommon.h"
+#include "Open Steamworks/ClientCommon.h"
+#include "Open Steamworks/ContentServerCommon.h"
+#include "Open Steamworks/ControllerCommon.h"
+#include "Open Steamworks/FriendsCommon.h"
+#include "Open Steamworks/GameCoordinatorCommon.h"
+#include "Open Steamworks/GameServerStatsCommon.h"
+#include "Open Steamworks/GameStatsCommon.h"
 #include "Open Steamworks/HTTPCommon.h"
 #include "Open Steamworks/InventoryCommon.h"
+#include "Open Steamworks/MasterServerUpdaterCommon.h"
 #include "Open Steamworks/MatchmakingCommon.h"
+#include "Open Steamworks/MatchmakingServersCommon.h"
+#include "Open Steamworks/MusicCommon.h"
+#include "Open Steamworks/NetworkingCommon.h"
+#include "Open Steamworks/OAuthCommon.h"
 #include "Open Steamworks/RemoteStorageCommon.h"
-
+#include "Open Steamworks/ScreenshotsCommon.h"
+#include "Open Steamworks/StreamLauncherCommon.h"
 #include "Open Steamworks/UGCCommon.h"
+#include "Open Steamworks/UnifiedMessagesCommon.h"
 #include "Open Steamworks/UserCommon.h"
 #include "Open Steamworks/UserStatsCommon.h"
 #include "Open Steamworks/UtilsCommon.h"
+
+using _ISteamMatchmakingServerListResponse_v001 = ISteamMatchmakingServerListResponse001;
+using _EMatchMakingType_v001                    = EMatchMakingType;
+
+// using ISteamMatchmakingServerListResponse_v001  = void;
+// using ISteamMatchmakingPingResponse             = void;
+// using ISteamMatchmakingPlayersResponse          = void;
+// using ISteamMatchmakingRulesResponse            = void;
+using MatchMakingKeyValuePair_t = void;
+// using _ISteamMatchmakingServerListResponse_v001 = void;
 
 } // namespace Steam
