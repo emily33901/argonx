@@ -1,3 +1,5 @@
+#include <precompiled.hh>
+
 #include "asyncjob.hh"
 
 namespace Steam {

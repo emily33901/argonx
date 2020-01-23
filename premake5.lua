@@ -162,7 +162,7 @@ workspace "workspace"
         filter {"system:linux"}
             links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl", "protobufs"}
         filter {"system:windows"}
-            links {"cryptopp-static"}
+            links {"cryptopp-static", "protobufs"}
         filter {}
 
         copy_compile_commands()
@@ -201,7 +201,7 @@ workspace "workspace"
         filter {"system:linux"}
             links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl", "protobufs"}
         filter {"system:windows"}
-            links {"cryptopp-static"}
+            links {"cryptopp-static", "protobufs"}
         filter {}
 
         copy_compile_commands()
@@ -237,5 +237,5 @@ workspace "workspace"
               }
 
         filter {"system:linux"}
-            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl"}
+            links {"cryptopp", "pthread", "protobuf", "archive", "zmq", "dl", "protobufs"}
         filter {}

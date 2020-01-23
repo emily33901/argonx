@@ -19,9 +19,11 @@ public:
     unknown_ret __Destructor1() override {
         return unknown_ret();
     }
+#ifdef ARGONX_UNIX
     unknown_ret __Destructor2() override {
         return unknown_ret();
     }
+#endif
     unknown_ret Init() override {
         return unknown_ret();
     }
@@ -145,7 +147,9 @@ using IClientHTMLSurface = ClientHTMLSurface<false>;
 AdaptDeclare(ISteamHTMLSurface004);
 AdaptDefine(ISteamHTMLSurface004, IClientHTMLSurface, "SteamHTMLSurface004") = {
     AdaptPassThrough(IClientHTMLSurface::__Destructor1),
+#ifdef ARGONX_UNIX
     AdaptPassThrough(IClientHTMLSurface::__Destructor2),
+#endif
     AdaptPassThrough(IClientHTMLSurface::Init),
     AdaptPassThrough(IClientHTMLSurface::Shutdown),
     AdaptPassThrough(IClientHTMLSurface::CreateBrowser),
@@ -186,7 +190,9 @@ AdaptDefine(ISteamHTMLSurface004, IClientHTMLSurface, "SteamHTMLSurface004") = {
 AdaptDeclare(ISteamHTMLSurface002);
 AdaptDefine(ISteamHTMLSurface002, IClientHTMLSurface, "SteamHTMLSurface002") = {
     AdaptPassThrough(IClientHTMLSurface::__Destructor1),
+#ifdef ARGONX_UNIX
     AdaptPassThrough(IClientHTMLSurface::__Destructor2),
+#endif
     AdaptPassThrough(IClientHTMLSurface::Init),
     AdaptPassThrough(IClientHTMLSurface::Shutdown),
     AdaptPassThrough(IClientHTMLSurface::CreateBrowser),
@@ -225,7 +231,9 @@ AdaptDefine(ISteamHTMLSurface002, IClientHTMLSurface, "SteamHTMLSurface002") = {
 AdaptDeclare(ISteamHTMLSurface005);
 AdaptDefine(ISteamHTMLSurface005, IClientHTMLSurface, "SteamHTMLSurface005") = {
     AdaptPassThrough(IClientHTMLSurface::__Destructor1),
+#ifdef ARGONX_UNIX
     AdaptPassThrough(IClientHTMLSurface::__Destructor2),
+#endif
     AdaptPassThrough(IClientHTMLSurface::Init),
     AdaptPassThrough(IClientHTMLSurface::Shutdown),
     AdaptPassThrough(IClientHTMLSurface::CreateBrowser),
@@ -267,7 +275,9 @@ AdaptDefine(ISteamHTMLSurface005, IClientHTMLSurface, "SteamHTMLSurface005") = {
 AdaptDeclare(ISteamHTMLSurface003);
 AdaptDefine(ISteamHTMLSurface003, IClientHTMLSurface, "SteamHTMLSurface003") = {
     AdaptPassThrough(IClientHTMLSurface::__Destructor1),
+#ifdef ARGONX_UNIX
     AdaptPassThrough(IClientHTMLSurface::__Destructor2),
+#endif
     AdaptPassThrough(IClientHTMLSurface::Init),
     AdaptPassThrough(IClientHTMLSurface::Shutdown),
     AdaptPassThrough(IClientHTMLSurface::CreateBrowser),
@@ -306,14 +316,10 @@ AdaptDefine(ISteamHTMLSurface003, IClientHTMLSurface, "SteamHTMLSurface003") = {
 };
 AdaptDeclare(ISteamHTMLSurface001);
 AdaptDefine(ISteamHTMLSurface001, IClientHTMLSurface, "SteamHTMLSurface001") = {
-    AdaptCustom(IClientHTMLSurface, unknown_ret, {
-        thisptr->~IClientHTMLSurface();
-        return unknown_ret();
-    }),
-    AdaptCustom(IClientHTMLSurface, unknown_ret, {
-        thisptr->~IClientHTMLSurface();
-        return unknown_ret();
-    }),
+    AdaptPassThrough(IClientHTMLSurface::__Destructor1),
+#ifdef ARGONX_UNIX
+    AdaptPassThrough(IClientHTMLSurface::__Destructor2),
+#endif
     AdaptPassThrough(IClientHTMLSurface::Init),
     AdaptPassThrough(IClientHTMLSurface::Shutdown),
     AdaptPassThrough(IClientHTMLSurface::CreateBrowser),
